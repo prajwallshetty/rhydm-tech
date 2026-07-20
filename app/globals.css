@@ -1,26 +1,194 @@
 @import "tailwindcss";
 
+/* Tailwind v4 has no tailwind.config.js — dark mode is declared as a variant here. */
+@custom-variant dark (&:is(.dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 0.875rem;
+
+  --background: oklch(0.99 0.002 265);
+  --foreground: oklch(0.19 0.012 265);
+
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+
+  --primary: oklch(0.48 0.13 250);
+  --primary-foreground: oklch(0.99 0.002 265);
+
+  --secondary: oklch(0.96 0.006 265);
+  --secondary-foreground: oklch(0.24 0.012 265);
+
+  --muted: oklch(0.96 0.006 265);
+  --muted-foreground: oklch(0.52 0.014 265);
+
+  --accent: oklch(0.95 0.012 250);
+  --accent-foreground: oklch(0.24 0.012 265);
+
+  --destructive: oklch(0.58 0.21 27);
+  --destructive-foreground: oklch(0.99 0.002 265);
+
+  --border: oklch(0.92 0.005 265);
+  --input: oklch(0.92 0.005 265);
+  --ring: oklch(0.48 0.13 250);
+
+  /* Division accents. Overridden per-subtree via [data-division] below. */
+  --brand: oklch(0.48 0.13 250);
+  --brand-foreground: oklch(0.99 0.002 265);
+  --brand-muted: oklch(0.95 0.03 250);
+}
+
+.dark {
+  --background: oklch(0.15 0.008 265);
+  --foreground: oklch(0.97 0.003 265);
+
+  --card: oklch(0.19 0.01 265);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.19 0.01 265);
+  --popover-foreground: var(--foreground);
+
+  --primary: oklch(0.68 0.13 250);
+  --primary-foreground: oklch(0.16 0.01 265);
+
+  --secondary: oklch(0.25 0.012 265);
+  --secondary-foreground: oklch(0.97 0.003 265);
+
+  --muted: oklch(0.25 0.012 265);
+  --muted-foreground: oklch(0.68 0.014 265);
+
+  --accent: oklch(0.28 0.02 250);
+  --accent-foreground: oklch(0.97 0.003 265);
+
+  --destructive: oklch(0.66 0.19 27);
+  --destructive-foreground: oklch(0.16 0.01 265);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.68 0.13 250);
+
+  --brand: oklch(0.68 0.13 250);
+  --brand-foreground: oklch(0.16 0.01 265);
+  --brand-muted: oklch(0.28 0.04 250);
+}
+
+/* Disposal — enterprise teal: security + sustainability. */
+[data-division="disposal"] {
+  --brand: oklch(0.52 0.11 195);
+  --brand-foreground: oklch(0.99 0.002 265);
+  --brand-muted: oklch(0.95 0.03 195);
+  --ring: oklch(0.52 0.11 195);
+}
+.dark [data-division="disposal"] {
+  --brand: oklch(0.72 0.12 195);
+  --brand-foreground: oklch(0.16 0.01 265);
+  --brand-muted: oklch(0.28 0.04 195);
+  --ring: oklch(0.72 0.12 195);
+}
+
+/* Refurbished — commerce indigo. */
+[data-division="refurbished"] {
+  --brand: oklch(0.52 0.19 285);
+  --brand-foreground: oklch(0.99 0.002 265);
+  --brand-muted: oklch(0.95 0.04 285);
+  --ring: oklch(0.52 0.19 285);
+}
+.dark [data-division="refurbished"] {
+  --brand: oklch(0.7 0.16 285);
+  --brand-foreground: oklch(0.16 0.01 265);
+  --brand-muted: oklch(0.29 0.06 285);
+  --ring: oklch(0.7 0.16 285);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-muted: var(--brand-muted);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Tighter tracking on display type. */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.022em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(3%, -4%, 0) scale(1.08);
+    }
+  }
+
+  .animate-drift-slow {
+    animation: drift 22s ease-in-out infinite;
+  }
+
+  .animate-drift-slower {
+    animation: drift 30s ease-in-out infinite reverse;
+  }
+
+  /* Respect users who ask the OS to reduce motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
