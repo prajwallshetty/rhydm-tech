@@ -1,18 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { BarChart3, Check, Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingBag, ShoppingCart } from "lucide-react";
 
 import { ProductThumb } from "@/components/store/product-thumb";
-import { RatingStars } from "@/components/store/rating-stars";
 import { useToast } from "@/components/ui/toast";
-import { MAX_COMPARE, useStore } from "@/lib/store/cart";
-import {
-  conditionShort,
-  discountPercent,
-  formatPrice,
-  stockLabel,
-} from "@/lib/format";
+import { useStore } from "@/lib/store/cart";
+import { conditionShort, formatPrice } from "@/lib/format";
 import type { ProductCardData } from "@/lib/repositories/store";
 import { cn } from "@/lib/utils";
 
@@ -25,57 +19,36 @@ export function ProductCard({
 }) {
   const addToCart = useStore((s) => s.addToCart);
   const toggleWishlist = useStore((s) => s.toggleWishlist);
-  const toggleCompare = useStore((s) => s.toggleCompare);
   const wishlisted = useStore((s) => s.wishlist.includes(product.slug));
-  const comparing = useStore((s) => s.compare.includes(product.slug));
-  const compareFull = useStore(
-    (s) => s.compare.length >= MAX_COMPARE && !s.compare.includes(product.slug),
-  );
   const push = useToast((s) => s.push);
 
-  const discount = discountPercent(product.priceCents, product.compareAtCents);
-  const stock = stockLabel(product.stock);
   const href = `/refurbished/products/${product.slug}`;
+  const brandName = product.brand?.name ?? product.category?.name ?? "RHYDM";
+  const conditionTag = conditionShort(product.condition) || "GRADE_A";
 
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card transition-all duration-300 hover:border-brand/35 hover:shadow-[0_18px_48px_-20px_rgba(0,0,0,0.22)]",
+        "group relative flex h-full flex-col justify-between overflow-hidden rounded-[32px] border border-slate-200 bg-white p-5 sm:p-6 shadow-sm hover:border-slate-300 hover:shadow-2xl transition-all duration-300",
         className,
       )}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted/40 p-4">
-        {/* Two thumbs cross-fade to suggest a second product angle. */}
-        <ProductThumb
-          slug={product.slug}
-          category={product.category.slug}
-          name={product.name}
-          className="absolute inset-4 transition-opacity duration-500 group-hover:opacity-0"
-        />
-        <ProductThumb
-          slug={product.slug}
-          category={product.category.slug}
-          name={`${product.name}, alternate view`}
-          variant="hover"
-          className="absolute inset-4 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        />
-
-        <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
-          {discount != null && (
-            <span className="rounded-full bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground">
-              −{discount}%
+      <div>
+        {/* Inner Light Image Box */}
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-[#F2F4F7] p-5 flex items-center justify-center">
+          {/* Top-Left Condition Badge */}
+          <div className="absolute left-3.5 top-3.5 z-10">
+            <span className="rounded-full bg-[#2E6F40] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
+              {conditionTag}
             </span>
-          )}
-          <span className="rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium backdrop-blur">
-            {conditionShort(product.condition)}
-          </span>
-        </div>
+          </div>
 
-        {/* Secondary actions, revealed on hover but always keyboard-reachable. */}
-        <div className="absolute right-3 top-3 flex flex-col gap-1.5 opacity-0 transition-opacity duration-300 focus-within:opacity-100 group-hover:opacity-100">
+          {/* Top-Right Wishlist Button */}
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               toggleWishlist(product.slug);
               push(
                 wishlisted
@@ -89,114 +62,76 @@ export function ProductCard({
                 ? `Remove ${product.name} from wishlist`
                 : `Save ${product.name} to wishlist`
             }
-            aria-pressed={wishlisted}
-            className="grid size-8 place-items-center rounded-lg bg-background/90 backdrop-blur transition-colors hover:text-brand"
+            className="absolute right-3.5 top-3.5 z-20 grid size-8 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-transform hover:scale-110 active:scale-95 cursor-pointer"
           >
             <Heart
-              className={cn("size-4", wishlisted && "fill-brand text-brand")}
-              strokeWidth={1.8}
+              className={cn(
+                "size-4 transition-colors",
+                wishlisted ? "fill-[#2E6F40] text-[#2E6F40]" : "text-slate-400 hover:text-slate-700",
+              )}
             />
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (compareFull) {
-                push(`Compare list is full (max ${MAX_COMPARE})`);
-                return;
-              }
-              toggleCompare(product.slug);
-              push(
-                comparing
-                  ? `Removed ${product.name} from compare`
-                  : `Added ${product.name} to compare`,
-              );
-            }}
-            aria-label={`Compare ${product.name}`}
-            aria-pressed={comparing}
-            disabled={compareFull}
-            className={cn(
-              "grid size-8 place-items-center rounded-lg bg-background/90 backdrop-blur transition-colors hover:text-brand disabled:opacity-40",
-              comparing && "text-brand",
-            )}
-          >
-            {comparing ? (
-              <Check className="size-4" strokeWidth={2.4} />
-            ) : (
-              <BarChart3 className="size-4" strokeWidth={1.8} />
-            )}
-          </button>
+          {/* Center Product Image / Thumb */}
+          <Link href={href} className="absolute inset-0 flex items-center justify-center p-4">
+            <ProductThumb
+              slug={product.slug}
+              category={product.category.slug}
+              name={product.name}
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+            />
+          </Link>
+        </div>
+
+        {/* Content Section */}
+        <div className="mt-5 space-y-1">
+          {/* Brand Name */}
+          <div className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+            {brandName}
+          </div>
+
+          {/* Product Title */}
+          <h3 className="text-sm font-extrabold text-slate-900 tracking-tight line-clamp-1 group-hover:text-[#2E6F40] transition-colors">
+            <Link href={href} className="focus:outline-none">
+              {product.name}
+            </Link>
+          </h3>
+
+          {/* Description */}
+          {product.shortDescription && (
+            <p className="text-xs text-slate-500 font-normal leading-relaxed line-clamp-2 mt-1">
+              {product.shortDescription}
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          {product.brand?.name ?? product.category.name}
-        </p>
-
-        <h3 className="mt-1.5 text-[15px] font-medium leading-snug">
-          {/* Stretched link keeps the whole card clickable without nesting
-              interactive elements inside an anchor. */}
-          <Link href={href} className="after:absolute after:inset-0">
-            {product.name}
-          </Link>
-        </h3>
-
-        {product.shortDescription && (
-          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-            {product.shortDescription}
-          </p>
-        )}
-
-        {product.ratingCount > 0 && (
-          <div className="mt-3">
-            <RatingStars rating={product.ratingAvg} count={product.ratingCount} />
+      {/* Footer Price & Add Button */}
+      <div className="mt-6 border-t border-slate-100 pt-4 flex items-end justify-between gap-3">
+        <div>
+          <div className="text-lg font-black text-slate-900 tracking-tight">
+            {formatPrice(product.priceCents)}
           </div>
-        )}
-
-        <div className="mt-4 flex items-center gap-2">
-          <span className="rounded-md bg-brand-muted px-2 py-0.5 text-xs font-medium text-brand">
-            {product.warrantyMonths}-mo warranty
-          </span>
-          <span
-            className={cn(
-              "text-xs",
-              stock.tone === "out" && "text-destructive",
-              stock.tone === "low" && "text-amber-600 dark:text-amber-500",
-              stock.tone === "in" && "text-muted-foreground",
-            )}
-          >
-            {stock.label}
-          </span>
+          {product.compareAtCents != null && (
+            <div className="text-xs font-semibold text-slate-400 line-through mt-0.5">
+              {formatPrice(product.compareAtCents)}
+            </div>
+          )}
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-3 pt-5">
-          <div>
-            <p className="text-xl font-semibold tracking-tight">
-              {formatPrice(product.priceCents)}
-            </p>
-            {product.compareAtCents != null && (
-              <p className="text-sm text-muted-foreground line-through">
-                {formatPrice(product.compareAtCents)}
-              </p>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              addToCart(product.slug);
-              push(`Added ${product.name} to cart`);
-            }}
-            disabled={product.stock <= 0}
-            aria-label={`Add ${product.name} to cart`}
-            // relative + z-10 lifts this above the stretched link overlay.
-            className="relative z-10 inline-flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2.5 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ShoppingCart aria-hidden className="size-4" strokeWidth={1.8} />
-            <span className="hidden sm:inline">Add</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            addToCart(product.slug);
+            push(`Added ${product.name} to cart`);
+          }}
+          disabled={product.stock <= 0}
+          aria-label={`Add ${product.name} to cart`}
+          className="relative z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-950 hover:bg-[#2E6F40] px-4.5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+        >
+          <ShoppingCart aria-hidden className="size-3.5" strokeWidth={2} />
+          <span>Add</span>
+        </button>
       </div>
     </article>
   );

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Search, TrendingUp, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { searchAction, type SearchHit } from "@/app/refurbished/search-action";
+import { searchAction, type SearchHit } from "@/app/(refurbished)/refurbished/search-action";
 import { conditionShort, formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 

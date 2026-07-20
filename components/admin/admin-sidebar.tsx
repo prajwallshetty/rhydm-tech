@@ -21,7 +21,7 @@ import {
   Menu,
 } from "lucide-react";
 import { useState } from "react";
-import { logoutAdminAction } from "@/app/admin/actions";
+import { logoutAdminAction } from "@/app/(admin)/admin/actions";
 
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },

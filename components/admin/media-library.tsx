@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Search, Copy, Check, Trash2, Image as ImageIcon } from "lucide-react";
-import { createMediaAssetAction, deleteMediaAssetAction } from "@/app/admin/actions";
+import { createMediaAssetAction, deleteMediaAssetAction } from "@/app/(admin)/admin/actions";
 
 export function MediaLibrary({
   mediaData,

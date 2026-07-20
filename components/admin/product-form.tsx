@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon } from "lucide-react";
-import { saveProductAction } from "@/app/admin/actions";
+import { saveProductAction } from "@/app/(admin)/admin/actions";
 import { ProductCondition, PublishStatus } from "@/lib/generated/prisma/enums";
 
 export function ProductForm({

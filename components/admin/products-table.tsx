@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Plus, Edit, Trash2, CheckSquare, Square, Eye, Sparkles, AlertCircle } from "lucide-react";
-import { bulkDeleteProductsAction, bulkPublishProductsAction, deleteProductAction } from "@/app/admin/actions";
+import { bulkDeleteProductsAction, bulkPublishProductsAction, deleteProductAction } from "@/app/(admin)/admin/actions";
 import { formatMoney } from "@/lib/format";
 import { PublishStatus } from "@/lib/generated/prisma/enums";
 

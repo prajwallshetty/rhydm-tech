@@ -5,7 +5,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { submitContact } from "@/app/disposal/contact/actions";
+import { submitContact } from "@/app/(disposal)/disposal/contact/actions";
 import { Button } from "@/components/ui/button";
 import {
   TOPIC_OPTIONS,
