@@ -4,7 +4,7 @@ Living record of what exists, what is verified, and what is next. **Update this
 as work lands** — it is the handover document between sessions, so it should be
 accurate even when nobody remembers the conversation that produced it.
 
-Last updated: 2026-07-21
+Last updated: 2026-07-22
 
 ---
 
@@ -50,40 +50,53 @@ framework code. The short list:
 | Disposal home | Hero, stats, why-choose-us, services, industries, closing CTA |
 | Disposal pages | `/services`, `/services/[slug]` (SSG, 7 pages), `/process` (scroll-linked timeline), `/industries`, `/certificates`, `/faqs` (accordion + FAQPage JSON-LD), `/contact` |
 | Contact form | React Hook Form + Zod 4, Server Action writing `ContactSubmission` to Neon |
-| Store home | Hero, categories, why-refurbished |
-| Shared UI | Button/ButtonLink (cva), Accordion, Breadcrumbs, PageHeader, Section, FadeIn, 404 |
-| Data layer | Full Prisma schema (29 models), baseline migration, seed script |
-| Database | Neon Postgres — `migrate deploy` applied, seeded, verified |
-| SEO | Per-route metadata, `sitemap.xml`, `robots.txt`, FAQ structured data |
+| Store — catalog data | 21 products across 8 categories, 8 brands, specs, reviews with rating aggregates — `prisma/catalog.ts` + `prisma/seed.ts` |
+| Store — home | Hero, featured, categories, best sellers, deals strip, brands, why-refurbished, reviews, FAQ accordion, newsletter (UI only) |
+| Store — browsing | `/shop` (filters + sort + pagination), `/categories`, `/categories/[slug]`, `/brands`, `/brands/[slug]`, `/deals`, `/search` (instant search dropdown + results page) |
+| Store — product detail | `/products/[slug]` (SSG, 21 pages) — gallery with hover-zoom, specs table, condition report, reviews, related products, JSON-LD |
+| Store — cart & checkout | Zustand-persisted cart/wishlist/compare (slugs + quantities only), `/cart`, 4-step `/checkout` wizard, Server Action recomputing every price from Neon before creating an `Order` |
+| Store — wishlist | `/wishlist` — move to cart, remove, share (Web Share API + clipboard fallback) |
+| Store header | Sticky nav with instant search, cart/wishlist badges, mobile menu |
+| Shared UI | Button/ButtonLink (cva), Accordion, Breadcrumbs, PageHeader, Section, FadeIn, Toast/Toaster, 404 |
+| Data layer | Full Prisma schema (31 models incl. `Review`), 2 migrations, seed script |
+| Database | Neon Postgres — both migrations applied, seeded, verified |
+| SEO | Per-route metadata, `sitemap.xml`, `robots.txt`, FAQ + Product JSON-LD |
 
-Verified end-to-end: a value changed directly in Postgres appeared in the
-rendered HTML at `/disposal`, confirming the full path
-Postgres → Prisma adapter → repository → Server Component → HTML. All 11 routes
-return the expected status (including 404), DB-sourced content was confirmed
-present in the HTML, and the contact schema + write path were exercised against
-Neon (invalid input rejected, valid row written, then cleaned up).
+Verified end-to-end, not just built:
+- A value changed directly in Postgres appeared in rendered HTML at `/disposal`
+  (Postgres → adapter → repository → Server Component → HTML).
+- Every store route returns 200 (11 disposal + 20 store routes checked).
+- **Filters and search were checked against ground-truth Neon query counts**,
+  not just "the page loads": `brand=dell` → 5 (exact match to `groupBy`),
+  `brand=dell&brand=apple` → 7 (5+2, OR-across-values confirmed), `maxPrice`
+  → 9 (exact), category scoping and full-text search each matched a direct
+  Prisma count.
+- Contact and checkout schemas were exercised directly: invalid input
+  rejected, valid input written to Neon, then cleaned up.
 
-> Not yet exercised: the Server Action over HTTP from a real browser. The
-> validation and the database write it performs were tested directly; the thin
-> action wrapper around them was not.
+> Not yet exercised: the checkout Server Action end-to-end from a real browser
+> click (place an order, confirm the `Order` + `OrderItem` rows), and the
+> Server Actions generally over HTTP rather than called directly.
 
 ### Not built yet
 
 **Disposal site:** case studies · testimonials section on the home page · blog ·
 `/about`
 
-**Store:** product listing + filters · product detail + gallery · category
-pages · wishlist · cart · checkout UI · order success · profile · orders ·
-search · comparison · recently viewed
+**Store:** account area (`/account`, addresses, orders, settings, recently
+viewed) · product comparison page (state exists in the Zustand store; no `/compare`
+UI yet) · auth UI (login/register/forgot-password/OTP) · order success is
+inline on `/checkout`, not a separate route
 
 **Admin:** entire panel — dashboard, disposal CMS, products, categories,
 orders, customers, media library, SEO, blogs, settings, analytics
 
-**Shared:** pagination · empty states · loading states (`loading.tsx`) ·
-pricing cards · search
+**Shared:** loading states (`loading.tsx`) · pricing cards
 
-**Cross-cutting:** auth (Auth.js) · media uploads · products are modelled in the
-schema but no product rows are seeded yet
+**Cross-cutting:** auth (Auth.js) · media uploads (product images are
+placeholder gradients generated from category + slug — see
+`components/store/product-thumb.tsx` — no real photography or `ProductImage`
+rows yet)
 
 ---
 
@@ -103,6 +116,25 @@ Follow these rather than re-deriving them:
   `Division` union — an unvalidated value is an open-redirect hole.
 - Brand colour swaps by division via `[data-division]`; do not fork components
   per division.
+- **Cart/wishlist/compare store only slugs and quantities** (`lib/store/cart.ts`,
+  Zustand + persist). Never store price in client state — a tampered
+  localStorage value must not be able to change what anything costs. Prices
+  are always re-resolved server-side (`app/refurbished/cart/actions.ts`) and
+  recomputed again inside the checkout Server Action before an `Order` is
+  created.
+- **Client Components must not import `lib/repositories/*`.** Those modules
+  are `server-only` and pull in Prisma + `pg`; importing one from a Client
+  Component silently bundles the database driver into client JS and breaks
+  the Turbopack build with an opaque chunking error. Shared constants used by
+  both server and client code (e.g. sort options) live in `lib/store/*`
+  instead — see `lib/store/sort.ts`. If a build error mentions `pg` or
+  `@prisma/adapter-pg` inside a `[Client Component Browser]` trace, this is
+  almost certainly the cause.
+- Product imagery is a deterministic placeholder (gradient + SVG glyph keyed
+  by category and slug), not real photography — see
+  `components/store/product-thumb.tsx`. Swap for `<Image>` once `ProductImage`
+  rows carry real URLs; the component signature is designed to make that a
+  local change.
 
 ---
 

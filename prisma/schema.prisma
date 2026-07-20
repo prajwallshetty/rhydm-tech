@@ -328,7 +328,14 @@ model Product {
   description      String?          @db.Text
   stock            Int              @default(0)
   featured         Boolean          @default(false)
+  bestSeller       Boolean          @default(false)
   status           PublishStatus    @default(DRAFT)
+
+  /// Denormalised review aggregates. Recomputing these per request would mean
+  /// an aggregate query per product on every listing page; they are updated
+  /// whenever a review is written.
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
 
   brandId    String?
   categoryId String
@@ -340,6 +347,7 @@ model Product {
   category       Category         @relation(fields: [categoryId], references: [id])
   images         ProductImage[]
   specs          ProductSpec[]
+  reviews        Review[]
   orderItems     OrderItem[]
   wishlistItems  WishlistItem[]
   recentlyViewed RecentlyViewed[]
@@ -347,6 +355,25 @@ model Product {
   @@index([categoryId, status])
   @@index([brandId])
   @@index([featured, status])
+  @@index([bestSeller, status])
+  @@index([priceCents])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String?
+  author    String
+  rating    Int
+  title     String?
+  body      String   @db.Text
+  /// Set when the reviewer's order for this product is confirmed.
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, createdAt])
 }
 
 model ProductImage {

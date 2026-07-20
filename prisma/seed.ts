@@ -11,7 +11,12 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient, Division, PublishStatus } from "../lib/generated/prisma/client";
 import { FEATURES, INDUSTRIES, PROCESS, SERVICES } from "../lib/data/disposal";
-import { CATEGORIES } from "../lib/data/store";
+import {
+  REVIEW_POOL,
+  SEED_BRANDS,
+  SEED_CATEGORIES,
+  SEED_PRODUCTS,
+} from "./catalog";
 
 // Prisma 7 requires an explicit driver adapter.
 const db = new PrismaClient({
@@ -198,10 +203,14 @@ async function main() {
 
   // --- Store catalog ------------------------------------------------------
 
-  for (const [index, category] of CATEGORIES.entries()) {
+  for (const [index, category] of SEED_CATEGORIES.entries()) {
     await db.category.upsert({
       where: { slug: category.slug },
-      update: { name: category.name, description: category.description, position: index },
+      update: {
+        name: category.name,
+        description: category.description,
+        position: index,
+      },
       create: {
         slug: category.slug,
         name: category.name,
@@ -211,8 +220,7 @@ async function main() {
     });
   }
 
-  const brands = ["Dell", "HP", "Lenovo", "Apple", "Cisco"];
-  for (const [index, name] of brands.entries()) {
+  for (const [index, name] of SEED_BRANDS.entries()) {
     await db.brand.upsert({
       where: { slug: slugify(name) },
       update: { name, position: index },
@@ -220,7 +228,141 @@ async function main() {
     });
   }
 
-  console.log("Seed complete.");
+  const categoryIds = new Map(
+    (await db.category.findMany({ select: { id: true, slug: true } })).map(
+      (c) => [c.slug, c.id],
+    ),
+  );
+  const brandIds = new Map(
+    (await db.brand.findMany({ select: { id: true, slug: true } })).map((b) => [
+      b.slug,
+      b.id,
+    ]),
+  );
+
+  for (const [index, item] of SEED_PRODUCTS.entries()) {
+    const categoryId = categoryIds.get(item.category);
+    const brandId = brandIds.get(slugify(item.brand));
+
+    if (!categoryId) {
+      throw new Error(
+        `Product "${item.slug}" references unknown category "${item.category}".`,
+      );
+    }
+
+    const data = {
+      name: item.name,
+      sku: item.sku,
+      priceCents: item.priceCents,
+      compareAtCents: item.compareAtCents ?? null,
+      condition: item.condition,
+      conditionNotes: item.conditionNotes,
+      warrantyMonths: item.warrantyMonths,
+      shortDescription: item.shortDescription,
+      description: item.description,
+      stock: item.stock,
+      featured: item.featured ?? false,
+      bestSeller: item.bestSeller ?? false,
+      status: PublishStatus.PUBLISHED,
+      categoryId,
+      brandId: brandId ?? null,
+    };
+
+    const product = await db.product.upsert({
+      where: { slug: item.slug },
+      update: data,
+      create: { slug: item.slug, ...data },
+    });
+
+    // Specs and reviews are replaced wholesale rather than diffed — the seed
+    // is the source of truth and re-running it should be idempotent.
+    await db.productSpec.deleteMany({ where: { productId: product.id } });
+    await db.productSpec.createMany({
+      data: item.specs.map((spec, position) => ({
+        productId: product.id,
+        group: spec.group,
+        name: spec.name,
+        value: spec.value,
+        position,
+      })),
+    });
+
+    await db.review.deleteMany({ where: { productId: product.id } });
+
+    // Deterministic slice of the pool so each product gets a stable, varied
+    // set of reviews rather than everything looking identical.
+    const reviewCount = 2 + (index % 4);
+    const reviews = Array.from({ length: reviewCount }, (_, i) => {
+      const source = REVIEW_POOL[(index * 3 + i) % REVIEW_POOL.length];
+      return {
+        productId: product.id,
+        author: source.author,
+        rating: source.rating,
+        title: source.title,
+        body: source.body,
+        verified: i % 2 === 0,
+      };
+    });
+
+    await db.review.createMany({ data: reviews });
+
+    const ratingSum = reviews.reduce((total, r) => total + r.rating, 0);
+    await db.product.update({
+      where: { id: product.id },
+      data: {
+        ratingCount: reviews.length,
+        ratingAvg: Number((ratingSum / reviews.length).toFixed(2)),
+      },
+    });
+  }
+
+  const storeFaqs = [
+    {
+      question: "What does 'refurbished' actually mean here?",
+      answer:
+        "Every unit is functionally tested across roughly 40 checkpoints, has its storage sanitised to NIST 800-88, is cleaned, and is then graded on a published cosmetic scale. Nothing is listed on appearance alone.",
+    },
+    {
+      question: "How do the condition grades work?",
+      answer:
+        "Grade A is near-flawless, Grade B has light cosmetic wear that does not affect function, and Grade C shows visible wear at a lower price. Open Box units are unused returns. Each listing also carries a specific condition note.",
+    },
+    {
+      question: "What warranty is included?",
+      answer:
+        "Twelve months return-to-base as standard, with some items carrying 24 months. The exact term is shown on every product page and can be extended to 36 months at checkout once payments are live.",
+    },
+    {
+      question: "Can I return something that isn't right?",
+      answer:
+        "Yes — 30 days from delivery, with no restocking fee. The item needs to come back in the condition it arrived in.",
+    },
+    {
+      question: "Do you supply in bulk for company rollouts?",
+      answer:
+        "We do. For orders above roughly ten units we can match specifications across a batch and stage delivery to your schedule. Contact us before ordering so we can reserve stock.",
+    },
+    {
+      question: "Is the previous owner's data really gone?",
+      answer:
+        "Yes. All storage is erased to NIST 800-88 standards before a device enters the catalog, and drives that fail verification are physically destroyed rather than resold.",
+    },
+  ];
+
+  for (const [index, faq] of storeFaqs.entries()) {
+    const existing = await db.faq.findFirst({
+      where: { question: faq.question, division: Division.REFURBISHED },
+    });
+    if (!existing) {
+      await db.faq.create({
+        data: { ...faq, division: Division.REFURBISHED, position: index },
+      });
+    }
+  }
+
+  console.log(
+    `Seed complete. ${SEED_PRODUCTS.length} products across ${SEED_CATEGORIES.length} categories.`,
+  );
 }
 
 main()

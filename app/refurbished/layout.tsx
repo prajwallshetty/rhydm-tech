@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
+import { StoreHeader } from "@/components/store/store-header";
+import { Toaster } from "@/components/ui/toast";
 import { COMPANY } from "@/lib/business";
 
 export const metadata: Metadata = {
@@ -27,9 +28,10 @@ export default function RefurbishedLayout({
 }) {
   return (
     <div data-division="refurbished" className="flex min-h-dvh flex-col">
-      <SiteHeader division="refurbished" />
+      <StoreHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter division="refurbished" />
+      <Toaster />
     </div>
   );
 }
