@@ -7,9 +7,10 @@
  * module resolution.
  */
 import "dotenv/config";
+import crypto from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-import { PrismaClient, Division, PublishStatus } from "../lib/generated/prisma/client";
+import { PrismaClient, Division, PublishStatus, Role, OrderStatus } from "../lib/generated/prisma/client";
 import { FEATURES, INDUSTRIES, PROCESS, SERVICES } from "../lib/data/disposal";
 import {
   REVIEW_POOL,
@@ -360,8 +361,131 @@ async function main() {
     }
   }
 
+  // --- Admin User & Auth ----------------------------------------------------
+  const adminPasswordHash = crypto.pbkdf2Sync("admin123", "rhydm-salt-2026", 1000, 64, "sha512").toString("hex");
+
+  const adminUser = await db.user.upsert({
+    where: { email: "admin@rhydm.tech" },
+    update: {
+      role: Role.ADMIN,
+      passwordHash: adminPasswordHash,
+    },
+    create: {
+      email: "admin@rhydm.tech",
+      name: "Rhydm Admin",
+      role: Role.ADMIN,
+      passwordHash: adminPasswordHash,
+      phone: "+1 (555) 019-2831",
+      company: "Rhydm Technologies",
+    },
+  });
+
+  // --- Sample Customers & Orders -------------------------------------------
+  const customerPasswordHash = crypto.pbkdf2Sync("customer123", "rhydm-salt-2026", 1000, 64, "sha512").toString("hex");
+
+  const cust1 = await db.user.upsert({
+    where: { email: "sarah.chen@techcorp.io" },
+    update: {},
+    create: {
+      email: "sarah.chen@techcorp.io",
+      name: "Sarah Chen",
+      role: Role.CUSTOMER,
+      passwordHash: customerPasswordHash,
+      phone: "+1 (555) 234-5678",
+      company: "TechCorp Labs",
+    },
+  });
+
+  const cust2 = await db.user.upsert({
+    where: { email: "marcus.v@innovate.co" },
+    update: {},
+    create: {
+      email: "marcus.v@innovate.co",
+      name: "Marcus Vance",
+      role: Role.CUSTOMER,
+      passwordHash: customerPasswordHash,
+      phone: "+1 (555) 876-5432",
+      company: "Innovate Co",
+    },
+  });
+
+  // Sample Address
+  const addr1 = await db.address.findFirst({ where: { userId: cust1.id } });
+  if (!addr1) {
+    await db.address.create({
+      data: {
+        userId: cust1.id,
+        fullName: "Sarah Chen",
+        phone: "+1 (555) 234-5678",
+        line1: "100 Tech Park Way",
+        line2: "Suite 400",
+        city: "San Francisco",
+        region: "CA",
+        postalCode: "94107",
+        country: "US",
+        isDefault: true,
+      },
+    });
+  }
+
+  // Sample Order
+  const existingOrder = await db.order.findFirst({ where: { orderNumber: "ORD-2026-1001" } });
+  if (!existingOrder) {
+    const product = await db.product.findFirst();
+    if (product) {
+      await db.order.create({
+        data: {
+          orderNumber: "ORD-2026-1001",
+          userId: cust1.id,
+          email: cust1.email,
+          status: OrderStatus.CONFIRMED,
+          subtotalCents: product.priceCents,
+          shippingCents: 1500,
+          taxCents: Math.round(product.priceCents * 0.08),
+          totalCents: product.priceCents + 1500 + Math.round(product.priceCents * 0.08),
+          shippingAddress: {
+            fullName: "Sarah Chen",
+            line1: "100 Tech Park Way",
+            city: "San Francisco",
+            region: "CA",
+            postalCode: "94107",
+            country: "US",
+          },
+          notes: "Customer requested signature on delivery.",
+          items: {
+            create: [
+              {
+                productId: product.id,
+                name: product.name,
+                sku: product.sku,
+                priceCents: product.priceCents,
+                quantity: 1,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }
+
+  // --- Sample Blog Posts ---------------------------------------------------
+  const sampleBlog = await db.post.findFirst({ where: { slug: "sustainable-it-asset-disposal-2026" } });
+  if (!sampleBlog) {
+    await db.post.create({
+      data: {
+        slug: "sustainable-it-asset-disposal-2026",
+        title: "The Ultimate Guide to Sustainable IT Asset Disposal in 2026",
+        excerpt: "Discover best practices for e-waste reduction, data destruction compliance, and maximizing residual value from legacy hardware.",
+        content: "Enterprise IT leaders face dual mandates in 2026: stringent data protection regulations and ambitious ESG net-zero goals. Proper IT Asset Disposition (ITAD) sits right at the intersection of both commitments.",
+        status: PublishStatus.PUBLISHED,
+        publishedAt: new Date(),
+        authorId: adminUser.id,
+      },
+    });
+  }
+
   console.log(
-    `Seed complete. ${SEED_PRODUCTS.length} products across ${SEED_CATEGORIES.length} categories.`,
+    `Seed complete. Admin user ready: admin@rhydm.tech / admin123. ${SEED_PRODUCTS.length} products seeded.`,
   );
 }
 

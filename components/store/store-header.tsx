@@ -7,6 +7,7 @@ import { Heart, Menu, ShoppingCart, User, X } from "lucide-react";
 
 import { Logo } from "@/components/brand/logo";
 import { SearchBox } from "@/components/store/search-box";
+import { FloatingNav } from "@/components/store/floating-nav";
 import { SwitchBusiness } from "@/components/layout/switch-business";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { cartCount, useStore } from "@/lib/store/cart";
@@ -19,6 +20,11 @@ export function StoreHeader() {
 
   const cart = useStore((s) => s.cart);
   const wishlist = useStore((s) => s.wishlist);
+
+  // Use floating pill navbar on the refurbished homepage
+  if (pathname === "/refurbished") {
+    return <FloatingNav />;
+  }
 
   const items = NAV.refurbished;
   const isActive = (href: string) => pathname.startsWith(href);

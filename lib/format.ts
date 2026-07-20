@@ -25,6 +25,8 @@ export function formatPriceExact(cents: number) {
   return preciseCurrencyFormatter.format(cents / 100);
 }
 
+export const formatMoney = formatPriceExact;
+
 /** Whole-percent saving, or null when there is no comparison price. */
 export function discountPercent(
   priceCents: number,

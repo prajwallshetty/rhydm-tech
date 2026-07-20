@@ -18,7 +18,7 @@ deployment, no subdomains**:
 | `/`            | Full-screen business selection gateway (the entry point) |
 | `/disposal`    | Enterprise IT asset disposal site                        |
 | `/refurbished` | Refurbished electronics store (no payment gateway)       |
-| `/admin`       | Shared admin panel for both divisions — not built yet    |
+| `/admin`       | Protected shared admin panel for both divisions — Dashboard, Products, Categories, Brands, Orders, Customers, Disposal CMS, Blogs, Media, SEO, Settings, Analytics |
 
 ## Stack
 
