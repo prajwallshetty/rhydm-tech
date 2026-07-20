@@ -25,6 +25,29 @@ export async function getServices() {
   });
 }
 
+export async function getServiceBySlug(slug: string) {
+  return db.disposalService.findFirst({
+    where: { slug, status: PublishStatus.PUBLISHED },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      summary: true,
+      body: true,
+      icon: true,
+    },
+  });
+}
+
+/** Slugs for `generateStaticParams` on the service detail route. */
+export async function getServiceSlugs() {
+  const rows = await db.disposalService.findMany({
+    where: { status: PublishStatus.PUBLISHED },
+    select: { slug: true },
+  });
+  return rows.map((row) => row.slug);
+}
+
 export async function getProcessSteps() {
   return db.processStep.findMany({
     orderBy: { step: "asc" },
