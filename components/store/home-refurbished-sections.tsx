@@ -53,37 +53,7 @@ export function HomeRefurbishedSections({
     }
   };
 
-  // Ather Energy style 4 Editorial Cards Data
-  const editorialCards = [
-    {
-      title: "Enterprise Laptops",
-      subtitle: "Built for Business",
-      image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1000&auto=format&fit=crop",
-      href: "/refurbished/categories/laptops",
-      tag: "FLAGSHIP",
-    },
-    {
-      title: "Gaming & Workstations",
-      subtitle: "Maximum Performance",
-      image: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?q=80&w=1000&auto=format&fit=crop",
-      href: "/refurbished/categories/desktops",
-      tag: "PRO GRADE",
-    },
-    {
-      title: "Networking Equipment",
-      subtitle: "High-Speed Infrastructure",
-      image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=1000&auto=format&fit=crop",
-      href: "/refurbished/categories/networking",
-      tag: "ENTERPRISE",
-    },
-    {
-      title: "Storage Solutions",
-      subtitle: "Enterprise Grade Data",
-      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1000&auto=format&fit=crop",
-      href: "/refurbished/categories/storage",
-      tag: "SECURE",
-    },
-  ];
+
 
   // Why Choose Us Feature Cards
   const featureCards = [
@@ -177,65 +147,7 @@ export function HomeRefurbishedSections({
         </div>
       </section>
 
-      {/* 2. Ather Energy Style 4 Editorial Cards */}
-      <section className="mx-auto max-w-7xl px-6 space-y-6">
-        <div className="border-b border-slate-200 pb-4">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#2E6F40]">Featured Collections</span>
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl mt-1">
-            Engineered for High-Performance Work
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {editorialCards.map((card, idx) => (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: idx * 0.1 }}
-              whileHover={{ scale: 1.01 }}
-              className="group relative h-[420px] w-full overflow-hidden rounded-[40px] shadow-2xl"
-            >
-              {/* Image */}
-              <img
-                src={card.image}
-                alt={card.title}
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-
-              {/* Solid Tint Overlay (No Gradient) */}
-              <div className="absolute inset-0 bg-slate-950/60 p-8 sm:p-10 flex flex-col justify-between" />
-
-              {/* Content */}
-              <div className="relative z-10 flex items-start justify-between">
-                <span className="rounded-full bg-white/20 backdrop-blur-md px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-white border border-white/30">
-                  {card.tag}
-                </span>
-              </div>
-
-              <div className="relative z-10 space-y-3">
-                <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    {card.title}
-                  </h3>
-                  <p className="text-sm font-semibold text-slate-300 mt-1">
-                    {card.subtitle}
-                  </p>
-                </div>
-
-                <Link
-                  href={card.href}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-xs font-bold text-slate-900 shadow-xl hover:bg-[#2E6F40] hover:text-white transition-all hover:scale-105 active:scale-95"
-                >
-                  <span>Explore Collection</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {/* 2. Featured Products */}
 
       {/* 3. Featured Products */}
       <section className="mx-auto max-w-7xl px-6">

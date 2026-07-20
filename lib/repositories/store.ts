@@ -184,55 +184,88 @@ export async function getProductsBySlugs(slugs: string[]) {
 }
 
 export async function getFeaturedProducts(take = 8) {
-  return db.product.findMany({
-    where: { status: PublishStatus.PUBLISHED, featured: true },
-    orderBy: { ratingCount: "desc" },
-    take,
-    select: CARD_SELECT,
-  });
+  try {
+    const featured = await db.product.findMany({
+      where: { status: PublishStatus.PUBLISHED, featured: true },
+      orderBy: { ratingCount: "desc" },
+      take,
+      select: CARD_SELECT,
+    });
+    if (featured.length > 0) return featured;
+    return await db.product.findMany({
+      where: { status: PublishStatus.PUBLISHED },
+      orderBy: { createdAt: "desc" },
+      take,
+      select: CARD_SELECT,
+    });
+  } catch (err) {
+    console.error("Error fetching featured products:", err);
+    return [];
+  }
 }
 
 export async function getBestSellers(take = 8) {
-  return db.product.findMany({
-    where: { status: PublishStatus.PUBLISHED, bestSeller: true },
-    orderBy: { ratingAvg: "desc" },
-    take,
-    select: CARD_SELECT,
-  });
+  try {
+    const sellers = await db.product.findMany({
+      where: { status: PublishStatus.PUBLISHED, bestSeller: true },
+      orderBy: { ratingAvg: "desc" },
+      take,
+      select: CARD_SELECT,
+    });
+    if (sellers.length > 0) return sellers;
+    return await db.product.findMany({
+      where: { status: PublishStatus.PUBLISHED },
+      orderBy: { priceCents: "desc" },
+      take,
+      select: CARD_SELECT,
+    });
+  } catch (err) {
+    console.error("Error fetching best sellers:", err);
+    return [];
+  }
 }
 
 /** Biggest percentage savings — powers the deals page. */
 export async function getDeals(take = 12) {
-  const items = await db.product.findMany({
-    where: { status: PublishStatus.PUBLISHED, compareAtCents: { not: null } },
-    select: CARD_SELECT,
-  });
+  try {
+    const items = await db.product.findMany({
+      where: { status: PublishStatus.PUBLISHED, compareAtCents: { not: null } },
+      select: CARD_SELECT,
+    });
 
-  return items
-    .map((item) => ({
-      item,
-      saving:
-        item.compareAtCents != null
-          ? (item.compareAtCents - item.priceCents) / item.compareAtCents
-          : 0,
-    }))
-    .sort((a, b) => b.saving - a.saving)
-    .slice(0, take)
-    .map((entry) => entry.item);
+    return items
+      .map((item) => ({
+        item,
+        saving:
+          item.compareAtCents != null
+            ? (item.compareAtCents - item.priceCents) / item.compareAtCents
+            : 0,
+      }))
+      .sort((a, b) => b.saving - a.saving)
+      .slice(0, take)
+      .map((entry) => entry.item);
+  } catch (err) {
+    console.error("Error fetching deals:", err);
+    return [];
+  }
 }
 
 export async function getCategories() {
-  return db.category.findMany({
-    orderBy: { position: "asc" },
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      description: true,
-      _count: { select: { products: { where: { status: PublishStatus.PUBLISHED } } } },
-    },
-  });
+  try {
+    return await db.category.findMany({
+      orderBy: { position: "asc" },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching categories:", err);
+    return [];
+  }
 }
+
 
 export async function getCategoryBySlug(slug: string) {
   return db.category.findUnique({

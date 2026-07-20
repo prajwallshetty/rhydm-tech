@@ -57,10 +57,26 @@ export function HeroRefurbishedMotion() {
       onMouseLeave={handleMouseLeave}
       className="relative min-h-screen w-full overflow-hidden bg-white text-slate-900 pt-28 pb-16 flex flex-col justify-between"
     >
-      {/* Background Radial Ambient Glows */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 right-10 h-[500px] w-[500px] rounded-full bg-[#2E6F40]/10 blur-[120px]" />
-        <div className="absolute top-1/3 left-1/4 h-[400px] w-[400px] rounded-full bg-blue-500/5 blur-[100px]" />
+      {/* Background Radial Ambient Glows & Fine Grid (Same backdrop as Gateway with Green Touch) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Soft drifting green color fields */}
+        <div className="animate-drift-slow absolute -left-40 -top-40 size-[38rem] rounded-full bg-[#2E6F40]/16 blur-3xl" />
+        <div className="animate-drift-slower absolute -right-40 top-20 size-[34rem] rounded-full bg-[#2E6F40]/12 blur-3xl" />
+        <div className="animate-drift-slow absolute bottom-[-18rem] left-1/3 size-[32rem] rounded-full bg-[#2E6F40]/10 blur-3xl" />
+
+        {/* Fine grid pattern, faded out toward edges with subtle green lines */}
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(46, 111, 64, 0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(46, 111, 64, 0.12) 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
+            maskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 75%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 75%)",
+          }}
+        />
       </div>
 
       {/* Main Hero Container */}

@@ -20,33 +20,36 @@ export const metadata: Metadata = {
 
 export default function GatewayPage() {
   return (
-    <main className="relative flex min-h-dvh flex-1 flex-col items-center justify-center overflow-hidden px-6 py-16 sm:py-20">
+    <main className="relative flex h-screen min-h-screen w-full flex-col items-center justify-between overflow-hidden px-6 py-6 sm:py-8 font-sans">
       <GatewayBackdrop />
 
-      <div className="relative w-full max-w-5xl">
+      <div className="relative w-full max-w-4xl flex-1 flex flex-col justify-between my-auto py-2">
+        {/* Top Header Logo */}
         <FadeIn className="flex justify-center">
           <Logo />
         </FadeIn>
 
-        <FadeIn delay={0.1} className="mt-12 text-center sm:mt-14">
-          <h1 className="mx-auto max-w-2xl text-pretty text-4xl font-semibold tracking-tight sm:text-5xl md:text-[3.5rem] md:leading-[1.05]">
+        {/* Title & Subtitle */}
+        <FadeIn delay={0.1} className="text-center mt-4 sm:mt-6 space-y-2">
+          <h1 className="mx-auto max-w-2xl text-pretty text-3xl font-black tracking-tight sm:text-4xl md:text-[2.75rem] leading-tight text-slate-900 dark:text-white">
             Choose the service you&rsquo;re looking for
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-            We provide secure IT asset disposal services and premium refurbished
-            electronics.
+          <p className="mx-auto max-w-xl text-pretty text-xs sm:text-sm leading-relaxed text-muted-foreground">
+            We provide secure IT asset disposal services and premium refurbished electronics.
           </p>
         </FadeIn>
 
-        <div className="mt-14 grid gap-6 sm:mt-16 md:grid-cols-2 md:gap-8">
+        {/* Gateway Cards Grid */}
+        <div className="mt-6 grid gap-6 md:grid-cols-2 items-stretch flex-1 max-h-[460px]">
           {DIVISION_LIST.map((division, index) => (
             <GatewayCard key={division.slug} division={division} index={index} />
           ))}
         </div>
 
-        <FadeIn delay={0.6} className="mt-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            You can switch between services at any time from the header.
+        {/* Bottom Switch Note */}
+        <FadeIn delay={0.4} className="mt-6 text-center">
+          <p className="text-xs text-muted-foreground">
+            You can switch between services at any time from the top navigation header.
           </p>
         </FadeIn>
       </div>
