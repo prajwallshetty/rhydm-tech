@@ -1,68 +1,76 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from "motion/react";
-import { ArrowRight, ShieldCheck, RefreshCw, Truck, Award, CheckCircle2 } from "lucide-react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+} from "motion/react";
+import {
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  RotateCcw,
+  Truck,
+} from "lucide-react";
 
 export function HeroRefurbishedMotion() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll Parallax Transforms
+  // Scroll animations for subtle scale/fade as user scrolls down
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
   });
 
-  const rawY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const rawScale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
+  const rawY = useTransform(scrollYProgress, [0, 1], [0, 100]);
   const rawOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const rawScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
 
-  const y = useSpring(rawY, { stiffness: 200, damping: 25 });
-  const scale = useSpring(rawScale, { stiffness: 200, damping: 25 });
-  const opacity = useSpring(rawOpacity, { stiffness: 200, damping: 25 });
+  const y = useSpring(rawY, { stiffness: 100, damping: 20 });
+  const opacity = useSpring(rawOpacity, { stiffness: 100, damping: 20 });
+  const scale = useSpring(rawScale, { stiffness: 100, damping: 20 });
 
-  // Mouse Parallax Rotation Physics
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 150, damping: 20 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 150, damping: 20 });
+  // Mouse parallax motion for 3D hero tilt
+  const mouseX = useTransform(scrollYProgress, [0, 1], [0, 0]);
+  const rotateX = useTransform(mouseX, [-0.5, 0.5], [5, -5]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-5, 5]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
-    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(xPct);
-    mouseY.set(yPct);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const yPos = (e.clientY - rect.top) / rect.height - 0.5;
+    rotateX.set(-yPos * 8);
+    rotateY.set(x * 8);
   };
 
   const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
+    rotateX.set(0);
+    rotateY.set(0);
   };
 
   const trustBadges = [
-    { icon: Award, label: "12 Months Warranty" },
-    { icon: ShieldCheck, label: "Certified Quality" },
-    { icon: RefreshCw, label: "30 Days Return" },
+    { icon: ShieldCheck, label: "12 Months Warranty" },
+    { icon: CheckCircle2, label: "Certified Quality" },
+    { icon: RotateCcw, label: "30 Days Return" },
     { icon: Truck, label: "Secure Delivery" },
   ];
 
   return (
-    <section
+    <div
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen w-full overflow-hidden bg-white text-slate-900 pt-28 pb-16 flex flex-col justify-between"
+      className="relative min-h-[90vh] w-full overflow-hidden bg-white text-slate-900 pt-28 pb-16 flex flex-col justify-between"
     >
       {/* Background Radial Ambient Glows & Fine Grid (Same backdrop as Gateway with Green Touch) */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Soft drifting green color fields */}
-        <div className="animate-drift-slow absolute -left-40 -top-40 size-[38rem] rounded-full bg-[#2E6F40]/16 blur-3xl" />
-        <div className="animate-drift-slower absolute -right-40 top-20 size-[34rem] rounded-full bg-[#2E6F40]/12 blur-3xl" />
-        <div className="animate-drift-slow absolute bottom-[-18rem] left-1/3 size-[32rem] rounded-full bg-[#2E6F40]/10 blur-3xl" />
+        <div className="animate-drift-slow absolute -left-40 -top-40 size-[38rem] rounded-full bg-[#2E6F40]/14 blur-3xl" />
+        <div className="animate-drift-slower absolute -right-40 top-20 size-[34rem] rounded-full bg-[#2E6F40]/10 blur-3xl" />
+        <div className="animate-drift-slow absolute bottom-[-18rem] left-1/3 size-[32rem] rounded-full bg-[#2E6F40]/8 blur-3xl" />
 
         {/* Fine grid pattern, faded out toward edges with subtle green lines */}
         <div
@@ -80,62 +88,61 @@ export function HeroRefurbishedMotion() {
       </div>
 
       {/* Main Hero Container */}
-      <div className="relative mx-auto max-w-7xl px-6 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <div className="relative mx-auto max-w-7xl px-6 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Column: Typography & CTAs */}
         <motion.div
           style={{ opacity }}
-          className="lg:col-span-5 space-y-6 z-10"
+          className="lg:col-span-5 space-y-7 z-10"
         >
-          {/* Badge */}
+          {/* Sleek Glass Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
           >
-            <div className="inline-flex items-center gap-2.5">
-              <span className="h-0.5 w-6 bg-[#2E6F40] rounded-full" />
-              <span className="text-xs font-extrabold tracking-widest text-[#2E6F40] uppercase">
-                PREMIUM REFURBISHED TECH
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#2E6F40]/10 border border-[#2E6F40]/20 px-3.5 py-1.5 backdrop-blur-md">
+              <span className="size-2 rounded-full bg-[#2E6F40] animate-pulse" />
+              <span className="text-[11px] font-bold tracking-widest text-[#2E6F40] uppercase">
+                ENTERPRISE CERTIFIED REFURBISHED
               </span>
             </div>
           </motion.div>
 
-          {/* Headings */}
+          {/* Premium Headline */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="space-y-1"
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="space-y-2"
           >
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl leading-[1.05]">
-              Premium Refurbished Technology.
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.08] text-slate-900">
+              Next-Gen Refurbished Tech.{" "}
+              <span className="text-[#2E6F40] block mt-1 font-bold">
+                Built for Professionals.
+              </span>
             </h1>
-            <p className="text-3xl font-extrabold tracking-tight text-[#2E6F40] sm:text-4xl md:text-5xl">
-              Built for professionals.
-            </p>
           </motion.div>
 
-          {/* Paragraph */}
+          {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
             className="max-w-xl text-base sm:text-lg text-slate-600 leading-relaxed font-normal"
           >
-            Professionally tested. Warranty included. Better for your business. Better for the planet.
+            Professionally tested enterprise laptops & workstations. Complete with 12-month warranty & carbon-neutral delivery.
           </motion.p>
 
           {/* Action Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-wrap items-center gap-4 pt-2"
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="flex flex-wrap items-center gap-3.5 pt-1"
           >
             <Link
               href="/refurbished/shop"
-              style={{ backgroundColor: "#2E6F40" }}
-              className="group flex items-center gap-2.5 rounded-full px-8 py-4 text-sm font-bold text-white shadow-xl shadow-[#2E6F40]/25 hover:brightness-110 transition-all hover:scale-105 active:scale-95"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-[#2E6F40] hover:bg-[#255833] px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#2E6F40]/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
               <span>Explore Collection</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -143,7 +150,7 @@ export function HeroRefurbishedMotion() {
 
             <Link
               href="/refurbished/shop?sort=best-selling"
-              className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-8 py-4 text-sm font-bold text-slate-800 shadow-sm hover:border-slate-400 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50/80 hover:bg-slate-100 px-7 py-3.5 text-sm font-semibold text-slate-900 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
               <span>View Best Sellers</span>
             </Link>
@@ -153,8 +160,8 @@ export function HeroRefurbishedMotion() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-200/80 pt-8 mt-8"
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-200/80 pt-6 mt-6"
           >
             {trustBadges.map((badge, idx) => {
               const Icon = badge.icon;
@@ -163,7 +170,7 @@ export function HeroRefurbishedMotion() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2E6F40]/10 text-[#2E6F40] shrink-0">
                     <Icon className="h-4 w-4" />
                   </div>
-                  <span className="text-xs font-semibold text-slate-700 leading-tight">
+                  <span className="text-xs font-bold text-slate-800 leading-tight">
                     {badge.label}
                   </span>
                 </div>
@@ -200,6 +207,6 @@ export function HeroRefurbishedMotion() {
           </motion.div>
         </motion.div>
       </div>
-    </section>
+    </div>
   );
 }
