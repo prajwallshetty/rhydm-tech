@@ -26,6 +26,105 @@ import { formatMoney } from "@/lib/format";
 import { useStore } from "@/lib/store/cart";
 import { ProductCard } from "@/components/store/product-card";
 
+import { useState, useRef } from "react";
+
+function CategoryCard({
+  cat,
+  index,
+  getCategoryIcon,
+}: {
+  cat: any;
+  index: number;
+  getCategoryIcon: (slug: string) => any;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+  const [spotlightPos, setSpotlightPos] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const IconComponent = getCategoryIcon(cat.slug);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setSpotlightPos({ x, y });
+
+    // Subtle 3D Tilt calculation
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    setRotateX(-((y - centerY) / centerY) * 6);
+    setRotateY(((x - centerX) / centerX) * 6);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setRotateX(0);
+    setRotateY(0);
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.05 }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+        transition: "transform 0.15s ease-out",
+      }}
+      className="group relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-slate-50/40 p-6 shadow-2xs transition-all duration-300 hover:border-[#2E6F40]/30 hover:bg-white hover:shadow-xl hover:shadow-[#2E6F40]/5"
+    >
+      {/* Spotlight overlay */}
+      <div
+        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: isHovered
+            ? `radial-gradient(350px circle at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(46, 111, 64, 0.08), transparent 80%)`
+            : "",
+        }}
+      />
+
+      <div className="relative z-10 flex flex-col justify-between h-full min-h-[170px]">
+        <div className="flex items-start justify-between">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-100 text-[#2E6F40] shadow-2xs transition-all duration-300 group-hover:scale-110 group-hover:bg-[#2E6F40] group-hover:text-white group-hover:shadow-md group-hover:shadow-[#2E6F40]/25">
+            <IconComponent className="h-5 w-5" />
+          </div>
+          <span className="text-[10px] font-black text-[#2E6F40] bg-[#2E6F40]/10 border border-[#2E6F40]/10 rounded-full px-3 py-1 uppercase tracking-wider">
+            {cat._count?.products || "0"} Units
+          </span>
+        </div>
+
+        <div className="mt-6 space-y-1">
+          <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#2E6F40] transition-colors tracking-tight">
+            {cat.name}
+          </h3>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+            {cat.description || `Explore our high-quality premium certified refurbished ${cat.name.toLowerCase()}.`}
+          </p>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-slate-100/60 flex items-center justify-between">
+          <Link
+            href={`/refurbished/categories/${cat.slug}`}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2E6F40] hover:text-[#255833] transition-colors"
+          >
+            <span>Explore Collection</span>
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export function HomeRefurbishedSections({
   categories,
   featuredProducts,
@@ -110,40 +209,9 @@ export function HomeRefurbishedSections({
         </div>
 
         <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {categories.map((cat, idx) => {
-            const IconComponent = getCategoryIcon(cat.slug);
-            return (
-              <motion.div
-                key={cat.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.05 }}
-                whileHover={{ y: -6, scale: 1.02 }}
-              >
-                <Link
-                  href={`/refurbished/categories/${cat.slug}`}
-                  className="group flex flex-col justify-between rounded-[32px] border border-slate-200/80 bg-slate-50/60 p-6 shadow-sm hover:border-[#2E6F40]/40 hover:bg-white hover:shadow-xl hover:shadow-[#2E6F40]/5 transition-all duration-300 h-full min-h-[160px]"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 text-[#2E6F40] shadow-sm group-hover:scale-110 group-hover:bg-[#2E6F40] group-hover:text-white transition-all">
-                      <IconComponent className="h-6 w-6" />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-400 bg-slate-200/60 rounded-full px-2.5 py-0.5">
-                      {cat._count?.products || "50+"} Units
-                    </span>
-                  </div>
-
-                  <div className="mt-4">
-                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#2E6F40] transition-colors">
-                      {cat.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Explore collection →</p>
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
+          {categories.map((cat, idx) => (
+            <CategoryCard key={cat.id} cat={cat} index={idx} getCategoryIcon={getCategoryIcon} />
+          ))}
         </div>
       </section>
 

@@ -23,9 +23,18 @@ enum Division {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
-  STAFF
+  MANAGER
+  EDITOR
   CUSTOMER
+  STAFF
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
 }
 
 enum PublishStatus {
@@ -35,31 +44,41 @@ enum PublishStatus {
 }
 
 // ---------------------------------------------------------------------------
-// Auth (Auth.js / NextAuth Prisma adapter shape)
+// Auth (Auth.js / NextAuth Prisma adapter shape + Enterprise Extensions)
 // ---------------------------------------------------------------------------
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
+  firstName     String?
+  lastName      String?
   name          String?
-  email         String    @unique
+  email         String     @unique
   emailVerified DateTime?
   image         String?
+  googleId      String?    @unique
   passwordHash  String?
-  role          Role      @default(CUSTOMER)
+  role          Role       @default(CUSTOMER)
+  status        UserStatus @default(ACTIVE)
   phone         String?
   company       String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  addresses      Address[]
-  orders         Order[]
-  wishlistItems  WishlistItem[]
-  recentlyViewed RecentlyViewed[]
-  posts          Post[]
+  accounts                Account[]
+  sessions                Session[]
+  addresses               Address[]
+  orders                  Order[]
+  wishlistItems           WishlistItem[]
+  recentlyViewed          RecentlyViewed[]
+  posts                   Post[]
+  auditLogs               AuditLog[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
 
   @@index([role])
+  @@index([status])
+  @@index([email])
 }
 
 model Account {
@@ -99,6 +118,53 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([token])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([token])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  action    String
+  status    String   @default("SUCCESS")
+  ipAddress String?
+  userAgent String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([email])
+  @@index([action])
+  @@index([createdAt])
 }
 
 // ---------------------------------------------------------------------------

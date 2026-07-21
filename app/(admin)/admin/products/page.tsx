@@ -42,9 +42,9 @@ export default async function AdminProductsPage({
         </div>
         <Link
           href="/admin/products/new"
-          className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
+          className="flex items-center gap-1.5 rounded-full bg-[#2E6F40] hover:bg-[#255833] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#2E6F40]/20 transition-all hover:scale-105"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
           <span>New Product</span>
         </Link>
       </div>

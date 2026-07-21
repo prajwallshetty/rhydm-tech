@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
+import { DisposalFloatingNav } from "@/components/disposal/disposal-floating-nav";
 import { COMPANY } from "@/lib/business";
 
 export const metadata: Metadata = {
@@ -25,12 +25,10 @@ export default function DisposalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // `data-division` swaps the brand accent tokens for this entire subtree —
-  // see the [data-division] rules in globals.css.
   return (
     <div data-division="disposal" className="flex min-h-dvh flex-col">
-      <SiteHeader division="disposal" />
-      <main className="flex-1">{children}</main>
+      <DisposalFloatingNav />
+      <main className="flex-1 pt-12">{children}</main>
       <SiteFooter division="disposal" />
     </div>
   );

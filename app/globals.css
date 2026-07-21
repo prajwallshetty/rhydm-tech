@@ -180,6 +180,19 @@
     animation: drift 30s ease-in-out infinite reverse;
   }
 
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 35s linear infinite;
+  }
+
   /* Respect users who ask the OS to reduce motion. */
   @media (prefers-reduced-motion: reduce) {
     *,

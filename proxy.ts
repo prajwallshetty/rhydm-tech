@@ -1,39 +1,65 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { DIVISION_COOKIE, SWITCH_PARAM, isDivision } from "@/lib/business";
 
-import {
-  DIVISION_COOKIE,
-  SWITCH_PARAM,
-  isDivision,
-} from "@/lib/business";
+const SESSION_COOKIE_NAME = "rhydm_session";
+const ADMIN_COOKIE_NAME = "rhydm_admin_session";
 
-/**
- * Next.js 16 renamed `middleware.ts` to `proxy.ts`, and the named export from
- * `middleware` to `proxy`. The `edge` runtime is not supported here — `proxy`
- * always runs on `nodejs` and that is not configurable.
- *
- * Returning visitors who already picked a division are redirected off the
- * gateway before any HTML is streamed, so they never see it flash.
- */
+const PROTECTED_ADMIN_ROUTES = ["/admin"];
+const PROTECTED_CUSTOMER_ROUTES = ["/refurbished/account", "/refurbished/checkout"];
+const AUTH_ROUTES = ["/login", "/signup"];
+
 export function proxy(request: NextRequest) {
-  const { searchParams } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+  const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value || request.cookies.get(ADMIN_COOKIE_NAME)?.value;
 
-  // "Switch Business" links to /?switch=1 — always show the gateway there.
-  if (searchParams.has(SWITCH_PARAM)) {
-    return NextResponse.next();
+  const isAdminRoute = PROTECTED_ADMIN_ROUTES.some((route) => pathname.startsWith(route));
+  const isCustomerProtectedRoute = PROTECTED_CUSTOMER_ROUTES.some((route) => pathname.startsWith(route));
+  const isAuthRoute = AUTH_ROUTES.some((route) => pathname === route);
+
+  // 1. Unauthenticated user trying to access protected admin route
+  if (isAdminRoute && !sessionToken && pathname !== "/admin/login") {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  const preference = request.cookies.get(DIVISION_COOKIE)?.value;
-  if (!isDivision(preference)) {
-    return NextResponse.next();
+  // 2. Unauthenticated user trying to access customer account / checkout
+  if (isCustomerProtectedRoute && !sessionToken) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  const url = request.nextUrl.clone();
-  url.pathname = `/${preference}`;
-  url.search = "";
-  return NextResponse.redirect(url);
+  // 3. Logged-in user trying to open login or signup
+  if (isAuthRoute && sessionToken) {
+    return NextResponse.redirect(new URL("/refurbished/account", request.url));
+  }
+
+  // 4. Gateway division redirect
+  if (pathname === "/") {
+    if (searchParams.has(SWITCH_PARAM)) {
+      return NextResponse.next();
+    }
+
+    const preference = request.cookies.get(DIVISION_COOKIE)?.value;
+    if (isDivision(preference)) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${preference}`;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  // Only the gateway needs this check — keeps the proxy off every other route.
-  matcher: "/",
+  matcher: [
+    "/",
+    "/admin/:path*",
+    "/refurbished/account/:path*",
+    "/refurbished/checkout",
+    "/login",
+    "/signup",
+  ],
 };
