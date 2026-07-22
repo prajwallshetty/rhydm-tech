@@ -13,6 +13,24 @@ Last updated: 2026-07-22
 > `db push`, so there is **no migration** for it — regenerate the client
 > (`npm run db:generate`) after pulling if Prisma types look stale.
 
+> **2026-07-22 — admin made live.** The dashboard previously rendered
+> hardcoded numbers (₹ figures, fake customers); it now renders entirely from
+> queries (`getDashboardStats`, `getSalesByDay`, `getTopProducts`,
+> `getSalesByCategory`, `getRecentOrders`) with honest empty states and no
+> invented trend percentages. `AutoRefresh` in the admin layout re-runs the
+> Server Components every 15s (paused for hidden tabs), so orders/CMS data
+> stay current without reloads. Revalidation coverage fixed: disposal CMS
+> mutations now `revalidatePath("/disposal", "layout")` and product/category/
+> brand mutations `revalidatePath("/refurbished", "layout")` — before this,
+> CMS edits never reached the statically-prerendered public pages. Sidebar:
+> Refunds (pointed at a non-existent REFUNDED status) and Attributes
+> (duplicate of Inventory) removed.
+>
+> Known debt in collaborator admin code, flagged not fixed: 29 pre-existing
+> lint errors (`any` casts); seed prints admin credentials; PBKDF2 at 1k
+> iterations with static salt; hardcoded fallback `ADMIN_JWT_SECRET` in
+> `lib/auth/admin.ts` — set a real secret in production env.
+
 > **2026-07-22 — /disposal ITAD landing redesigned** (`components/disposal/itad/*`).
 > Sections for services, process, FAQs, testimonials and compliance are driven
 > by the CMS tables (edits in /admin/disposal appear without a deploy); hero,

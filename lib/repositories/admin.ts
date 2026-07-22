@@ -74,6 +74,105 @@ export async function getRecentCustomers(limit = 5) {
   });
 }
 
+/**
+ * Revenue per day for the last `days` days, zero-filled so the chart has a
+ * point for every day even when nothing sold.
+ */
+export async function getSalesByDay(days = 7) {
+  const since = new Date();
+  since.setHours(0, 0, 0, 0);
+  since.setDate(since.getDate() - (days - 1));
+
+  const orders = await db.order.findMany({
+    where: { createdAt: { gte: since } },
+    select: { createdAt: true, totalCents: true },
+  });
+
+  const byDay = new Map<string, number>();
+  for (let i = 0; i < days; i += 1) {
+    const d = new Date(since);
+    d.setDate(since.getDate() + i);
+    byDay.set(d.toISOString().slice(0, 10), 0);
+  }
+  for (const order of orders) {
+    const key = order.createdAt.toISOString().slice(0, 10);
+    byDay.set(key, (byDay.get(key) ?? 0) + order.totalCents);
+  }
+
+  return Array.from(byDay.entries()).map(([date, totalCents]) => ({
+    date,
+    totalCents,
+  }));
+}
+
+/**
+ * Best sellers by actual order volume. Revenue must be sum(price × qty) per
+ * row, which groupBy cannot express, so rows are aggregated in memory —
+ * fine at this catalog's scale.
+ */
+export async function getTopProducts(limit = 5) {
+  const items = await db.orderItem.findMany({
+    where: { productId: { not: null } },
+    select: {
+      productId: true,
+      quantity: true,
+      priceCents: true,
+      product: { select: { name: true, slug: true } },
+    },
+  });
+
+  const byProduct = new Map<
+    string,
+    { name: string; slug: string; unitsSold: number; revenueCents: number }
+  >();
+
+  for (const item of items) {
+    if (!item.productId || !item.product) continue;
+    const entry = byProduct.get(item.productId) ?? {
+      name: item.product.name,
+      slug: item.product.slug,
+      unitsSold: 0,
+      revenueCents: 0,
+    };
+    entry.unitsSold += item.quantity;
+    entry.revenueCents += item.priceCents * item.quantity;
+    byProduct.set(item.productId, entry);
+  }
+
+  return Array.from(byProduct.entries())
+    .map(([id, entry]) => ({ id, ...entry }))
+    .sort((a, b) => b.unitsSold - a.unitsSold)
+    .slice(0, limit);
+}
+
+/** Revenue share per category, from snapshotted order items. */
+export async function getSalesByCategory() {
+  const items = await db.orderItem.findMany({
+    select: {
+      priceCents: true,
+      quantity: true,
+      product: { select: { category: { select: { name: true } } } },
+    },
+  });
+
+  const byCategory = new Map<string, number>();
+  let total = 0;
+  for (const item of items) {
+    const name = item.product?.category.name ?? "Other";
+    const value = item.priceCents * item.quantity;
+    byCategory.set(name, (byCategory.get(name) ?? 0) + value);
+    total += value;
+  }
+
+  return Array.from(byCategory.entries())
+    .map(([name, totalCents]) => ({
+      name,
+      totalCents,
+      percent: total > 0 ? (totalCents / total) * 100 : 0,
+    }))
+    .sort((a, b) => b.totalCents - a.totalCents);
+}
+
 // ===========================================================================
 // Products Module
 // ===========================================================================

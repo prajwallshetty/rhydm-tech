@@ -8,11 +8,9 @@ import {
   ShoppingCart,
   Package,
   Users,
-  RotateCcw,
   Star,
   Layers,
   Bookmark,
-  Sliders,
   Boxes,
   Tag,
   Image as ImageIcon,
@@ -50,7 +48,6 @@ const NAV_GROUPS: NavGroup[] = [
       { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
       { name: "Products", href: "/admin/products", icon: Package },
       { name: "Customers", href: "/admin/customers", icon: Users },
-      { name: "Refunds", href: "/admin/orders?status=REFUNDED", icon: RotateCcw },
       { name: "Reviews", href: "/admin/products", icon: Star },
     ],
   },
@@ -59,7 +56,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { name: "Categories", href: "/admin/categories", icon: Layers },
       { name: "Brands", href: "/admin/brands", icon: Bookmark },
-      { name: "Attributes", href: "/admin/products", icon: Sliders },
     ],
   },
   {

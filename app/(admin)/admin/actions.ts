@@ -164,7 +164,7 @@ export async function saveProductAction(formData: FormData) {
   }
 
   revalidatePath("/admin/products");
-  revalidatePath("/refurbished");
+  revalidatePath("/refurbished", "layout");
   redirect("/admin/products");
 }
 
@@ -206,6 +206,7 @@ export async function saveCategoryAction(formData: FormData) {
   }
 
   revalidatePath("/admin/categories");
+  revalidatePath("/refurbished", "layout");
   redirect("/admin/categories");
 }
 
@@ -213,6 +214,7 @@ export async function deleteCategoryAction(id: string) {
   await requireAdmin();
   await deleteAdminCategory(id);
   revalidatePath("/admin/categories");
+  revalidatePath("/refurbished", "layout");
 }
 
 // ===========================================================================
@@ -233,6 +235,7 @@ export async function saveBrandAction(formData: FormData) {
   }
 
   revalidatePath("/admin/brands");
+  revalidatePath("/refurbished", "layout");
   redirect("/admin/brands");
 }
 
@@ -240,6 +243,7 @@ export async function deleteBrandAction(id: string) {
   await requireAdmin();
   await deleteAdminBrand(id);
   revalidatePath("/admin/brands");
+  revalidatePath("/refurbished", "layout");
 }
 
 // ===========================================================================
@@ -301,7 +305,7 @@ export async function saveDisposalHeroAction(formData: FormData) {
 
   await updateDisposalHero({ eyebrow, heading, subheading });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function saveDisposalServiceAction(formData: FormData) {
@@ -314,13 +318,14 @@ export async function saveDisposalServiceAction(formData: FormData) {
 
   await upsertDisposalService({ id, title, slug, summary, icon });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function deleteDisposalServiceAction(id: string) {
   await requireAdmin();
   await deleteDisposalService(id);
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function saveProcessStepAction(formData: FormData) {
@@ -332,12 +337,14 @@ export async function saveProcessStepAction(formData: FormData) {
 
   await upsertProcessStep({ id, step, title, description });
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function deleteProcessStepAction(id: string) {
   await requireAdmin();
   await deleteProcessStep(id);
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function saveIndustryAction(formData: FormData) {
@@ -349,12 +356,14 @@ export async function saveIndustryAction(formData: FormData) {
 
   await upsertIndustry({ id, name, slug, description });
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function deleteIndustryAction(id: string) {
   await requireAdmin();
   await deleteIndustry(id);
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function saveCertificationAction(formData: FormData) {
@@ -366,12 +375,14 @@ export async function saveCertificationAction(formData: FormData) {
 
   await upsertCertification({ id, name, issuer, description });
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function deleteCertificationAction(id: string) {
   await requireAdmin();
   await deleteCertification(id);
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function saveTestimonialAction(formData: FormData) {
@@ -385,12 +396,14 @@ export async function saveTestimonialAction(formData: FormData) {
 
   await upsertTestimonial({ id, author, role, company, quote, rating });
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function deleteTestimonialAction(id: string) {
   await requireAdmin();
   await deleteTestimonial(id);
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function saveFaqAction(formData: FormData) {
@@ -402,18 +415,21 @@ export async function saveFaqAction(formData: FormData) {
 
   await upsertFaq({ id, question, answer, category });
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function deleteFaqAction(id: string) {
   await requireAdmin();
   await deleteFaq(id);
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 export async function updateSubmissionStatusAction(id: string, status: SubmissionStatus) {
   await requireAdmin();
   await updateContactSubmissionStatus(id, status);
   revalidatePath("/admin/disposal");
+  revalidatePath("/disposal", "layout");
 }
 
 // ===========================================================================
