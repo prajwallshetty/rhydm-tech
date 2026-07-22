@@ -138,11 +138,17 @@ export function ItadTestimonials({
                     setDirection(i > index ? 1 : -1);
                     setIndex(i);
                   }}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === index ? "w-8 bg-[#16A34A]" : "w-2 bg-slate-300 hover:bg-slate-400"
-                  }`}
+                  // 44px hit area; the visual dot is the inner span.
+                  className="grid h-11 min-w-11 place-items-center"
                   aria-label={`Go to slide ${i + 1}`}
-                />
+                >
+                  <span
+                    aria-hidden
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      i === index ? "w-8 bg-[#16A34A]" : "w-2 bg-slate-300 hover:bg-slate-400"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
 

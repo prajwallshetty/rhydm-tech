@@ -85,7 +85,7 @@ function PageLink({
   disabled?: boolean;
 } & React.ComponentProps<"a">) {
   const className = cn(
-    "grid h-9 min-w-9 place-items-center rounded-lg border px-2.5 text-sm transition-colors",
+    "grid h-11 min-w-11 sm:h-9 sm:min-w-9 place-items-center rounded-lg border px-2.5 text-sm transition-colors",
     current
       ? "border-brand bg-brand text-brand-foreground"
       : "border-border hover:bg-accent",

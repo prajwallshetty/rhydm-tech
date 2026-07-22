@@ -54,7 +54,7 @@ export function DisposalFloatingNav() {
           }`}
         >
           {/* Logo */}
-          <Link href="/disposal" className="flex items-center gap-3 shrink-0 group">
+          <Link href="/disposal" className="flex items-center gap-3 shrink-0 group py-2 -my-2">
             <Logo showShield={false} />
           </Link>
 
@@ -99,7 +99,7 @@ export function DisposalFloatingNav() {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 lg:hidden cursor-pointer"
+              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 lg:hidden cursor-pointer"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>

@@ -43,7 +43,7 @@ export function ItadServices({ services }: { services: ItadService[] }) {
           <BlurReveal delay={0.2}>
             <Link
               href="/disposal/services"
-              className="group inline-flex items-center gap-1.5 text-sm font-bold text-[#16A34A] hover:underline"
+              className="group inline-flex min-h-11 items-center gap-1.5 py-2 -my-2 text-sm font-bold text-[#16A34A] hover:underline"
             >
               <span>Explore All Services</span>
               <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-1" />

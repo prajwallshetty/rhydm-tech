@@ -23,7 +23,7 @@ export function SortSelect() {
           params.delete("page");
           router.push(`${pathname}?${params.toString()}`, { scroll: false });
         }}
-        className="h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-brand"
+        className="h-11 sm:h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-brand"
       >
         {SORT_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>

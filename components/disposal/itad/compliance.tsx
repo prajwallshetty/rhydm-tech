@@ -148,7 +148,7 @@ export function ItadCompliance() {
                   href="/isocer.png"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1 text-xs font-bold text-[#16A34A] hover:underline"
+                  className="flex min-h-11 items-center gap-1 py-2 -my-2 text-xs font-bold text-[#16A34A] hover:underline"
                 >
                   <span>VIEW CERTIFICATE</span>
                   <ArrowUpRight className="size-4.5" />

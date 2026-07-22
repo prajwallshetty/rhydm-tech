@@ -62,7 +62,7 @@ export function ProductCard({
                 ? `Remove ${product.name} from wishlist`
                 : `Save ${product.name} to wishlist`
             }
-            className="absolute right-3.5 top-3.5 z-20 grid size-8 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+            className="absolute right-2.5 top-2.5 z-20 grid size-11 sm:size-8 sm:right-3.5 sm:top-3.5 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-transform hover:scale-110 active:scale-95 cursor-pointer"
           >
             <Heart
               className={cn(
@@ -127,7 +127,7 @@ export function ProductCard({
           }}
           disabled={product.stock <= 0}
           aria-label={`Add ${product.name} to cart`}
-          className="relative z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-950 hover:bg-[#2E6F40] px-4.5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+          className="relative z-10 inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 rounded-full bg-slate-950 hover:bg-[#2E6F40] px-4.5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
         >
           <ShoppingCart aria-hidden className="size-3.5" strokeWidth={2} />
           <span>Add</span>

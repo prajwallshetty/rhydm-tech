@@ -176,7 +176,7 @@ export function HomeRefurbishedSections({
           </div>
           <Link
             href="/refurbished/shop"
-            className="flex items-center gap-1.5 text-xs font-bold text-[#2E6F40] hover:brightness-125 transition-colors"
+            className="flex min-h-11 items-center gap-1.5 py-2 -my-2 text-xs font-bold text-[#2E6F40] hover:brightness-125 transition-colors"
           >
             <span>View all products</span>
             <ArrowRight className="h-4 w-4" />

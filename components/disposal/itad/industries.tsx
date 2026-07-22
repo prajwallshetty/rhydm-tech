@@ -158,7 +158,7 @@ export function ItadIndustries({ industries }: { industries: IndustryItem[] }) {
                   <div className="mt-6 pt-2">
                     <Link
                       href="/disposal/contact"
-                      className="inline-flex items-center gap-1 text-xs font-bold text-[#16A34A] transition-colors group-hover:text-[#15803D]"
+                      className="inline-flex min-h-11 items-center gap-1 py-2 -my-2 text-xs font-bold text-[#16A34A] transition-colors group-hover:text-[#15803D]"
                     >
                       <span>Sector Solutions</span>
                       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />

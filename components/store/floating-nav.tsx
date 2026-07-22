@@ -58,7 +58,7 @@ export function FloatingNav() {
           }`}
         >
           {/* Logo without shield icon or premium tag */}
-          <Link href="/refurbished" className="flex items-center gap-3 shrink-0 group">
+          <Link href="/refurbished" className="flex items-center gap-3 shrink-0 group py-2 -my-2">
             <Logo showShield={false} />
           </Link>
 
@@ -80,7 +80,7 @@ export function FloatingNav() {
             {/* Search Trigger */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all cursor-pointer"
+              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all cursor-pointer"
               aria-label="Search"
             >
               <Search className="h-4 w-4" />
@@ -89,7 +89,7 @@ export function FloatingNav() {
             {/* Wishlist Icon with Badge */}
             <Link
               href="/refurbished/wishlist"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
+              className="relative flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
               aria-label="Wishlist"
             >
               <Heart className="h-4 w-4" />
@@ -103,7 +103,7 @@ export function FloatingNav() {
             {/* Cart Icon with Badge */}
             <Link
               href="/refurbished/cart"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
+              className="relative flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
               aria-label="Cart"
             >
               <ShoppingBag className="h-4 w-4" />
@@ -120,7 +120,7 @@ export function FloatingNav() {
             {/* Account Profile */}
             <Link
               href="/refurbished/account"
-              className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
+              className="hidden sm:flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
               aria-label="Account"
             >
               <User className="h-4 w-4" />
@@ -139,7 +139,9 @@ export function FloatingNav() {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground lg:hidden"
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-border/70 text-foreground lg:hidden"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
