@@ -29,7 +29,10 @@ export default function RefurbishedLayout({
   return (
     <div data-division="refurbished" className="flex min-h-dvh flex-col">
       <StoreHeader />
-      <main className="flex-1">{children}</main>
+      {/* The store nav is a fixed floating pill (top-4, ~64px tall), so it
+          overlays the page rather than occupying flow space — without this
+          top padding every page's first section renders underneath it. */}
+      <main className="flex-1 pt-24">{children}</main>
       <SiteFooter division="refurbished" />
       <Toaster />
     </div>
