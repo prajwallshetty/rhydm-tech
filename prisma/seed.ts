@@ -77,10 +77,13 @@ async function main() {
   }
 
   const certifications = [
-    { name: "ISO 27001", issuer: "ISO", description: "Information security management." },
-    { name: "ISO 14001", issuer: "ISO", description: "Environmental management systems." },
-    { name: "R2v3", issuer: "SERI", description: "Responsible electronics recycling." },
-    { name: "NIST 800-88", issuer: "NIST", description: "Media sanitization guidelines." },
+    { name: "ISO 27001", issuer: "ISO", description: "Certified information security management across every facility and process." },
+    { name: "SOC 2", issuer: "AICPA", description: "Independently audited controls for security, availability and confidentiality." },
+    { name: "NIST 800-88", issuer: "NIST", description: "Every drive is sanitised to the federal media-sanitisation standard." },
+    { name: "GDPR", issuer: "EU", description: "Processing and erasure workflows aligned to EU data-protection law." },
+    { name: "HIPAA", issuer: "HHS", description: "PHI-bearing media handled under healthcare privacy requirements." },
+    { name: "ISO 14001", issuer: "ISO", description: "Environmental management systems governing all downstream recycling." },
+    { name: "R2v3", issuer: "SERI", description: "Responsible electronics recycling, audited across the chain." },
   ];
 
   for (const [index, cert] of certifications.entries()) {

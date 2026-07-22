@@ -6,6 +6,23 @@ accurate even when nobody remembers the conversation that produced it.
 
 Last updated: 2026-07-22
 
+> **2026-07-22 — repo reorganised by collaborator (prajwallshetty):** routes
+> moved into groups (`app/(disposal)/disposal/…`, `app/(refurbished)/…`,
+> `app/(admin)/admin/…`, `app/(auth)/…`); an admin CMS, auth (OAuth + password),
+> and account area were added. The `passwordHash` field was applied with
+> `db push`, so there is **no migration** for it — regenerate the client
+> (`npm run db:generate`) after pulling if Prisma types look stale.
+
+> **2026-07-22 — /disposal ITAD landing redesigned** (`components/disposal/itad/*`).
+> Sections for services, process, FAQs, testimonials and compliance are driven
+> by the CMS tables (edits in /admin/disposal appear without a deploy); hero,
+> bento, comparison, showcase, lifecycle and CTAs are static per the approved
+> spec. Palette: gray-900 / blue-600 / emerald-500 (exact spec hexes as
+> Tailwind classes). The previous static landing components
+> (`components/disposal/disposal-*.tsx`) are no longer rendered by the page but
+> were intentionally left in the tree for comparison — delete once the redesign
+> is signed off.
+
 ---
 
 ## What this project is
