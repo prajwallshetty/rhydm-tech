@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { getSession } from "@/lib/auth/session";
 import { PublishStatus } from "@/lib/generated/prisma/enums";
 import { calculateTotals } from "@/lib/store/totals";
 import { checkoutSchema } from "@/lib/validation/checkout";
@@ -14,6 +15,57 @@ function generateOrderNumber() {
   const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
   const random = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `RH-${stamp}-${random}`;
+}
+
+export async function getCheckoutUserDataAction() {
+  const session = await getSession();
+  if (!session) return null;
+
+  const user = await db.user.findUnique({
+    where: { id: session.id },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      name: true,
+      email: true,
+      phone: true,
+      company: true,
+      addresses: {
+        where: { isDefault: true },
+        take: 1,
+      },
+    },
+  });
+
+  if (!user) return null;
+
+  const defaultAddr = user.addresses[0];
+
+  return {
+    email: user.email,
+    phone: user.phone || "",
+    company: user.company || "",
+    shipping: defaultAddr
+      ? {
+          fullName: defaultAddr.fullName,
+          line1: defaultAddr.line1,
+          line2: defaultAddr.line2 || "",
+          city: defaultAddr.city,
+          region: defaultAddr.region,
+          postalCode: defaultAddr.postalCode,
+          country: defaultAddr.country || "US",
+        }
+      : {
+          fullName: user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+          line1: "",
+          line2: "",
+          city: "",
+          region: "",
+          postalCode: "",
+          country: "US",
+        },
+  };
 }
 
 /**
@@ -37,6 +89,16 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
     parsed.data;
 
   try {
+    const session = await getSession();
+    let userId = session?.id;
+
+    if (!userId) {
+      const existingUser = await db.user.findUnique({ where: { email } });
+      if (existingUser) {
+        userId = existingUser.id;
+      }
+    }
+
     const products = await db.product.findMany({
       where: {
         slug: { in: lines.map((line) => line.slug) },
@@ -59,8 +121,6 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
     const items = [];
     for (const line of lines) {
       const product = products.find((p) => p.slug === line.slug);
-      // Silently skipping would let someone order a delisted product, so this
-      // fails loudly instead.
       if (!product) {
         return {
           ok: false,
@@ -92,6 +152,7 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
     const order = await db.order.create({
       data: {
         orderNumber: generateOrderNumber(),
+        userId: userId || null,
         email,
         status: "PENDING",
         subtotalCents: totals.subtotalCents,
@@ -104,6 +165,21 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
       },
       select: { orderNumber: true, totalCents: true },
     });
+
+    // Update user phone & company if empty
+    if (userId) {
+      try {
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            ...(phone ? { phone } : {}),
+            ...(company ? { company } : {}),
+          },
+        });
+      } catch {
+        // Ignore if fail
+      }
+    }
 
     return {
       ok: true,
@@ -118,3 +194,4 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
     };
   }
 }
+

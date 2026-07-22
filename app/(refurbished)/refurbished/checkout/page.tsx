@@ -5,7 +5,7 @@ import { Check, CreditCard, Loader2, Truck, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getCartProducts, type CartProduct } from "@/app/(refurbished)/refurbished/cart/actions";
-import { placeOrder } from "@/app/(refurbished)/refurbished/checkout/actions";
+import { placeOrder, getCheckoutUserDataAction } from "@/app/(refurbished)/refurbished/checkout/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { formatPriceExact } from "@/lib/format";
 import { useStore } from "@/lib/store/cart";
@@ -54,6 +54,20 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     let cancelled = false;
+
+    // Load pre-filled user details if authenticated
+    getCheckoutUserDataAction().then((userData) => {
+      if (!cancelled && userData) {
+        setForm((prev) => ({
+          ...prev,
+          email: userData.email || prev.email,
+          phone: userData.phone || prev.phone,
+          company: userData.company || prev.company,
+          shipping: userData.shipping.fullName ? userData.shipping : prev.shipping,
+        }));
+      }
+    });
+
     getCartProducts(cart.map((l) => l.slug)).then((resolved) => {
       if (!cancelled) {
         setProducts(resolved);
@@ -64,6 +78,7 @@ export default function CheckoutPage() {
       cancelled = true;
     };
   }, [cart]);
+
 
   const lines = cart
     .map((line) => {

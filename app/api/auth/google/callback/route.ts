@@ -10,18 +10,26 @@ export async function GET(req: NextRequest) {
   try {
     if (mock === "true" || !code) {
       // Mock Google OAuth sign in for development testing
-      const mockGoogleId = "google_user_1029384756";
-      const mockEmail = "alex.developer@example.com";
-      await processGoogleUser({
+      const paramEmail = searchParams.get("email");
+      const paramName = searchParams.get("name") || searchParams.get("firstName");
+      const mockEmail = paramEmail || "alex.developer@example.com";
+      const mockName = paramName || "Alex Developer";
+      const mockGoogleId = `google_user_${Buffer.from(mockEmail).toString("hex").slice(0, 16)}`;
+
+      const user = await processGoogleUser({
         googleId: mockGoogleId,
         email: mockEmail,
-        name: "Alex Developer",
-        firstName: "Alex",
-        lastName: "Developer",
+        name: mockName,
+        firstName: mockName.split(" ")[0] || "User",
+        lastName: mockName.split(" ").slice(1).join(" ") || "",
         picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       });
 
-      return NextResponse.redirect(new URL("/refurbished/account", req.url));
+      const redirectPath = ([Role.SUPER_ADMIN, Role.ADMIN, Role.MANAGER, Role.EDITOR, Role.STAFF] as Role[]).includes(user.role)
+        ? "/admin"
+        : "/refurbished/account";
+
+      return NextResponse.redirect(new URL(redirectPath, req.url));
     }
 
     // Production Google OAuth code exchange
