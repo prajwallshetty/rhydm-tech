@@ -19,7 +19,6 @@ import {
   UserCheck,
   Shield,
   Settings,
-  Activity,
   LogOut,
   MoreVertical,
   X,
@@ -75,7 +74,6 @@ const NAV_GROUPS: NavGroup[] = [
       { name: "Users", href: "/admin/users", icon: UserCheck },
       { name: "Roles & Permissions", href: "/admin/settings", icon: Shield },
       { name: "Settings", href: "/admin/settings", icon: Settings },
-      { name: "Activity Logs", href: "/admin/analytics", icon: Activity },
     ],
   },
 ];
