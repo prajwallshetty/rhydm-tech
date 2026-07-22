@@ -1,4 +1,6 @@
 import { HeroRefurbishedMotion } from "@/components/store/hero-refurbished-motion";
+import { getSectionContent } from "@/lib/cms/content";
+import type { StoreHeroContent } from "@/lib/cms/registry";
 import { HomeRefurbishedSections } from "@/components/store/home-refurbished-sections";
 import {
   getBestSellers,
@@ -8,12 +10,14 @@ import {
 } from "@/lib/repositories/store";
 
 export default async function RefurbishedHomePage() {
-  const [featured, bestSellers, categories, brands] = await Promise.all([
-    getFeaturedProducts(8),
-    getBestSellers(8),
-    getCategories(),
-    getBrands(),
-  ]);
+  const [featured, bestSellers, categories, brands, heroContent] =
+    await Promise.all([
+      getFeaturedProducts(8),
+      getBestSellers(8),
+      getCategories(),
+      getBrands(),
+      getSectionContent<StoreHeroContent>("section.refurbished.hero"),
+    ]);
 
   return (
     // -mt-24 cancels the store layout's nav clearance on this page only: the
@@ -22,7 +26,7 @@ export default async function RefurbishedHomePage() {
     // white strip shows above the hero.
     <div className="-mt-24 bg-white text-slate-900 min-h-screen">
       {/* 1. Full-Viewport Hero with Mouse Parallax & Scroll Animations */}
-      <HeroRefurbishedMotion />
+      <HeroRefurbishedMotion content={heroContent} />
 
       {/* 2. Apple/Ather-style Home Sections */}
       <HomeRefurbishedSections

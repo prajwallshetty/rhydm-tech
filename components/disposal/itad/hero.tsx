@@ -7,8 +7,9 @@ import { ArrowRight, CheckCircle2, Play } from "lucide-react";
 
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
 import { WordReveal } from "@/components/ui/accentry/word-reveal";
+import type { DisposalHeroContent } from "@/lib/cms/registry";
 
-export function ItadHero() {
+export function ItadHero({ content }: { content: DisposalHeroContent }) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -44,7 +45,7 @@ export function ItadHero() {
           <div className="lg:col-span-6">
             <BlurReveal delay={0.05}>
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-                Enterprise ITAD & Data Destruction
+                {content.eyebrow}
               </p>
             </BlurReveal>
 
@@ -53,17 +54,16 @@ export function ItadHero() {
                 id="itad-hero-heading"
                 className="text-4xl font-extrabold tracking-tight text-[#0F172A] sm:text-6xl lg:text-7xl leading-[1.08]"
               >
-                <WordReveal text="Global IT Asset Disposition." delay={0.1} />{" "}
+                <WordReveal text={content.headingMain} delay={0.1} />{" "}
                 <span className="text-[#16A34A]">
-                  <WordReveal text="Simplified." delay={0.3} />
+                  <WordReveal text={content.headingAccent} delay={0.3} />
                 </span>
               </h1>
             </div>
 
             <BlurReveal delay={0.25}>
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                Securely retire, wipe, refurbish, recycle, redeploy, and recover maximum residual
-                value from your enterprise IT assets across 120+ countries with full audit readiness.
+                {content.description}
               </p>
             </BlurReveal>
 
@@ -71,18 +71,18 @@ export function ItadHero() {
             <BlurReveal delay={0.35}>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <Link
-                  href="/disposal/contact"
+                  href={content.primaryHref}
                   className="inline-flex h-13 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-7 text-sm font-bold text-white shadow-md transition-all hover:bg-[#15803D] hover:shadow-lg active:scale-95"
                 >
-                  <span>Book a 30-Min Demo</span>
+                  <span>{content.primaryLabel}</span>
                   <ArrowRight className="size-4" />
                 </Link>
 
                 <Link
-                  href="#itad-process"
+                  href={content.secondaryHref}
                   className="inline-flex h-13 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-7 text-sm font-bold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 hover:border-slate-400"
                 >
-                  <span>See How It Works</span>
+                  <span>{content.secondaryLabel}</span>
                   <Play className="size-3.5 fill-slate-800" />
                 </Link>
               </div>
@@ -91,18 +91,12 @@ export function ItadHero() {
             {/* Trust Pills */}
             <BlurReveal delay={0.45}>
               <div className="mt-10 flex flex-wrap items-center gap-6 border-t border-slate-100 pt-8 text-xs font-semibold text-slate-700">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-[#16A34A]" />
-                  <span>NIST 800-88 Wiping</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-[#16A34A]" />
-                  <span>Serial-Level Certificates</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-[#16A34A]" />
-                  <span>120+ Countries</span>
-                </div>
+                {content.badges.map((badge) => (
+                  <div key={badge.label} className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 text-[#16A34A]" />
+                    <span>{badge.label}</span>
+                  </div>
+                ))}
               </div>
             </BlurReveal>
           </div>

@@ -14,8 +14,14 @@ import { ItadValueRecovery } from "@/components/disposal/itad/value-recovery";
 import { ItadWhyBento } from "@/components/disposal/itad/why-bento";
 import { Accordion } from "@/components/ui/accordion";
 import { SITE_URL } from "@/lib/business";
+import { getSectionContent } from "@/lib/cms/content";
+import type {
+  DisposalComparisonContent,
+  DisposalFinalCtaContent,
+  DisposalHeroContent,
+  DisposalWhyContent,
+} from "@/lib/cms/registry";
 import {
-  getCertifications,
   getFaqs,
   getIndustries,
   getProcessSteps,
@@ -50,15 +56,29 @@ export const metadata: Metadata = {
 };
 
 export default async function DisposalHomePage() {
-  const [services, steps, faqs, testimonials, certifications, industries] =
-    await Promise.all([
-      getServices(),
-      getProcessSteps(),
-      getFaqs(),
-      getTestimonials(),
-      getCertifications(),
-      getIndustries(),
-    ]);
+  // Structured content (services, steps, …) and free-form section copy are
+  // both CMS-driven — fetched in one parallel round.
+  const [
+    services,
+    steps,
+    faqs,
+    testimonials,
+    industries,
+    heroContent,
+    whyContent,
+    comparisonContent,
+    finalCtaContent,
+  ] = await Promise.all([
+    getServices(),
+    getProcessSteps(),
+    getFaqs(),
+    getTestimonials(),
+    getIndustries(),
+    getSectionContent<DisposalHeroContent>("section.disposal.hero"),
+    getSectionContent<DisposalWhyContent>("section.disposal.why"),
+    getSectionContent<DisposalComparisonContent>("section.disposal.comparison"),
+    getSectionContent<DisposalFinalCtaContent>("section.disposal.finalCta"),
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -79,12 +99,12 @@ export default async function DisposalHomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <ItadHero />
-      <ItadWhyBento />
+      <ItadHero content={heroContent} />
+      <ItadWhyBento content={whyContent} />
       <ItadServices services={services} />
       <ItadProcess steps={steps} />
       <ItadIndustries industries={industries} />
-      <ItadComparison />
+      <ItadComparison content={comparisonContent} />
       <ItadCompliance />
       <ItadTestimonials testimonials={testimonials} />
 
@@ -117,7 +137,7 @@ export default async function DisposalHomePage() {
         </div>
       </section>
 
-      <ItadFinalCta />
+      <ItadFinalCta content={finalCtaContent} />
     </div>
   );
 }

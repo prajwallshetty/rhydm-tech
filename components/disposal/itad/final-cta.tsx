@@ -4,7 +4,9 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
-export function ItadFinalCta() {
+import type { DisposalFinalCtaContent } from "@/lib/cms/registry";
+
+export function ItadFinalCta({ content }: { content: DisposalFinalCtaContent }) {
   return (
     <section className="bg-white py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -22,50 +24,44 @@ export function ItadFinalCta() {
 
           <div className="relative mx-auto max-w-3xl">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-              IMMERSIVE SPOTLIGHT
+              {content.eyebrow}
             </p>
 
             <h2
               id="itad-final-cta-heading"
               className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight"
             >
-              End Every IT Asset&rsquo;s Lifecycle Securely.
+              {content.heading}
             </h2>
 
             <p className="mt-6 text-base leading-relaxed text-slate-300 sm:text-lg">
-              Protect sensitive data, stay compliant, recover maximum value, and simplify global IT asset disposition from one centralized platform.
+              {content.description}
             </p>
 
             <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row sm:items-center">
               <Link
-                href="/disposal/contact"
+                href={content.primaryHref}
                 className="inline-flex h-13 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-8 text-sm font-bold text-white shadow-lg transition-all hover:bg-[#15803D] hover:shadow-xl active:scale-95"
               >
-                <span>Book Demo</span>
+                <span>{content.primaryLabel}</span>
                 <ArrowRight className="size-4" />
               </Link>
 
               <Link
-                href="/disposal/contact"
+                href={content.secondaryHref}
                 className="inline-flex h-13 items-center justify-center rounded-lg border border-slate-700 bg-white/5 px-8 text-sm font-bold text-white backdrop-blur transition-colors hover:bg-white/10"
               >
-                Talk to an Expert
+                {content.secondaryLabel}
               </Link>
             </div>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-400 border-t border-slate-800/80 pt-8">
-              <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="size-4 text-[#16A34A]" />
-                Serial-level certificates
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="size-4 text-[#16A34A]" />
-                48-hour pickup
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="size-4 text-[#16A34A]" />
-                120+ countries
-              </span>
+              {content.trustItems.map((item) => (
+                <span key={item.text} className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="size-4 text-[#16A34A]" />
+                  {item.text}
+                </span>
+              ))}
             </div>
           </div>
         </motion.div>

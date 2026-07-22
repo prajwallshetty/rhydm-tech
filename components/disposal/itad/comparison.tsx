@@ -4,26 +4,12 @@ import { motion } from "motion/react";
 import { Check, X } from "lucide-react";
 
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
+import type { DisposalComparisonContent } from "@/lib/cms/registry";
 
-const WITHOUT = [
-  "Manual spreadsheets & slow emails",
-  "Multiple unverified regional vendors",
-  "Incomplete or missing audit trails",
-  "No asset resale — 100% written off",
-  "Compliance liability at handoffs",
-  "Risks of data breach on retired drives",
-];
+export function ItadComparison({ content }: { content: DisposalComparisonContent }) {
+  const WITHOUT = content.withoutItems.map((item) => item.text);
+  const WITH = content.withItems.map((item) => item.text);
 
-const WITH = [
-  "Single centralized enterprise platform",
-  "Automated NIST 800-88 sanitization",
-  "Audit-ready serial level certificates",
-  "Maximized revenue share value recovery",
-  "120+ countries full compliance coverage",
-  "Zero-landfill ESG verified recycling",
-];
-
-export function ItadComparison() {
   return (
     <section
       className="bg-slate-50/70 py-24 sm:py-32"
@@ -33,7 +19,7 @@ export function ItadComparison() {
         <div className="mx-auto max-w-3xl text-center">
           <BlurReveal>
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-              THE DIFFERENCE
+              {content.eyebrow}
             </p>
           </BlurReveal>
 
@@ -42,7 +28,7 @@ export function ItadComparison() {
               id="itad-comparison-heading"
               className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
             >
-              Retire Assets the Old Way, or the Audited Way
+              {content.heading}
             </h2>
           </BlurReveal>
         </div>
@@ -58,7 +44,7 @@ export function ItadComparison() {
           >
             <div>
               <p className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-                Without Modern ITAD
+                {content.withoutLabel}
               </p>
               <ul className="mt-6 space-y-4">
                 {WITHOUT.map((item) => (
@@ -83,7 +69,7 @@ export function ItadComparison() {
           >
             <div>
               <p className="text-xs font-extrabold uppercase tracking-widest text-[#16A34A]">
-                With Rhydm Enterprise ITAD
+                {content.withLabel}
               </p>
               <ul className="mt-6 space-y-4">
                 {WITH.map((item) => (

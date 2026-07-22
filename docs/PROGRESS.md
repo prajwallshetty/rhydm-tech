@@ -41,6 +41,29 @@ Last updated: 2026-07-22
 > were intentionally left in the tree for comparison — delete once the redesign
 > is signed off.
 
+> **2026-07-22 — Site Content CMS (section registry).** Free-form page copy
+> is now CMS-editable through one mechanism: `lib/cms/registry.ts` defines
+> each editable section (fields + defaults = the previously hardcoded copy),
+> `lib/cms/content.ts` merges saved PageSection JSON over those defaults
+> (empty/missing fields fall back, so a fresh DB renders identically and
+> clearing a field restores original copy), and `/admin/content` renders a
+> schema-driven form for every registered section — adding a new editable
+> section is a registry entry, no new admin UI. Wired: disposal hero, why/stat
+> cards, comparison, final CTA; store hero; footer social links.
+> `saveSiteSectionAction` filters payloads against the registry (only
+> registered keys survive) and revalidates the owning division's layout.
+> Keys are namespaced `section.*`/`site.*` so legacy `disposal.hero` rows
+> (edited by the old Disposal CMS hero tab, which no longer drives anything)
+> can't collide — that legacy tab is now redundant and can be removed.
+> Round-trip verified live: override row → renders; partial override keeps
+> defaults for unset fields; delete → defaults restored.
+>
+> Remaining from the "everything dynamic" brief, deliberately not started:
+> theme/animation toggles, drag-and-drop page builder, scheduling/drafts/
+> preview, navigation CMS, per-role permission matrix, media-driven hero
+> images. Each fits the same registry pattern or needs new models — scoped
+> work, not blockers.
+
 > **2026-07-22 — Deals is a real feature now, not just a filtered view.** A
 > "deal" is still just `Product.compareAtCents > priceCents` (no new table),
 > but there's now a management surface for it: `/admin/deals`

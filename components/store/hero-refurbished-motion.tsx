@@ -16,7 +16,9 @@ import {
   Truck,
 } from "lucide-react";
 
-export function HeroRefurbishedMotion() {
+import type { StoreHeroContent } from "@/lib/cms/registry";
+
+export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Scroll animations for subtle scale/fade as user scrolls down
@@ -103,7 +105,7 @@ export function HeroRefurbishedMotion() {
             <div className="inline-flex items-center gap-2 rounded-full bg-[#2E6F40]/10 border border-[#2E6F40]/20 px-3.5 py-1.5 backdrop-blur-md">
               <span className="size-2 rounded-full bg-[#2E6F40] animate-pulse" />
               <span className="text-[11px] font-bold tracking-widest text-[#2E6F40] uppercase">
-                ENTERPRISE CERTIFIED REFURBISHED
+                {content.badge}
               </span>
             </div>
           </motion.div>
@@ -116,9 +118,9 @@ export function HeroRefurbishedMotion() {
             className="space-y-2"
           >
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.08] text-slate-900">
-              Next-Gen Refurbished Tech.{" "}
+              {content.headingMain}{" "}
               <span className="text-[#2E6F40] block mt-1 font-bold">
-                Built for Professionals.
+                {content.headingAccent}
               </span>
             </h1>
           </motion.div>
@@ -130,7 +132,7 @@ export function HeroRefurbishedMotion() {
             transition={{ duration: 0.6, delay: 0.35 }}
             className="max-w-xl text-base sm:text-lg text-slate-600 leading-relaxed font-normal"
           >
-            Professionally tested enterprise laptops & workstations. Complete with 12-month warranty & carbon-neutral delivery.
+            {content.description}
           </motion.p>
 
           {/* Action Buttons */}
@@ -141,18 +143,18 @@ export function HeroRefurbishedMotion() {
             className="flex flex-wrap items-center gap-3.5 pt-1"
           >
             <Link
-              href="/refurbished/shop"
+              href={content.primaryHref}
               className="group inline-flex items-center gap-2.5 rounded-full bg-[#2E6F40] hover:bg-[#255833] px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#2E6F40]/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <span>Explore Collection</span>
+              <span>{content.primaryLabel}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
 
             <Link
-              href="/refurbished/shop?sort=best-selling"
+              href={content.secondaryHref}
               className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50/80 hover:bg-slate-100 px-7 py-3.5 text-sm font-semibold text-slate-900 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <span>View Best Sellers</span>
+              <span>{content.secondaryLabel}</span>
             </Link>
           </motion.div>
 

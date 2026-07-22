@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { COMPANY, DIVISION_META, type Division } from "@/lib/business";
+import { getSectionContent } from "@/lib/cms/content";
+import type { SiteSettingsContent } from "@/lib/cms/registry";
 
-export function SiteFooter({ division }: { division: Division }) {
+export async function SiteFooter({ division }: { division: Division }) {
   const meta = DIVISION_META[division];
+  // Social links are editable in /admin/content ("Footer — social links").
+  const settings = await getSectionContent<SiteSettingsContent>("site.settings");
 
   return (
     <footer className="relative w-full overflow-hidden bg-white text-slate-900 pt-16 lg:pt-20 border-t border-slate-200">
@@ -74,31 +78,18 @@ export function SiteFooter({ division }: { division: Division }) {
                 Socials
               </h4>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
-                <li>
-                  <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
-                    LinkedIn
-                  </a>
-                </li>
-                <li>
-                  <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
-                    Twitter / X
-                  </a>
-                </li>
-                <li>
-                  <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
-                    Facebook
-                  </a>
-                </li>
-                <li>
-                  <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
-                    Instagram
-                  </a>
-                </li>
-                <li>
-                  <a href="https://youtube.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
-                    YouTube
-                  </a>
-                </li>
+                {settings.socials.map((social) => (
+                  <li key={social.label}>
+                    <a
+                      href={social.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-[#16A34A] transition-colors"
+                    >
+                      {social.label}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
 

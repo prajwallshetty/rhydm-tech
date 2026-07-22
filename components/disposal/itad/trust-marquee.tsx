@@ -1,16 +1,10 @@
 "use client";
 
-const LOGOS = [
-  "DELL TECHNOLOGIES",
-  "Hewlett Packard Enterprise",
-  "CISCO",
-  "Lenovo",
-  "IBM",
-  "HITACHI",
-  "accenture",
-];
+import type { DisposalMarqueeContent } from "@/lib/cms/registry";
 
-export function ItadTrustMarquee() {
+export function ItadTrustMarquee({ content }: { content: DisposalMarqueeContent }) {
+  const logos = content.logos.map((logo) => logo.name);
+
   return (
     <section
       aria-label="Trusted by global enterprises"
@@ -18,7 +12,7 @@ export function ItadTrustMarquee() {
     >
       <div className="mx-auto max-w-7xl px-6 text-center">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.25em] text-slate-400">
-          Trusted by Fortune 500 & Global Enterprise IT Teams
+          {content.title}
         </p>
       </div>
 
@@ -32,10 +26,10 @@ export function ItadTrustMarquee() {
         }}
       >
         <div className="animate-marquee flex w-max items-center gap-20 pr-20">
-          {[...LOGOS, ...LOGOS].map((logo, i) => (
+          {[...logos, ...logos].map((logo, i) => (
             <span
               key={`${logo}-${i}`}
-              aria-hidden={i >= LOGOS.length}
+              aria-hidden={i >= logos.length}
               className="text-base font-extrabold tracking-wider text-slate-400 transition-colors duration-300 hover:text-slate-800 cursor-pointer select-none"
             >
               {logo}

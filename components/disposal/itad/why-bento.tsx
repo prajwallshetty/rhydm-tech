@@ -1,33 +1,22 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Globe, Clock, TrendingUp } from "lucide-react";
+import { Clock, Globe, Recycle, ShieldCheck, TrendingUp, type LucideIcon } from "lucide-react";
 
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
 import { SpotlightCard } from "@/components/ui/accentry/spotlight-card";
+import type { DisposalWhyContent } from "@/lib/cms/registry";
 
-const STAT_CARDS = [
-  {
-    icon: TrendingUp,
-    stat: "45%",
-    body: "Of original equipment value recovered through certified global resale channels.",
-    badge: "RECOVERY RATE",
-  },
-  {
-    icon: Clock,
-    stat: "80,000+",
-    body: "Hours saved for enterprise IT managers in automated compliance intake.",
-    badge: "IT EFFICIENCY",
-  },
-  {
-    icon: Globe,
-    stat: "120",
-    body: "Countries covered with unified global logistics and certified data destruction.",
-    badge: "GLOBAL LOGISTICS",
-  },
-];
+/** CMS stores icons as strings; unknown keys fall back rather than crash. */
+const ICONS: Record<string, LucideIcon> = {
+  trending: TrendingUp,
+  clock: Clock,
+  globe: Globe,
+  shield: ShieldCheck,
+  recycle: Recycle,
+};
 
-export function ItadWhyBento() {
+export function ItadWhyBento({ content }: { content: DisposalWhyContent }) {
   return (
     <section className="relative overflow-hidden bg-white py-24 sm:py-32" aria-labelledby="itad-why-heading">
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
@@ -37,16 +26,18 @@ export function ItadWhyBento() {
               id="itad-why-heading"
               className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#0F172A]"
             >
-              Trusted by global IT teams to manage 120,000+ devices.
+              {content.heading}
             </h2>
           </BlurReveal>
         </div>
 
         {/* Clean Dashed Border Tech Cards Inspired by Reference (Without Corner Squares) */}
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {STAT_CARDS.map((card, i) => (
+          {content.cards.map((card, i) => {
+            const Icon = ICONS[card.icon] ?? TrendingUp;
+            return (
             <motion.div
-              key={card.stat}
+              key={`${card.stat}-${i}`}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
@@ -60,7 +51,7 @@ export function ItadWhyBento() {
                 <div>
                   {/* Clean Icon */}
                   <div className="mb-6">
-                    <card.icon className="size-9 text-[#16A34A]" strokeWidth={1.75} />
+                    <Icon className="size-9 text-[#16A34A]" strokeWidth={1.75} />
                   </div>
 
                   {/* Big Metric Stat */}
@@ -75,7 +66,8 @@ export function ItadWhyBento() {
                 </div>
               </SpotlightCard>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -42,6 +42,7 @@ import {
   updateAdminSiteSettings,
 } from "@/lib/repositories/admin";
 import { OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
+import type { Prisma as PrismaNS } from "@/lib/generated/prisma/client";
 
 // ===========================================================================
 // Auth Actions
@@ -571,5 +572,69 @@ export async function endDealAction(productId: string) {
 
   revalidatePath("/admin/deals");
   revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+// ===========================================================================
+// Site Content (section registry)
+// ===========================================================================
+
+import { getSectionDef } from "@/lib/cms/registry";
+
+/**
+ * Saves one registry-defined section. The payload is filtered against the
+ * section's field definitions — only registered keys survive, scalars are
+ * coerced to strings, list items keep only their registered sub-keys — so a
+ * tampered request cannot store arbitrary JSON in PageSection.
+ */
+export async function saveSiteSectionAction(key: string, content: unknown) {
+  await requireAdmin();
+
+  const def = getSectionDef(key);
+  if (!def) return { error: "Unknown section." };
+
+  const raw = (content ?? {}) as Record<string, unknown>;
+  const clean: Record<string, unknown> = {};
+
+  for (const field of def.fields) {
+    const value = raw[field.key];
+
+    if (field.type === "list") {
+      if (!Array.isArray(value)) continue;
+      clean[field.key] = value
+        .filter((item) => item && typeof item === "object")
+        .map((item) => {
+          const row: Record<string, string> = {};
+          for (const itemField of field.itemFields) {
+            const v = (item as Record<string, unknown>)[itemField.key];
+            row[itemField.key] = typeof v === "string" ? v.slice(0, 2000) : "";
+          }
+          return row;
+        })
+        // Drop rows the admin left entirely blank.
+        .filter((row) => Object.values(row).some((v) => v.trim().length > 0));
+    } else if (typeof value === "string") {
+      clean[field.key] = value.slice(0, 5000);
+    }
+  }
+
+  // Prisma's Json input type needs the explicit cast; `clean` is built above
+  // from registered string fields only.
+  const json = clean as PrismaNS.InputJsonValue;
+  await db.pageSection.upsert({
+    where: { key },
+    update: { content: json },
+    create: { key, division: def.division, content: json },
+  });
+
+  revalidatePath("/admin/content");
+  // site.settings renders in both divisions' footers.
+  if (key === "site.settings") {
+    revalidatePath("/disposal", "layout");
+    revalidatePath("/refurbished", "layout");
+  } else {
+    revalidatePath(def.division === "DISPOSAL" ? "/disposal" : "/refurbished", "layout");
+  }
+
   return { success: true };
 }
