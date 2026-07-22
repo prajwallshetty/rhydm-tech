@@ -13,11 +13,9 @@ export function PageHeader({
   breadcrumbs?: Crumb[];
 }) {
   return (
-    <section className="relative overflow-hidden border-b border-border/70">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-linear-to-b from-brand-muted/50 to-transparent"
-      />
+    // Pure white — the earlier brand-muted gradient tint read as a stray
+    // lavender band against the current white design language.
+    <section className="relative overflow-hidden border-b border-border/70 bg-white">
       <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-20">
         <FadeIn>
           {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
