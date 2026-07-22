@@ -26,9 +26,9 @@ export default function DisposalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div data-division="disposal" className="flex min-h-dvh flex-col">
+    <div data-division="disposal" className="flex min-h-dvh flex-col bg-white">
       <DisposalFloatingNav />
-      <main className="flex-1 pt-12">{children}</main>
+      <main className="flex-1">{children}</main>
       <SiteFooter division="disposal" />
     </div>
   );

@@ -12,7 +12,13 @@ import { persist } from "zustand/middleware";
  * cannot change what anything costs.
  */
 
-export type CartLine = { slug: string; quantity: number };
+export type CartLine = {
+  slug: string;
+  quantity: number;
+  variantId?: string;
+  selectedOptions?: Record<string, string>;
+  variantSku?: string;
+};
 
 type StoreState = {
   cart: CartLine[];
@@ -20,9 +26,17 @@ type StoreState = {
   compare: string[];
   recentlyViewed: string[];
 
-  addToCart: (slug: string, quantity?: number) => void;
-  setQuantity: (slug: string, quantity: number) => void;
-  removeFromCart: (slug: string) => void;
+  addToCart: (
+    slug: string,
+    quantity?: number,
+    options?: {
+      variantId?: string;
+      selectedOptions?: Record<string, string>;
+      variantSku?: string;
+    },
+  ) => void;
+  setQuantity: (slug: string, quantity: number, variantId?: string) => void;
+  removeFromCart: (slug: string, variantId?: string) => void;
   clearCart: () => void;
 
   toggleWishlist: (slug: string) => void;
@@ -46,35 +60,63 @@ export const useStore = create<StoreState>()(
       compare: [],
       recentlyViewed: [],
 
-      addToCart: (slug, quantity = 1) =>
+      addToCart: (slug, quantity = 1, options) =>
         set((state) => {
-          const existing = state.cart.find((line) => line.slug === slug);
-          if (existing) {
-            return {
-              cart: state.cart.map((line) =>
-                line.slug === slug
-                  ? { ...line, quantity: line.quantity + quantity }
-                  : line,
-              ),
+          const existingIndex = state.cart.findIndex(
+            (line) =>
+              line.slug === slug &&
+              (line.variantId || null) === (options?.variantId || null),
+          );
+          if (existingIndex >= 0) {
+            const updated = [...state.cart];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              quantity: updated[existingIndex].quantity + quantity,
             };
+            return { cart: updated };
           }
-          return { cart: [...state.cart, { slug, quantity }] };
+          return {
+            cart: [
+              ...state.cart,
+              {
+                slug,
+                quantity,
+                variantId: options?.variantId,
+                selectedOptions: options?.selectedOptions,
+                variantSku: options?.variantSku,
+              },
+            ],
+          };
         }),
 
-      setQuantity: (slug, quantity) =>
+      setQuantity: (slug, quantity, variantId) =>
         set((state) => ({
-          // Dropping to zero removes the line rather than leaving an empty row.
           cart:
             quantity <= 0
-              ? state.cart.filter((line) => line.slug !== slug)
+              ? state.cart.filter(
+                  (line) =>
+                    !(
+                      line.slug === slug &&
+                      (variantId ? line.variantId === variantId : true)
+                    ),
+                )
               : state.cart.map((line) =>
-                  line.slug === slug ? { ...line, quantity } : line,
+                  line.slug === slug &&
+                  (variantId ? line.variantId === variantId : true)
+                    ? { ...line, quantity }
+                    : line,
                 ),
         })),
 
-      removeFromCart: (slug) =>
+      removeFromCart: (slug, variantId) =>
         set((state) => ({
-          cart: state.cart.filter((line) => line.slug !== slug),
+          cart: state.cart.filter(
+            (line) =>
+              !(
+                line.slug === slug &&
+                (variantId ? line.variantId === variantId : true)
+              ),
+          ),
         })),
 
       clearCart: () => set({ cart: [] }),

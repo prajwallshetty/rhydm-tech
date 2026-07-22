@@ -204,8 +204,9 @@ model MediaAsset {
   folderId  String?
   createdAt DateTime  @default(now())
 
-  folder         MediaFolder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folder         MediaFolder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
   productImages  ProductImage[]
+  variantImages  ProductVariantImage[]
   certifications Certification[]
   posts          Post[]
 
@@ -418,6 +419,8 @@ model Product {
   orderItems     OrderItem[]
   wishlistItems  WishlistItem[]
   recentlyViewed RecentlyViewed[]
+  options        ProductOption[]
+  variants       ProductVariant[]
 
   @@index([categoryId, status])
   @@index([brandId])
@@ -538,9 +541,11 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  productId String?
+  id              String  @id @default(cuid())
+  orderId         String
+  productId       String?
+  variantId       String?
+  variantSnapshot Json?
 
   /// Name, SKU and price are snapshotted at purchase time — the product may
   /// later be renamed, repriced or deleted.
@@ -549,11 +554,13 @@ model OrderItem {
   priceCents Int
   quantity   Int    @default(1)
 
-  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
   @@index([productId])
+  @@index([variantId])
 }
 
 model WishlistItem {
@@ -646,4 +653,92 @@ model Post {
   @@index([categoryId])
   @@index([authorId])
   @@index([coverImageId])
+}
+
+// ---------------------------------------------------------------------------
+// Shopify-Style Product Variants System
+// ---------------------------------------------------------------------------
+
+model ProductOption {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  values  ProductOptionValue[]
+
+  @@unique([productId, name])
+  @@index([productId, position])
+}
+
+model ProductOptionValue {
+  id       String @id @default(cuid())
+  optionId String
+  value    String
+  position Int    @default(0)
+
+  option                     ProductOption               @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  variantOptionValueMappings ProductVariantOptionValue[]
+
+  @@unique([optionId, value])
+  @@index([optionId, position])
+}
+
+model ProductVariant {
+  id             String            @id @default(cuid())
+  productId      String
+  sku            String            @unique
+  barcode        String?
+  priceCents     Int
+  compareAtCents Int?
+  stock          Int               @default(0)
+  condition      ProductCondition?
+  conditionNotes String?           @db.Text
+  warrantyMonths Int?
+  weightGrams    Int?
+  dimensions     String?
+  status         PublishStatus     @default(PUBLISHED)
+  position       Int               @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product      Product                     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValues ProductVariantOptionValue[]
+  images       ProductVariantImage[]
+  orderItems   OrderItem[]
+
+  @@index([productId, status])
+  @@index([sku])
+  @@index([priceCents])
+}
+
+model ProductVariantOptionValue {
+  id            String @id @default(cuid())
+  variantId     String
+  optionValueId String
+
+  variant     ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  optionValue ProductOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, optionValueId])
+  @@index([variantId])
+  @@index([optionValueId])
+}
+
+model ProductVariantImage {
+  id        String  @id @default(cuid())
+  variantId String
+  assetId   String?
+  url       String
+  alt       String?
+  position  Int     @default(0)
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  asset   MediaAsset?    @relation(fields: [assetId], references: [id], onDelete: SetNull)
+
+  @@index([variantId, position])
+  @@index([assetId])
 }

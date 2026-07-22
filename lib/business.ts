@@ -90,13 +90,13 @@ export const COMPANY = {
   description:
     "Secure IT asset disposal services and certified refurbished IT equipment.",
   email: "hello@rhydm.tech",
-  phone: "+1 (555) 014-8820",
+  phone: "+49 15560 765557",
   address: {
-    street: "120 Enterprise Way",
-    city: "Austin",
-    region: "TX",
-    postalCode: "78701",
-    country: "US",
+    street: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2. Etage",
+    city: "Berlin",
+    region: "",
+    postalCode: "13599",
+    country: "Germany",
   },
 } as const;
 

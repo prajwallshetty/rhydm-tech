@@ -1,118 +1,161 @@
 "use client";
 
 import { motion } from "motion/react";
-import { BadgeCheck } from "lucide-react";
+import { ShieldCheck, Lock, FileCheck, Award, ArrowUpRight } from "lucide-react";
 
-export type ItadCertification = {
-  id: string;
-  name: string;
-  issuer: string | null;
-  description: string | null;
-};
+import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
+import { SpotlightCard } from "@/components/ui/accentry/spotlight-card";
 
-/**
- * Compliance cards, driven by the Certification table (managed in the admin
- * CMS). The animated ring draws itself when each badge scrolls into view.
- */
-export function ItadCompliance({
-  certifications,
-}: {
-  certifications: ItadCertification[];
-}) {
+export function ItadCompliance() {
   return (
     <section
-      className="bg-slate-50 py-24 sm:py-32"
+      className="bg-white py-24 sm:py-32"
       aria-labelledby="itad-compliance-heading"
     >
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
-            Compliance
-          </p>
-          <h2
-            id="itad-compliance-heading"
-            className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 text-balance sm:text-5xl"
-          >
-            Built for the frameworks you answer to
-          </h2>
-          <p className="mt-5 text-lg leading-relaxed text-gray-600">
-            Certifications govern how we operate. The documentation you receive
-            is what proves it — years after the pickup.
-          </p>
+          <BlurReveal>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
+              BUILT FOR THE FRAMEWORKS YOU ANSWER TO
+            </p>
+          </BlurReveal>
+
+          <BlurReveal delay={0.1}>
+            <h2
+              id="itad-compliance-heading"
+              className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
+            >
+              Certified Compliance for Global Auditors
+            </h2>
+          </BlurReveal>
+
+          <BlurReveal delay={0.2}>
+            <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
+              Certifications govern how we operate. The documentation you receive is what proves it — years after the pickup.
+            </p>
+          </BlurReveal>
         </div>
 
-        <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {certifications.map((cert, i) => (
-            <motion.article
-              key={cert.id}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: (i % 5) * 0.08 }}
-              whileHover={{ y: -5 }}
-              className="rounded-[24px] border border-gray-200 bg-white p-7 text-center transition-shadow duration-300 hover:shadow-[0_20px_50px_-24px_rgba(17,24,39,0.2)]"
+        {/* Large Horizontal Compliance Showcase Card (Matching Reference Layout exactly) */}
+        <div className="mt-16 flex justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.6 }}
+            className="w-full max-w-5xl"
+          >
+            <SpotlightCard
+              spotlightColor="rgba(22, 163, 74, 0.08)"
+              borderColor="rgba(22, 163, 74, 0.25)"
+              className="group overflow-hidden rounded-[24px] border border-slate-200 bg-white p-0 shadow-lg"
             >
-              {/* Animated badge ring */}
-              <div className="relative mx-auto size-16">
-                <svg viewBox="0 0 64 64" className="absolute inset-0" aria-hidden>
-                  <circle
-                    cx="32"
-                    cy="32"
-                    r="29"
-                    fill="none"
-                    stroke="#E5E7EB"
-                    strokeWidth="2.5"
-                  />
-                  <motion.circle
-                    cx="32"
-                    cy="32"
-                    r="29"
-                    fill="none"
-                    stroke="url(#itad-badge-gradient)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeDasharray="182"
-                    initial={{ strokeDashoffset: 182 }}
-                    whileInView={{ strokeDashoffset: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.1, delay: 0.2 + i * 0.08 }}
-                    transform="rotate(-90 32 32)"
-                  />
-                  <defs>
-                    <linearGradient
-                      id="itad-badge-gradient"
-                      x1="0"
-                      y1="0"
-                      x2="1"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#2563EB" />
-                      <stop offset="100%" stopColor="#10B981" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <span className="absolute inset-0 grid place-items-center">
-                  <BadgeCheck
-                    aria-hidden
-                    className="size-7 text-blue-600"
-                    strokeWidth={1.8}
-                  />
-                </span>
+              {/* Card Body: Left & Right Grid */}
+              <div className="grid gap-8 p-8 md:grid-cols-12 md:p-12 items-center">
+                
+                {/* Left Column: Image and Official Pill */}
+                <div className="md:col-span-5 flex flex-col items-center md:items-start">
+                  <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-extrabold text-emerald-800 mb-6">
+                    <ShieldCheck className="size-4 text-[#16A34A]" />
+                    <span>OFFICIAL REGISTRATION</span>
+                  </div>
+
+                  <div className="relative w-full max-w-[280px] aspect-square flex items-center justify-center bg-white p-2">
+                    <img
+                      src="/isocer.png"
+                      alt="ISO 27001 Certified Penetration Test Reporting Compliance Badge"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+
+                {/* Right Column: Title and Checklist */}
+                <div className="md:col-span-7 flex flex-col items-start">
+                  <span className="rounded bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold uppercase text-emerald-800 tracking-wider mb-3">
+                    ISO STANDARD
+                  </span>
+
+                  <h3 className="text-3xl font-extrabold tracking-tight text-[#0F172A]">
+                    ISO 27001 Certification
+                  </h3>
+
+                  <span className="text-[11px] font-black uppercase text-[#16A34A] tracking-wider mt-1.5 mb-5 block">
+                    INFORMATION SECURITY MANAGEMENT
+                  </span>
+
+                  <p className="text-sm leading-relaxed text-slate-600 mb-8">
+                    Certified information security management systems governing secure data sanitization, physical drive shredding, and global IT asset disposition workflows.
+                  </p>
+
+                  {/* Bullet Highlights */}
+                  <div className="space-y-5 w-full">
+                    {/* Bullet 1 */}
+                    <div className="flex gap-4">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-emerald-50 text-[#16A34A]">
+                        <ShieldCheck className="size-5" />
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-[#0F172A]">
+                          Internationally Recognized
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Aligned with global security standards
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bullet 2 */}
+                    <div className="flex gap-4">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-emerald-50 text-[#16A34A]">
+                        <Lock className="size-5" />
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-[#0F172A]">
+                          Secure by Design
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Controls built into every process
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bullet 3 */}
+                    <div className="flex gap-4">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-emerald-50 text-[#16A34A]">
+                        <FileCheck className="size-5" />
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-[#0F172A]">
+                          Audited & Verified
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Independent audits and continuous compliance
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <h3 className="mt-5 text-base font-bold tracking-tight text-gray-900">
-                {cert.name}
-              </h3>
-              {cert.issuer && (
-                <p className="mt-0.5 text-[11px] font-bold uppercase tracking-widest text-blue-600">
-                  {cert.issuer}
-                </p>
-              )}
-              <p className="mt-2.5 text-[13px] leading-relaxed text-gray-500">
-                {cert.description}
-              </p>
-            </motion.article>
-          ))}
+              {/* Card Footer Bar */}
+              <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-8 py-5 md:px-12">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                  <ShieldCheck className="size-4 text-[#16A34A]" />
+                  <span>AUDITED & REGISTERED VERIFICATION</span>
+                </div>
+
+                <a
+                  href="/isocer.png"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 text-xs font-bold text-[#16A34A] hover:underline"
+                >
+                  <span>VIEW CERTIFICATE</span>
+                  <ArrowUpRight className="size-4.5" />
+                </a>
+              </div>
+            </SpotlightCard>
+          </motion.div>
         </div>
       </div>
     </section>

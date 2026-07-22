@@ -4,7 +4,7 @@ import { ItadComparison } from "@/components/disposal/itad/comparison";
 import { ItadCompliance } from "@/components/disposal/itad/compliance";
 import { ItadFinalCta } from "@/components/disposal/itad/final-cta";
 import { ItadHero } from "@/components/disposal/itad/hero";
-import { ItadLifecycle } from "@/components/disposal/itad/lifecycle";
+import { ItadIndustries } from "@/components/disposal/itad/industries";
 import { ItadProcess } from "@/components/disposal/itad/process";
 import { ItadServices } from "@/components/disposal/itad/services";
 import { ItadShowcase } from "@/components/disposal/itad/showcase";
@@ -17,6 +17,7 @@ import { SITE_URL } from "@/lib/business";
 import {
   getCertifications,
   getFaqs,
+  getIndustries,
   getProcessSteps,
   getServices,
   getTestimonials,
@@ -49,15 +50,14 @@ export const metadata: Metadata = {
 };
 
 export default async function DisposalHomePage() {
-  // One parallel round to the CMS — every content section below is
-  // database-driven, so edits in /admin/disposal ship without a deploy.
-  const [services, steps, faqs, testimonials, certifications] =
+  const [services, steps, faqs, testimonials, certifications, industries] =
     await Promise.all([
       getServices(),
       getProcessSteps(),
       getFaqs(),
       getTestimonials(),
       getCertifications(),
+      getIndustries(),
     ]);
 
   const jsonLd = {
@@ -76,39 +76,36 @@ export default async function DisposalHomePage() {
     <div className="bg-white">
       <script
         type="application/ld+json"
-        // Our own structured data, not user input.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       <ItadHero />
-      <ItadTrustMarquee />
       <ItadWhyBento />
       <ItadServices services={services} />
       <ItadProcess steps={steps} />
-      <ItadShowcase />
+      <ItadIndustries industries={industries} />
       <ItadComparison />
-      <ItadValueRecovery />
-      <ItadCompliance certifications={certifications} />
+      <ItadCompliance />
       <ItadTestimonials testimonials={testimonials} />
 
       {/* FAQ */}
       <section
-        className="bg-white pb-24 sm:pb-32"
+        className="bg-white py-24 sm:py-32"
         aria-labelledby="itad-faq-heading"
       >
-        <div className="mx-auto max-w-3xl px-6">
+        <div className="mx-auto max-w-3xl px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
               FAQ
             </p>
             <h2
               id="itad-faq-heading"
-              className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 text-balance sm:text-5xl"
+              className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
             >
-              Questions, answered
+              Frequently Asked Questions
             </h2>
           </div>
-          <div className="mt-12">
+          <div className="mt-14">
             <Accordion
               items={faqs.map((faq) => ({
                 id: faq.id,
@@ -120,7 +117,6 @@ export default async function DisposalHomePage() {
         </div>
       </section>
 
-      <ItadLifecycle />
       <ItadFinalCta />
     </div>
   );

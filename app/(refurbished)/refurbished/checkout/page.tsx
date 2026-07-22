@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Check, CreditCard, Loader2, Truck, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 
 import { getCartProducts, type CartProduct } from "@/app/(refurbished)/refurbished/cart/actions";
 import { placeOrder, getCheckoutUserDataAction } from "@/app/(refurbished)/refurbished/checkout/actions";
@@ -129,6 +130,7 @@ export default function CheckoutPage() {
     setSubmitting(false);
 
     if (result.ok) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
       setConfirmation({
         orderNumber: result.orderNumber,
         totalCents: result.totalCents,
@@ -143,45 +145,77 @@ export default function CheckoutPage() {
   // --- Confirmation -------------------------------------------------------
   if (confirmation) {
     return (
-      <div className="mx-auto max-w-2xl px-6 py-20 text-center">
-        <span className="mx-auto grid size-14 place-items-center rounded-full bg-brand-muted text-brand">
-          <Check className="size-7" strokeWidth={2.2} />
-        </span>
-        <h1 className="mt-6 text-3xl font-semibold tracking-tight">
-          Order placed
-        </h1>
-        <p className="mt-3 text-muted-foreground">
-          Thanks — we&rsquo;ve recorded your order and emailed a copy to{" "}
-          <span className="font-medium text-foreground">{form.email}</span>.
-        </p>
+      <div className="mx-auto max-w-2xl px-6 pt-36 pb-24 text-center">
+        {/* Animated Pop-in Checkmark */}
+        <motion.div
+          initial={{ scale: 0, rotate: -30 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+          className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-50 text-[#16A34A] border border-emerald-100 shadow-sm"
+        >
+          <Check className="size-8" strokeWidth={3} />
+        </motion.div>
 
-        <div className="mt-8 rounded-2xl border border-border/80 bg-card p-6 text-left">
+        {/* Animated Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-6 text-3xl font-extrabold tracking-tight text-[#0F172A]"
+        >
+          Order placed
+        </motion.h1>
+
+        {/* Animated Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-3 text-sm text-slate-600 leading-relaxed max-w-md mx-auto"
+        >
+          Thanks — we&rsquo;ve recorded your order and emailed a copy to{" "}
+          <span className="font-semibold text-slate-900">{form.email}</span>.
+        </motion.p>
+
+        {/* Animated Order Info Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.45 }}
+          className="mt-8 rounded-[20px] border border-slate-200 bg-white p-6 shadow-sm text-left max-w-md mx-auto"
+        >
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Order number</span>
-            <span className="font-mono font-medium">
+            <span className="text-slate-500 font-medium">Order number</span>
+            <span className="font-mono font-bold text-slate-900">
               {confirmation.orderNumber}
             </span>
           </div>
           <div className="mt-3 flex justify-between text-sm">
-            <span className="text-muted-foreground">Total</span>
-            <span className="font-semibold">
+            <span className="text-slate-500 font-medium">Total</span>
+            <span className="font-extrabold text-[#16A34A]">
               {formatPriceExact(confirmation.totalCents)}
             </span>
           </div>
-          <div className="mt-5 rounded-xl bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+          <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-500">
             Online payment integration is coming soon. Our team will contact you
             to arrange payment before dispatch.
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <ButtonLink href="/refurbished/shop" size="lg">
+        {/* Animated Button Links */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"
+        >
+          <ButtonLink href="/refurbished/shop" size="lg" className="rounded-xl">
             Continue shopping
           </ButtonLink>
-          <ButtonLink href="/refurbished/account/orders" variant="outline" size="lg">
+          <ButtonLink href="/refurbished/account?tab=orders" variant="outline" size="lg" className="rounded-xl">
             View orders
           </ButtonLink>
-        </div>
+        </motion.div>
       </div>
     );
   }

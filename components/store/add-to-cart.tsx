@@ -11,10 +11,18 @@ export function AddToCart({
   slug,
   name,
   stock,
+  variantId,
+  selectedOptions,
+  variantSku,
+  variantPriceCents,
 }: {
   slug: string;
   name: string;
   stock: number;
+  variantId?: string;
+  selectedOptions?: Record<string, string>;
+  variantSku?: string;
+  variantPriceCents?: number;
 }) {
   const [quantity, setQuantity] = useState(1);
   const addToCart = useStore((s) => s.addToCart);
@@ -65,7 +73,11 @@ export function AddToCart({
         <button
           type="button"
           onClick={() => {
-            addToCart(slug, quantity);
+            addToCart(slug, quantity, {
+              variantId,
+              selectedOptions,
+              variantSku,
+            });
             push(
               quantity > 1
                 ? `Added ${quantity} × ${name} to cart`

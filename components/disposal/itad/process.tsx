@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
 
 export type ItadProcessStep = {
   id: string;
@@ -23,15 +24,20 @@ export function ItadProcess({ steps }: { steps: ItadProcessStep[] }) {
     >
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
-            Process
-          </p>
-          <h2
-            id="itad-process-heading"
-            className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 text-balance sm:text-5xl"
-          >
-            From pickup to certificate, fully documented
-          </h2>
+          <BlurReveal>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#16A34A]">
+              7-Step Certified Chain of Custody
+            </p>
+          </BlurReveal>
+          
+          <BlurReveal delay={0.1}>
+            <h2
+              id="itad-process-heading"
+              className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 text-balance sm:text-5xl"
+            >
+              From pickup to certificate, fully documented
+            </h2>
+          </BlurReveal>
         </div>
 
         {/* Desktop: horizontal rail */}
@@ -43,7 +49,7 @@ export function ItadProcess({ steps }: { steps: ItadProcessStep[] }) {
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute left-0 right-0 top-7 h-0.5 origin-left bg-gradient-to-r from-blue-600 to-emerald-500"
+            className="absolute left-0 right-0 top-7 h-0.5 origin-left bg-gradient-to-r from-[#16A34A] to-emerald-400"
           />
 
           <ol className="relative grid grid-cols-7 gap-4">
@@ -56,7 +62,7 @@ export function ItadProcess({ steps }: { steps: ItadProcessStep[] }) {
                 transition={{ duration: 0.5, delay: i * 0.12 }}
                 className="text-center"
               >
-                <span className="relative z-10 mx-auto grid size-14 place-items-center rounded-full border-2 border-blue-600/20 bg-white text-base font-extrabold text-blue-600 shadow-sm">
+                <span className="relative z-10 mx-auto grid size-14 place-items-center rounded-full border-2 border-[#16A34A]/25 bg-white text-base font-extrabold text-[#16A34A] shadow-sm">
                   {step.step}
                 </span>
                 <h3 className="mt-5 text-sm font-bold tracking-tight text-gray-900">
@@ -74,7 +80,7 @@ export function ItadProcess({ steps }: { steps: ItadProcessStep[] }) {
         <ol className="relative mx-auto mt-14 max-w-md lg:hidden">
           <div
             aria-hidden
-            className="absolute bottom-4 left-6 top-4 w-0.5 bg-gradient-to-b from-blue-600 to-emerald-500"
+            className="absolute bottom-4 left-6 top-4 w-0.5 bg-gradient-to-b from-[#16A34A] to-emerald-400"
           />
           {steps.map((step, i) => (
             <motion.li
@@ -85,7 +91,7 @@ export function ItadProcess({ steps }: { steps: ItadProcessStep[] }) {
               transition={{ duration: 0.45, delay: i * 0.06 }}
               className="relative flex gap-6 pb-10 last:pb-0"
             >
-              <span className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border-2 border-blue-600/20 bg-white text-sm font-extrabold text-blue-600 shadow-sm">
+              <span className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border-2 border-[#16A34A]/25 bg-white text-sm font-extrabold text-[#16A34A] shadow-sm">
                 {step.step}
               </span>
               <div className="pt-1.5">

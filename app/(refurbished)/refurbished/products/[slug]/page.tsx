@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import {
   Award,
   PackageCheck,
@@ -27,6 +28,9 @@ import {
   getProductSlugs,
   getRelatedProducts,
 } from "@/lib/repositories/store";
+
+import { getProductWithVariants } from "@/lib/data/variants";
+import { VariantConfigurator } from "@/components/store/variant-configurator";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -60,10 +64,8 @@ export default async function ProductDetailPage({ params }: Props) {
 
   if (!product) notFound();
 
+  const productWithVariants = await getProductWithVariants(slug);
   const related = await getRelatedProducts(product.categoryId, product.id);
-
-  const discount = discountPercent(product.priceCents, product.compareAtCents);
-  const stock = stockLabel(product.stock);
 
   // Group specs by their `group` label for the specification table.
   const specGroups = product.specs.reduce<Record<string, typeof product.specs>>(
@@ -126,104 +128,21 @@ export default async function ProductDetailPage({ params }: Props) {
         />
       </div>
 
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="grid gap-12 lg:grid-cols-2">
-          <FadeIn>
-            <ProductGallery
-              slug={product.slug}
-              category={product.category.slug}
-              name={product.name}
-            />
-          </FadeIn>
-
-          <FadeIn delay={0.08}>
-            <div>
-              <p className="text-sm font-medium uppercase tracking-widest text-brand">
-                {product.brand?.name ?? product.category.name}
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-                {product.name}
-              </h1>
-
-              {product.ratingCount > 0 && (
-                <div className="mt-4">
-                  <RatingStars
-                    rating={product.ratingAvg}
-                    count={product.ratingCount}
-                    size="md"
-                  />
-                </div>
-              )}
-
-              <div className="mt-6 flex flex-wrap items-baseline gap-3">
-                <span className="text-3xl font-semibold tracking-tight">
-                  {formatPrice(product.priceCents)}
-                </span>
-                {product.compareAtCents != null && (
-                  <>
-                    <span className="text-lg text-muted-foreground line-through">
-                      {formatPrice(product.compareAtCents)}
-                    </span>
-                    {discount != null && (
-                      <span className="rounded-full bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground">
-                        Save {discount}%
-                      </span>
-                    )}
-                  </>
-                )}
-              </div>
-
-              <p
-                className={
-                  stock.tone === "out"
-                    ? "mt-2 text-sm text-destructive"
-                    : "mt-2 text-sm text-muted-foreground"
-                }
-              >
-                {stock.label} · SKU {product.sku}
-              </p>
-
-              {product.shortDescription && (
-                <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground">
-                  {product.shortDescription}
-                </p>
-              )}
-
-              <div className="mt-8">
-                <AddToCart
-                  slug={product.slug}
-                  name={product.name}
-                  stock={product.stock}
-                />
-              </div>
-
-              {/* Trust row */}
-              <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-border/70 pt-8">
-                <Assurance
-                  icon={ShieldCheck}
-                  title={`${product.warrantyMonths}-month warranty`}
-                  detail="Return-to-base cover"
-                />
-                <Assurance
-                  icon={Award}
-                  title={conditionLabel(product.condition)}
-                  detail="Graded on a published scale"
-                />
-                <Assurance
-                  icon={Truck}
-                  title="Free shipping"
-                  detail="On orders over $500"
-                />
-                <Assurance
-                  icon={RotateCcw}
-                  title="30-day returns"
-                  detail="No restocking fee"
-                />
-              </dl>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
+      {productWithVariants && (
+        <Suspense fallback={<div className="mx-auto max-w-7xl px-6 py-20 text-center text-slate-400">Loading configurator…</div>}>
+          <VariantConfigurator
+            product={productWithVariants}
+            ratingAvg={product.ratingAvg}
+            ratingCount={product.ratingCount}
+            brandName={product.brand?.name}
+            categoryName={product.category.name}
+            categorySlug={product.category.slug}
+            specGroups={specGroups}
+            conditionNotes={product.conditionNotes}
+            description={product.description}
+          />
+        </Suspense>
+      )}
 
       {/* Condition report */}
       <Section className="border-t border-border/70 bg-muted/30">

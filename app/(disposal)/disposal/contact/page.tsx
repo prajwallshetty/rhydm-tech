@@ -57,31 +57,28 @@ export default function ContactPage() {
                 <ContactRow icon={MapPin} label="Office">
                   {COMPANY.address.street}
                   <br />
-                  {COMPANY.address.city}, {COMPANY.address.region}{" "}
-                  {COMPANY.address.postalCode}
+                  {COMPANY.address.postalCode} {COMPANY.address.city}
+                  <br />
+                  {COMPANY.address.country}
                 </ContactRow>
 
                 <ContactRow icon={Clock} label="Hours">
-                  Mon–Fri, 8:00–18:00 CT
+                  Mon–Fri, 9:00–18:00 CET
                   <br />
                   Emergency collections by arrangement
                 </ContactRow>
               </div>
 
-              {/* Map placeholder — swap for an embed once an API key exists.
-                  Deliberately not loading a third-party iframe by default, to
-                  avoid shipping trackers the user hasn't consented to. */}
-              <div className="grid h-64 place-items-center rounded-2xl border border-border/80 bg-muted/50 text-center">
-                <div className="px-6">
-                  <MapPin
-                    aria-hidden
-                    className="mx-auto size-6 text-muted-foreground"
-                    strokeWidth={1.6}
-                  />
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Map embed placeholder
-                  </p>
-                </div>
+              {/* Embedded Google Maps location */}
+              <div className="h-64 overflow-hidden rounded-2xl border border-border/80 bg-muted/50">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2426.1788276739685!2d13.251739599999999!3d52.548290099999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47a8577a20f0bebf%3A0xce8d066281ffb4ff!2sRhydm%20Technologies!5e0!3m2!1sen!2sin!4v1784738962842!5m2!1sen!2sin"
+                  className="w-full h-full"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
               </div>
             </div>
           </FadeIn>

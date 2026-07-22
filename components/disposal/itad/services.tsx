@@ -5,6 +5,8 @@ import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 
 import { Icon } from "@/components/icon";
+import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
+import { SpotlightCard } from "@/components/ui/accentry/spotlight-card";
 
 export type ItadService = {
   id: string;
@@ -14,79 +16,82 @@ export type ItadService = {
   icon: string;
 };
 
-/**
- * Service cards, driven by the Disposal CMS (DisposalService rows) rather
- * than hardcoded copy — edits in /admin/disposal appear here without a deploy.
- */
 export function ItadServices({ services }: { services: ItadService[] }) {
   return (
     <section
-      className="bg-slate-50 py-24 sm:py-32"
+      className="relative overflow-hidden bg-white py-24 sm:py-32"
       aria-labelledby="itad-services-heading"
     >
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
-              Services
-            </p>
-            <h2
-              id="itad-services-heading"
-              className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 text-balance sm:text-5xl"
-            >
-              Every stage of disposition, one platform
-            </h2>
+            <BlurReveal>
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
+                END-TO-END CAPABILITIES
+              </p>
+            </BlurReveal>
+            <BlurReveal delay={0.1}>
+              <h2
+                id="itad-services-heading"
+                className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
+              >
+                Every Stage of Disposition, One Unified Platform
+              </h2>
+            </BlurReveal>
           </div>
-          <Link
-            href="/disposal/services"
-            className="group inline-flex items-center gap-2 text-base font-semibold text-blue-600"
-          >
-            All services
-            <ArrowRight
-              aria-hidden
-              className="size-4 transition-transform group-hover:translate-x-1"
-            />
-          </Link>
+
+          <BlurReveal delay={0.2}>
+            <Link
+              href="/disposal/services"
+              className="group inline-flex items-center gap-1.5 text-sm font-bold text-[#16A34A] hover:underline"
+            >
+              <span>Explore All Services</span>
+              <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </BlurReveal>
         </div>
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Centered Grid for incomplete rows (4 + 3 centered) */}
+        <div className="mt-16 flex flex-wrap justify-center gap-6">
           {services.map((service, i) => (
             <motion.div
               key={service.id}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: (i % 3) * 0.07 }}
-              className="group relative"
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: (i % 4) * 0.06 }}
+              className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)] flex-grow-0 shrink-0"
             >
-              {/* Hover glow */}
-              <div
-                aria-hidden
-                className="absolute -inset-px rounded-[26px] bg-gradient-to-br from-blue-600/40 via-transparent to-emerald-500/40 opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-100"
-              />
+              <Link href={`/disposal/services/${service.slug}`} className="block h-full">
+                <SpotlightCard
+                  spotlightColor="rgba(22, 163, 74, 0.12)"
+                  borderColor="rgba(22, 163, 74, 0.35)"
+                  className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/60 p-6 transition-all hover:border-[#16A34A]/40 hover:bg-white hover:shadow-xl"
+                >
+                  <div>
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-4">
+                      <span className="grid size-11 place-items-center rounded-xl bg-[#0F172A] text-white shadow-md transition-transform duration-300 group-hover:scale-105 group-hover:bg-[#16A34A]">
+                        <Icon name={service.icon} className="size-5" strokeWidth={1.8} />
+                      </span>
+                      <span className="rounded-full bg-slate-200/60 px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-slate-700">
+                        ACTIVE SERVICE
+                      </span>
+                    </div>
 
-              <Link
-                href={`/disposal/services/${service.slug}`}
-                className="relative flex h-full flex-col rounded-[24px] border border-gray-200 bg-white p-8 transition-shadow duration-300 group-hover:shadow-[0_20px_50px_-20px_rgba(37,99,235,0.25)]"
-              >
-                <span className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100 text-blue-600 ring-1 ring-gray-200 transition-transform duration-300 group-hover:scale-105">
-                  <Icon name={service.icon} className="size-7" strokeWidth={1.7} />
-                </span>
+                    <h3 className="mt-5 text-lg font-bold tracking-tight text-[#0F172A] group-hover:text-[#16A34A] transition-colors">
+                      {service.title}
+                    </h3>
 
-                <h3 className="mt-6 text-lg font-bold tracking-tight text-gray-900">
-                  {service.title}
-                </h3>
-                <p className="mt-2 flex-1 text-[15px] leading-relaxed text-gray-600">
-                  {service.summary}
-                </p>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                      {service.summary}
+                    </p>
+                  </div>
 
-                <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600">
-                  Learn More
-                  <ArrowRight
-                    aria-hidden
-                    className="size-4 transition-transform duration-300 group-hover:translate-x-1.5"
-                  />
-                </span>
+                  <div className="mt-6 flex items-center justify-between border-t border-slate-200/60 pt-4 text-xs font-bold text-[#16A34A]">
+                    <span>Technical Overview</span>
+                    <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1.5" />
+                  </div>
+                </SpotlightCard>
               </Link>
             </motion.div>
           ))}

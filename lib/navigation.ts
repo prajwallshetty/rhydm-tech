@@ -31,9 +31,9 @@ export const NAV: Record<Division, NavItem[]> = {
 /** Account-area links, shown in the store header's profile menu. */
 export const ACCOUNT_NAV: NavItem[] = [
   { label: "Dashboard", href: "/refurbished/account" },
-  { label: "Orders", href: "/refurbished/account/orders" },
-  { label: "Addresses", href: "/refurbished/account/addresses" },
+  { label: "Orders", href: "/refurbished/account?tab=orders" },
+  { label: "Addresses", href: "/refurbished/account?tab=addresses" },
   { label: "Wishlist", href: "/refurbished/wishlist" },
-  { label: "Recently Viewed", href: "/refurbished/account/recently-viewed" },
-  { label: "Settings", href: "/refurbished/account/settings" },
+  { label: "Recently Viewed", href: "/refurbished/account" },
+  { label: "Settings", href: "/refurbished/account?tab=profile" },
 ];

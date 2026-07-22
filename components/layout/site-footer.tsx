@@ -1,141 +1,172 @@
 import Link from "next/link";
-import { ShieldCheck, Mail, Phone, MapPin, Globe } from "lucide-react";
-
-import { Logo } from "@/components/brand/logo";
-import { DIVISION_META, COMPANY, type Division } from "@/lib/business";
-import { NAV } from "@/lib/navigation";
+import { COMPANY, DIVISION_META, type Division } from "@/lib/business";
 
 export function SiteFooter({ division }: { division: Division }) {
   const meta = DIVISION_META[division];
-  const other = DIVISION_META[division === "disposal" ? "refurbished" : "disposal"];
 
   return (
-    <footer className="border-t border-slate-200/80 bg-white text-slate-900">
-      {/* Top Main Footer Area */}
-      <div className="mx-auto max-w-7xl px-6 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-        {/* Column 1: Company Logo & Description */}
-        <div className="space-y-5">
-          <Logo />
-          <p className="text-xs sm:text-sm leading-relaxed text-slate-500 font-medium max-w-xs">
-            {COMPANY.description}
-          </p>
-          <div className="flex items-center gap-3 text-slate-400">
-            <ShieldCheck className="h-5 w-5 text-[#2E6F40]" />
-            <span className="text-xs font-bold text-slate-700 tracking-tight">ISO 27001 Certified ITAD</span>
-          </div>
-        </div>
-
-        {/* Column 2: Navigation Links */}
-        <div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2 mb-4">
-            {meta.name}
-          </h3>
-          <ul className="space-y-3">
-            {NAV[division].map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="text-xs sm:text-sm text-slate-500 hover:text-[#2E6F40] font-medium transition-colors cursor-pointer"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Column 3: Legal & Resources */}
-        <div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2 mb-4">
-            Resources & Legal
-          </h3>
-          <ul className="space-y-3">
-            <li>
-              <Link
-                href="/refurbished/categories"
-                className="text-xs sm:text-sm text-slate-500 hover:text-[#2E6F40] font-medium transition-colors cursor-pointer"
-              >
-                Product Categories
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/disposal/certificates"
-                className="text-xs sm:text-sm text-slate-500 hover:text-[#2E6F40] font-medium transition-colors cursor-pointer"
-              >
-                Audits & Certification
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/disposal/faqs"
-                className="text-xs sm:text-sm text-slate-500 hover:text-[#2E6F40] font-medium transition-colors cursor-pointer"
-              >
-                Frequently Asked Questions
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#"
-                className="text-xs sm:text-sm text-slate-500 hover:text-[#2E6F40] font-medium transition-colors cursor-pointer"
-              >
-                Privacy & Data Security Policy
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Column 4: Contact & Office Info */}
-        <div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2 mb-4">
-            Get In Touch
-          </h3>
-          <ul className="space-y-3 text-xs sm:text-sm text-slate-500 font-medium">
-            <li className="flex items-center gap-2.5">
-              <Mail className="h-4 w-4 text-[#2E6F40] shrink-0" />
-              <a
-                href={`mailto:${COMPANY.email}`}
-                className="hover:text-[#2E6F40] transition-colors"
-              >
-                {COMPANY.email}
-              </a>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <Phone className="h-4 w-4 text-[#2E6F40] shrink-0" />
-              <a
-                href={`tel:${COMPANY.phone.replace(/[^+\d]/g, "")}`}
-                className="hover:text-[#2E6F40] transition-colors"
-              >
-                {COMPANY.phone}
-              </a>
-            </li>
-            <li className="flex items-start gap-2.5 pt-1">
-              <MapPin className="h-4 w-4 text-[#2E6F40] shrink-0 mt-0.5" />
-              <span>
-                {COMPANY.address.street}
-                <br />
-                {COMPANY.address.city}, {COMPANY.address.region} {COMPANY.address.postalCode}
+    <footer className="relative w-full overflow-hidden bg-white text-slate-900 pt-16 lg:pt-20 border-t border-slate-200">
+      {/* Main Content Grid aligned with page grid */}
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+          {/* Left Column: Logo & Copyright */}
+          <div className="lg:col-span-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <img
+                src="/icon.png"
+                alt={COMPANY.name}
+                className="size-9 object-contain"
+              />
+              <span className="text-xl font-bold tracking-tight text-[#16A34A]">
+                {COMPANY.name}
               </span>
-            </li>
-          </ul>
-        </div>
-      </div>
+            </div>
 
-      {/* Bottom Bar Area */}
-      <div className="border-t border-slate-100">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-6 text-xs sm:text-sm text-slate-500 font-medium sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            &copy; {new Date().getFullYear()} {COMPANY.legalName}. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4">
-            <Link
-              href={other.href}
-              className="inline-flex items-center gap-1 text-[#2E6F40] hover:text-[#255833] font-bold transition-colors cursor-pointer"
-            >
-              <span>{meta.crossLinkLabel}</span>
-              <span>&rarr;</span>
-            </Link>
+            <p className="text-xs text-slate-500 font-medium">
+              &copy; copyright {COMPANY.name} {new Date().getFullYear()}. All rights reserved.
+            </p>
           </div>
+
+          {/* Right Columns Grid: Pages, Socials, Legal, Register */}
+          <div className="lg:col-span-8 grid grid-cols-2 gap-8 sm:grid-cols-4">
+            {/* Pages / Services */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Pages
+              </h4>
+              <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
+                <li>
+                  <Link href="/disposal/services" className="hover:text-[#16A34A] transition-colors">
+                    All Services
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/disposal/process" className="hover:text-[#16A34A] transition-colors">
+                    Process
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/disposal/industries" className="hover:text-[#16A34A] transition-colors">
+                    Industries
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/disposal/certificates" className="hover:text-[#16A34A] transition-colors">
+                    Certificates
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/disposal/faqs" className="hover:text-[#16A34A] transition-colors">
+                    FAQs
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/disposal/contact" className="hover:text-[#16A34A] transition-colors">
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Socials */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Socials
+              </h4>
+              <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
+                <li>
+                  <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
+                    LinkedIn
+                  </a>
+                </li>
+                <li>
+                  <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
+                    Twitter / X
+                  </a>
+                </li>
+                <li>
+                  <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
+                    Facebook
+                  </a>
+                </li>
+                <li>
+                  <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
+                    Instagram
+                  </a>
+                </li>
+                <li>
+                  <a href="https://youtube.com" target="_blank" rel="noreferrer" className="hover:text-[#16A34A] transition-colors">
+                    YouTube
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Legal
+              </h4>
+              <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
+                <li>
+                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
+                    Cookie Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
+                    Data Security
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Register & Shop */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Register
+              </h4>
+              <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
+                <li>
+                  <Link href="/refurbished" className="hover:text-[#16A34A] transition-colors">
+                    Shop Refurbished
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/signup" className="hover:text-[#16A34A] transition-colors">
+                    Sign Up
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/login" className="hover:text-[#16A34A] transition-colors">
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/forgot-password" className="hover:text-[#16A34A] transition-colors">
+                    Forgot Password
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Giant Bottom Brand Watermark — Soft Light Watermark in Plain White Theme */}
+        <div className="mt-16 sm:mt-20 border-t border-slate-100 pt-6 pb-2 text-center overflow-hidden select-none">
+          <span className="block text-[10vw] sm:text-[11vw] font-bold tracking-tight text-slate-200/70 leading-none whitespace-nowrap">
+            Rhydm Tech
+          </span>
         </div>
       </div>
     </footer>

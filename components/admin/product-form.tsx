@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon } from "lucide-react";
 import { saveProductAction } from "@/app/(admin)/admin/actions";
 import { ProductCondition, PublishStatus } from "@/lib/generated/prisma/enums";
+import { ProductVariantManager, ConfiguredOption, ManagedVariant } from "@/components/admin/product-variant-manager";
 
 export function ProductForm({
   initialData,
@@ -68,12 +69,53 @@ export function ProductForm({
     setSpecs(next);
   };
 
+  const [variantOptions, setVariantOptions] = useState<ConfiguredOption[]>(
+    initialData?.options && initialData.options.length > 0
+      ? initialData.options.map((o: any) => ({
+          name: o.name,
+          valuesStr: o.values.map((v: any) => v.value).join(", "),
+        }))
+      : [
+          { name: "RAM", valuesStr: "8GB, 16GB, 32GB" },
+          { name: "SSD", valuesStr: "256GB, 512GB, 1TB" },
+          { name: "Condition", valuesStr: "Grade A, Grade B" },
+          { name: "Warranty", valuesStr: "6 Months, 12 Months" },
+        ],
+  );
+
+  const [managedVariants, setManagedVariants] = useState<ManagedVariant[]>(
+    initialData?.variants && initialData.variants.length > 0
+      ? initialData.variants.map((v: any) => ({
+          id: v.id,
+          sku: v.sku,
+          barcode: v.barcode || "",
+          price: (v.priceCents / 100).toString(),
+          compareAtPrice: v.compareAtCents ? (v.compareAtCents / 100).toString() : "",
+          stock: v.stock,
+          condition: v.condition || "GRADE_A",
+          warrantyMonths: v.warrantyMonths || 12,
+          status: v.status || "PUBLISHED",
+          selectedOptions: v.optionValues
+            ? v.optionValues.reduce((acc: any, ov: any) => {
+                acc[ov.optionValue?.option?.name || "Option"] = ov.optionValue?.value || "";
+                return acc;
+              }, {})
+            : {},
+        }))
+      : [],
+  );
+
   return (
     <form action={saveProductAction} className="space-y-8 max-w-4xl">
       {initialData?.id && <input type="hidden" name="id" value={initialData.id} />}
       <input type="hidden" name="specs" value={JSON.stringify(specs)} />
       <input type="hidden" name="featured" value={featured ? "true" : "false"} />
       <input type="hidden" name="bestSeller" value={bestSeller ? "true" : "false"} />
+      <input
+        type="hidden"
+        name="variantData"
+        value={JSON.stringify({ options: variantOptions, variants: managedVariants })}
+      />
 
       {/* Top action header */}
       <div className="flex items-center justify-between border-b border-border/60 pb-4">
@@ -387,6 +429,20 @@ export function ProductForm({
           </div>
         </div>
       </div>
+
+      {/* Product Variant Manager Section */}
+      <ProductVariantManager
+        baseSku={sku}
+        basePrice={price}
+        baseCompareAtPrice={compareAtPrice}
+        baseStock={stock}
+        initialOptions={variantOptions}
+        initialVariants={managedVariants}
+        onChange={(opts, vars) => {
+          setVariantOptions(opts);
+          setManagedVariants(vars);
+        }}
+      />
     </form>
   );
 }

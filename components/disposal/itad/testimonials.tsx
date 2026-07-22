@@ -1,8 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Quote, Building2 } from "lucide-react";
 import { useState } from "react";
+
+import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
+import { SpotlightCard } from "@/components/ui/accentry/spotlight-card";
 
 export type ItadTestimonial = {
   id: string;
@@ -13,11 +16,6 @@ export type ItadTestimonial = {
   rating: number | null;
 };
 
-/**
- * Testimonial carousel driven by the Testimonial table. Manual navigation
- * only — auto-advancing carousels fail WCAG 2.2.2 unless pausable, and a
- * pause control costs more than it's worth here.
- */
 export function ItadTestimonials({
   testimonials,
 }: {
@@ -26,7 +24,7 @@ export function ItadTestimonials({
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
 
-  if (testimonials.length === 0) return null;
+  if (!testimonials || testimonials.length === 0) return null;
   const current = testimonials[index];
 
   function go(delta: number) {
@@ -36,112 +34,137 @@ export function ItadTestimonials({
 
   return (
     <section
-      className="overflow-hidden bg-white py-24 sm:py-32"
+      className="relative overflow-hidden bg-white py-24 sm:py-32 text-slate-900"
       aria-labelledby="itad-testimonials-heading"
     >
-      <div className="mx-auto max-w-4xl px-6">
+      <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
         <div className="text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
-            Testimonials
-          </p>
-          <h2
-            id="itad-testimonials-heading"
-            className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 text-balance sm:text-5xl"
-          >
-            Trusted by the teams who get audited
-          </h2>
+          <BlurReveal>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
+              ENTERPRISE REVIEWS
+            </p>
+          </BlurReveal>
+
+          <BlurReveal delay={0.1}>
+            <h2
+              id="itad-testimonials-heading"
+              className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
+            >
+              Trusted by CISOs & IT Leaders Globally
+            </h2>
+          </BlurReveal>
         </div>
 
-        <div className="relative mt-14">
+        {/* Large Story Panel Container with Spotlight Card */}
+        <div className="relative mt-16">
           <AnimatePresence mode="wait" initial={false}>
-            <motion.figure
+            <motion.div
               key={current.id}
-              initial={{ opacity: 0, x: 40 * direction }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -40 * direction }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="rounded-[32px] border border-gray-200 bg-white/80 p-10 shadow-[0_24px_70px_-28px_rgba(17,24,39,0.18)] backdrop-blur-xl sm:p-14"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
-              {current.rating != null && (
-                <div
-                  className="flex justify-center gap-1"
-                  role="img"
-                  aria-label={`Rated ${current.rating} out of 5`}
-                >
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <Star
-                      key={i}
+              <SpotlightCard
+                spotlightColor="rgba(22, 163, 74, 0.12)"
+                borderColor="rgba(22, 163, 74, 0.35)"
+                className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-50/70 p-10 shadow-lg sm:p-16"
+              >
+                <Quote className="absolute right-8 top-8 size-28 text-slate-200/50 pointer-events-none" />
+
+                {current.rating != null && (
+                  <div
+                    className="flex items-center gap-1.5"
+                    role="img"
+                    aria-label={`Rated ${current.rating} out of 5`}
+                  >
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star
+                        key={i}
+                        aria-hidden
+                        className={
+                          i < (current.rating ?? 0)
+                            ? "size-5 fill-amber-400 text-amber-400"
+                            : "size-5 text-slate-200"
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <blockquote className="mt-8 text-2xl font-medium leading-relaxed text-[#0F172A] text-pretty sm:text-3xl lg:text-4xl">
+                  &ldquo;{current.quote}&rdquo;
+                </blockquote>
+
+                <figcaption className="mt-12 flex items-center justify-between border-t border-slate-200 pt-8 flex-wrap gap-4">
+                  <div className="flex items-center gap-4">
+                    <span
                       aria-hidden
-                      className={
-                        i < (current.rating ?? 0)
-                          ? "size-5 fill-amber-400 text-amber-400"
-                          : "size-5 text-gray-200"
-                      }
-                    />
-                  ))}
-                </div>
-              )}
+                      className="grid size-14 place-items-center rounded-2xl bg-[#16A34A] text-lg font-black text-white shadow-lg"
+                    >
+                      {current.author
+                        .split(" ")
+                        .map((part) => part[0])
+                        .slice(0, 2)
+                        .join("")}
+                    </span>
 
-              <blockquote className="mt-8 text-center text-xl font-medium leading-relaxed text-gray-900 text-pretty sm:text-2xl">
-                &ldquo;{current.quote}&rdquo;
-              </blockquote>
+                    <div>
+                      <span className="block text-lg font-bold text-[#0F172A]">
+                        {current.author}
+                      </span>
+                      <span className="block text-sm font-semibold text-[#16A34A]">
+                        {[current.role, current.company].filter(Boolean).join(" · ")}
+                      </span>
+                    </div>
+                  </div>
 
-              <figcaption className="mt-9 flex items-center justify-center gap-4">
-                {/* Initials avatar — no fake stock photos. */}
-                <span
-                  aria-hidden
-                  className="grid size-12 place-items-center rounded-full bg-gradient-to-br from-blue-600 to-emerald-500 text-sm font-extrabold text-white"
-                >
-                  {current.author
-                    .split(" ")
-                    .map((part) => part[0])
-                    .slice(0, 2)
-                    .join("")}
-                </span>
-                <span className="text-left">
-                  <span className="block text-sm font-bold text-gray-900">
-                    {current.author}
-                  </span>
-                  <span className="block text-xs text-gray-500">
-                    {[current.role, current.company].filter(Boolean).join(" · ")}
-                  </span>
-                </span>
-              </figcaption>
-            </motion.figure>
+                  <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-700">
+                    <Building2 className="size-4 text-[#16A34A]" />
+                    <span>Enterprise Audit Case Study</span>
+                  </div>
+                </figcaption>
+              </SpotlightCard>
+            </motion.div>
           </AnimatePresence>
 
           {/* Controls */}
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => go(-1)}
-              aria-label="Previous testimonial"
-              className="grid size-11 place-items-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-blue-600/40 hover:text-blue-600"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-
-            <div className="flex items-center gap-2" aria-hidden>
+          <div className="mt-8 flex items-center justify-between">
+            <div className="flex items-center gap-2">
               {testimonials.map((t, i) => (
-                <span
+                <button
                   key={t.id}
-                  className={
-                    i === index
-                      ? "h-2 w-6 rounded-full bg-blue-600 transition-all"
-                      : "size-2 rounded-full bg-gray-300 transition-all"
-                  }
+                  onClick={() => {
+                    setDirection(i > index ? 1 : -1);
+                    setIndex(i);
+                  }}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === index ? "w-8 bg-[#16A34A]" : "w-2 bg-slate-300 hover:bg-slate-400"
+                  }`}
+                  aria-label={`Go to slide ${i + 1}`}
                 />
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={() => go(1)}
-              aria-label="Next testimonial"
-              className="grid size-11 place-items-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-blue-600/40 hover:text-blue-600"
-            >
-              <ChevronRight className="size-5" />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => go(-1)}
+                aria-label="Previous testimonial"
+                className="grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => go(1)}
+                aria-label="Next testimonial"
+                className="grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

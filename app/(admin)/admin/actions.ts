@@ -121,6 +121,7 @@ export async function saveProductAction(formData: FormData) {
     throw new Error("Missing required product fields.");
   }
 
+  let productId = id;
   if (id) {
     await updateAdminProduct(id, {
       name,
@@ -142,7 +143,7 @@ export async function saveProductAction(formData: FormData) {
       specs,
     });
   } else {
-    await createAdminProduct({
+    const created = await createAdminProduct({
       name,
       slug,
       sku,
@@ -161,6 +162,18 @@ export async function saveProductAction(formData: FormData) {
       images,
       specs,
     });
+    productId = created.id;
+  }
+
+  const variantDataRaw = formData.get("variantData")?.toString();
+  if (productId && variantDataRaw) {
+    try {
+      const variantData = JSON.parse(variantDataRaw);
+      const { saveProductVariants } = await import("@/lib/data/variants");
+      await saveProductVariants(productId, variantData);
+    } catch (e) {
+      console.error("Failed to save product variants:", e);
+    }
   }
 
   revalidatePath("/admin/products");

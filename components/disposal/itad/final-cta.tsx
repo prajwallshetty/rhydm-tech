@@ -2,73 +2,74 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 export function ItadFinalCta() {
   return (
-    <section
-      className="relative overflow-hidden bg-gray-900 py-28 sm:py-36"
-      aria-labelledby="itad-final-cta-heading"
-    >
-      {/* Ambient gradient blobs */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="animate-drift-slow absolute -left-32 -top-32 size-[36rem] rounded-full bg-blue-600/20 blur-3xl" />
-        <div className="animate-drift-slower absolute -bottom-40 -right-32 size-[34rem] rounded-full bg-emerald-500/15 blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(255,255,255,0.25) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-            maskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 75%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 75%)",
-          }}
-        />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="relative mx-auto max-w-4xl px-6 text-center"
-      >
-        <h2
-          id="itad-final-cta-heading"
-          className="text-4xl font-extrabold tracking-tight text-white text-balance sm:text-5xl lg:text-6xl"
+    <section className="bg-white py-16 sm:py-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-[36px] bg-gradient-to-b from-[#0F172A] via-[#0A0E17] to-black px-8 py-20 text-center shadow-2xl sm:px-16 sm:py-28"
         >
-          End Every IT Asset&rsquo;s Lifecycle Securely.
-        </h2>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-400 text-pretty">
-          Protect sensitive data, stay compliant, recover value, and simplify
-          global IT asset disposition from one platform.
-        </p>
+          {/* Radial Spotlight Ambient Glow */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute left-1/2 top-0 size-[48rem] -translate-x-1/2 rounded-full bg-[#16A34A]/15 blur-[120px]" />
+          </div>
 
-        <div className="mt-11 flex flex-col justify-center gap-4 sm:flex-row">
-          <Link
-            href="/disposal/contact"
-            className="group inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-8 text-base font-semibold text-gray-900 shadow-xl transition-all hover:bg-gradient-to-r hover:from-blue-600 hover:to-emerald-500 hover:text-white"
-          >
-            Book Demo
-            <ArrowRight
-              aria-hidden
-              className="size-4 transition-transform group-hover:translate-x-1"
-            />
-          </Link>
-          <Link
-            href="/disposal/contact"
-            className="inline-flex h-14 items-center justify-center rounded-full border border-white/25 px-8 text-base font-semibold text-white transition-colors hover:bg-white/10"
-          >
-            Talk to an Expert
-          </Link>
-        </div>
+          <div className="relative mx-auto max-w-3xl">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
+              IMMERSIVE SPOTLIGHT
+            </p>
 
-        <p className="mt-8 text-sm text-gray-500">
-          Serial-level certificates · 48-hour pickup · 120+ countries
-        </p>
-      </motion.div>
+            <h2
+              id="itad-final-cta-heading"
+              className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight"
+            >
+              End Every IT Asset&rsquo;s Lifecycle Securely.
+            </h2>
+
+            <p className="mt-6 text-base leading-relaxed text-slate-300 sm:text-lg">
+              Protect sensitive data, stay compliant, recover maximum value, and simplify global IT asset disposition from one centralized platform.
+            </p>
+
+            <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row sm:items-center">
+              <Link
+                href="/disposal/contact"
+                className="inline-flex h-13 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-8 text-sm font-bold text-white shadow-lg transition-all hover:bg-[#15803D] hover:shadow-xl active:scale-95"
+              >
+                <span>Book Demo</span>
+                <ArrowRight className="size-4" />
+              </Link>
+
+              <Link
+                href="/disposal/contact"
+                className="inline-flex h-13 items-center justify-center rounded-lg border border-slate-700 bg-white/5 px-8 text-sm font-bold text-white backdrop-blur transition-colors hover:bg-white/10"
+              >
+                Talk to an Expert
+              </Link>
+            </div>
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-400 border-t border-slate-800/80 pt-8">
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2 className="size-4 text-[#16A34A]" />
+                Serial-level certificates
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2 className="size-4 text-[#16A34A]" />
+                48-hour pickup
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2 className="size-4 text-[#16A34A]" />
+                120+ countries
+              </span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }

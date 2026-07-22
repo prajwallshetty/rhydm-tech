@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowRight,
@@ -116,8 +117,24 @@ export function AccountClient({
   initialOrders,
   initialAddresses,
 }: AccountClientProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const pushToast = useToast((s) => s.push);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab") as Tab;
+    if (tabParam && ["overview", "orders", "addresses", "profile", "security"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tabId: Tab) => {
+    setActiveTab(tabId);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", tabId);
+    router.replace(`${window.location.pathname}?${params.toString()}`);
+  };
 
   const [profile, setProfile] = useState({
     firstName: user.firstName || user.name?.split(" ")[0] || "",
@@ -302,7 +319,7 @@ export function AccountClient({
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setActiveTab(item.id)}
+                      onClick={() => handleTabChange(item.id)}
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors lg:w-full",

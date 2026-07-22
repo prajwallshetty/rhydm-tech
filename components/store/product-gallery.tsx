@@ -16,10 +16,12 @@ export function ProductGallery({
   slug,
   category,
   name,
+  overrideImages,
 }: {
   slug: string;
   category: string;
   name: string;
+  overrideImages?: string[];
 }) {
   const [active, setActive] = useState(0);
   const [zoomed, setZoomed] = useState(false);
