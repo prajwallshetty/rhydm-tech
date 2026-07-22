@@ -16,7 +16,11 @@ export default async function RefurbishedHomePage() {
   ]);
 
   return (
-    <div className="bg-white text-slate-900 min-h-screen">
+    // -mt-24 cancels the store layout's nav clearance on this page only: the
+    // hero carries its own pt-28 and its tinted background is meant to extend
+    // to the viewport top behind the floating nav — without this, a dead
+    // white strip shows above the hero.
+    <div className="-mt-24 bg-white text-slate-900 min-h-screen">
       {/* 1. Full-Viewport Hero with Mouse Parallax & Scroll Animations */}
       <HeroRefurbishedMotion />
 
