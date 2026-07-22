@@ -465,3 +465,82 @@ export async function adminDeleteUserAction(userId: string) {
   revalidatePath("/admin/users");
   return { success: true };
 }
+
+// ---------------------------------------------------------------------------
+// User Address Management Server Actions
+// ---------------------------------------------------------------------------
+
+export async function addAddressAction(formData: FormData) {
+  const session = await getSession();
+  if (!session) return { error: "Unauthorized" };
+
+  const fullName = formData.get("fullName") as string;
+  const line1 = formData.get("line1") as string;
+  const line2 = formData.get("line2") as string;
+  const city = formData.get("city") as string;
+  const region = formData.get("region") as string;
+  const postalCode = formData.get("postalCode") as string;
+  const country = (formData.get("country") as string) || "US";
+  const isDefault = formData.get("isDefault") === "true" || formData.get("isDefault") === "on";
+
+  if (!fullName || !line1 || !city || !region || !postalCode) {
+    return { error: "Please fill in all required address fields." };
+  }
+
+  if (isDefault) {
+    await db.address.updateMany({
+      where: { userId: session.id },
+      data: { isDefault: false },
+    });
+  }
+
+  const existingCount = await db.address.count({ where: { userId: session.id } });
+
+  const address = await db.address.create({
+    data: {
+      userId: session.id,
+      fullName,
+      line1,
+      line2: line2 || null,
+      city,
+      region,
+      postalCode,
+      country,
+      isDefault: isDefault || existingCount === 0,
+    },
+  });
+
+  revalidatePath("/refurbished/account");
+  return { success: true, address };
+}
+
+export async function deleteAddressAction(addressId: string) {
+  const session = await getSession();
+  if (!session) return { error: "Unauthorized" };
+
+  await db.address.deleteMany({
+    where: { id: addressId, userId: session.id },
+  });
+
+  revalidatePath("/refurbished/account");
+  return { success: true };
+}
+
+export async function setDefaultAddressAction(addressId: string) {
+  const session = await getSession();
+  if (!session) return { error: "Unauthorized" };
+
+  await db.address.updateMany({
+    where: { userId: session.id },
+    data: { isDefault: false },
+  });
+
+  await db.address.updateMany({
+    where: { id: addressId, userId: session.id },
+    data: { isDefault: true },
+  });
+
+  revalidatePath("/refurbished/account");
+  return { success: true };
+}
+
