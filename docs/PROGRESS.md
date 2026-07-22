@@ -41,6 +41,20 @@ Last updated: 2026-07-22
 > were intentionally left in the tree for comparison — delete once the redesign
 > is signed off.
 
+> **2026-07-22 — Deals is a real feature now, not just a filtered view.** A
+> "deal" is still just `Product.compareAtCents > priceCents` (no new table),
+> but there's now a management surface for it: `/admin/deals`
+> (`getAdminDeals`, `getDealCandidates` in `lib/repositories/admin.ts`;
+> `setDealAction`/`endDealAction` in admin `actions.ts`, both `requireAdmin`-
+> guarded). `setDealAction` rejects a fake discount — compare-at price ≤ sale
+> price — before it ever reaches the database. Both actions revalidate
+> `/refurbished` (`"layout"` scope) so pricing changes reach the public site
+> immediately. Sidebar link added between Inventory and Coupons.
+> `/refurbished/deals` redesigned to match the current white/green language:
+> honest computed stats (live deal count, biggest saving, total savings —
+> nothing invented), a featured "deal of the day" hero card, then the rest as
+> a standard product grid.
+
 ---
 
 ## What this project is

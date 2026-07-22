@@ -1137,3 +1137,52 @@ export async function getAdminAnalyticsData() {
     topCategories: topCategories.map((c) => ({ name: c.name, count: c._count.products })),
   };
 }
+
+// ===========================================================================
+// Deals Module
+// ===========================================================================
+//
+// A "deal" is a product whose compareAtCents exceeds its priceCents — the
+// same rule the storefront's deals page uses. Managing deals therefore means
+// managing those two fields, not a separate table.
+
+export async function getAdminDeals() {
+  const products = await db.product.findMany({
+    where: { compareAtCents: { not: null } },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      sku: true,
+      priceCents: true,
+      compareAtCents: true,
+      stock: true,
+      status: true,
+      category: { select: { name: true, slug: true } },
+      brand: { select: { name: true } },
+    },
+  });
+
+  // Largest saving first — mirrors the storefront ordering.
+  return products.sort((a, b) => {
+    const savingA = a.compareAtCents ? (a.compareAtCents - a.priceCents) / a.compareAtCents : 0;
+    const savingB = b.compareAtCents ? (b.compareAtCents - b.priceCents) / b.compareAtCents : 0;
+    return savingB - savingA;
+  });
+}
+
+/** Published products not currently on a deal — the add-to-deal picker. */
+export async function getDealCandidates() {
+  return db.product.findMany({
+    where: { compareAtCents: null, status: PublishStatus.PUBLISHED },
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      sku: true,
+      priceCents: true,
+      category: { select: { name: true } },
+    },
+  });
+}

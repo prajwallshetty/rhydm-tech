@@ -509,3 +509,54 @@ export async function saveSiteSettingsAction(formData: FormData) {
 
   revalidatePath("/admin/settings");
 }
+
+// ===========================================================================
+// Deals
+// ===========================================================================
+
+/**
+ * Puts a product on deal, or reprices an existing deal. The sale price must
+ * sit below the compare-at price — an "original price" lower than what the
+ * customer pays is a fake discount, so it is rejected rather than saved.
+ */
+export async function setDealAction(
+  productId: string,
+  priceCents: number,
+  compareAtCents: number,
+) {
+  await requireAdmin();
+
+  if (
+    !Number.isInteger(priceCents) ||
+    !Number.isInteger(compareAtCents) ||
+    priceCents <= 0 ||
+    compareAtCents <= priceCents
+  ) {
+    return {
+      error: "Compare-at price must be higher than the sale price, and both must be positive.",
+    };
+  }
+
+  await db.product.update({
+    where: { id: productId },
+    data: { priceCents, compareAtCents },
+  });
+
+  revalidatePath("/admin/deals");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+/** Takes a product off deal — clears the compare-at price, keeps the price. */
+export async function endDealAction(productId: string) {
+  await requireAdmin();
+
+  await db.product.update({
+    where: { id: productId },
+    data: { compareAtCents: null },
+  });
+
+  revalidatePath("/admin/deals");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}

@@ -12,6 +12,7 @@ import {
   Layers,
   Bookmark,
   Boxes,
+  Percent,
   Tag,
   Image as ImageIcon,
   FileText,
@@ -62,6 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "STORE",
     items: [
       { name: "Inventory", href: "/admin/products", icon: Boxes },
+      { name: "Deals", href: "/admin/deals", icon: Percent },
       { name: "Coupons", href: "/admin/settings", icon: Tag },
       { name: "Banners", href: "/admin/disposal", icon: ImageIcon },
       { name: "Blog", href: "/admin/blogs", icon: FileText },
