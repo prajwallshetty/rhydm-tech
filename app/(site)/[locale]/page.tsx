@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   title: `${COMPANY.name} — Choose Your Service`,
   description:
     "We provide secure IT asset disposal services and premium refurbished electronics. Choose the service you're looking for.",
-  alternates: { canonical: "/" },
   openGraph: {
     title: `${COMPANY.name} — Choose Your Service`,
     description: COMPANY.description,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { Award, FileCheck, ShieldCheck } from "lucide-react";
 
 import { FadeIn } from "@/components/motion/fade-in";
@@ -11,7 +12,6 @@ export const metadata: Metadata = {
   title: "Certificates & Compliance",
   description:
     "ISO 27001, ISO 14001, R2v3 and NIST 800-88 aligned processes, with serial-level certificates of destruction for every asset.",
-  alternates: { canonical: "/disposal/certificates" },
 };
 
 const DOCUMENTS = [
@@ -35,7 +35,14 @@ const DOCUMENTS = [
   },
 ];
 
-export default async function CertificatesPage() {
+export default async function CertificatesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const certifications = await getCertifications();
 
   return (

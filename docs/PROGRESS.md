@@ -41,6 +41,37 @@ Last updated: 2026-07-22
 > were intentionally left in the tree for comparison — delete once the redesign
 > is signed off.
 
+> **2026-07-23 — performance pass, measured with Lighthouse (mobile).**
+> Baseline exposed that the i18n restructure had silently made every public
+> route dynamic — next-intl needs `setRequestLocale()` in *every* page AND
+> nested layout (App Router layouts render in isolated scopes); only the
+> root layout had it. Restored: landings, product pages, cart, checkout,
+> wishlist are ● SSG again; only auth/search/filtered routes stay ƒ.
+> Images: source PNGs were absurd (1.4MB logo rendered at 36px) — resampled
+> 9.3MB → 2.2MB; store hero converted to next/image (priority + sizes);
+> disposal hero got a `sizes` cap (was fetching w=3840).
+> LCP: BlurReveal/WordReveal/FadeIn held all hero text at Motion's
+> `initial opacity:0` until hydration (7–11s LCP on throttled mobile).
+> Rewritten as CSS animations (`.animate-reveal`, identical curves/stagger);
+> keyframes start at opacity 0.01 because Chrome permanently disqualifies
+> elements first painted fully transparent from LCP (the gateway scored
+> null/NO_LCP). Deliberate trade-off: below-fold reveals now play on load,
+> not on scroll-into-view. Store hero's inline motion text wrappers got the
+> same treatment (image float keeps Motion).
+> SEO 92→100: every page carried its pre-i18n canonical (`/refurbished`),
+> now a redirecting URL = invalid; stale canonicals stripped and the
+> layout-level hreflang block (which wrongly pointed all pages at the two
+> homepages) removed — sitemap still carries correct per-URL hreflang.
+> **Follow-up:** a small helper for proper per-page localized canonicals +
+> hreflang. A11y: disposal hamburger label, switcher visible-name mismatch,
+> footer heading order, decorative watermark/alt fixes.
+>
+> Scores (mobile, before → after): gateway perf 75→95 (LCP 11.0s→3.0s),
+> disposal 76→89 (7.4s→3.8s), store 80→89 (5.5s→3.7s); SEO 92→100 all;
+> BP 100; a11y 96–100. Overflow + tap-target audits re-run clean.
+> Remaining to reach 90+ perf on the two 89s: ~100KB unused JS
+> (motion/next-intl chunks) — bundle surgery, diminishing returns.
+
 > **2026-07-23 — i18n (en/de) via next-intl.** Public routes moved to
 > `app/(site)/[locale]/…`; admin/auth moved to `app/(backend)/…` — two root
 > layouts via route groups (public gets `<html lang={locale}>` + intl

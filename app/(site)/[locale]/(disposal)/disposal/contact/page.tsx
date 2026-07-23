@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 
 import { ContactForm } from "@/components/disposal/contact-form";
@@ -11,10 +12,16 @@ export const metadata: Metadata = {
   title: "Contact & Request Pickup",
   description:
     "Request a collection or schedule a consultation with an IT asset disposal specialist.",
-  alternates: { canonical: "/disposal/contact" },
 };
 
-export default function ContactPage() {
+export default async function ContactPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   return (
     <>
       <PageHeader

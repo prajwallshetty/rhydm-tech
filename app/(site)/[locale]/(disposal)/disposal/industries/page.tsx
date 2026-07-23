@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 
 import { FadeIn } from "@/components/motion/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
@@ -9,7 +10,6 @@ export const metadata: Metadata = {
   title: "Industries",
   description:
     "IT asset disposal for healthcare, education, government, banking, corporate, IT and manufacturing organisations.",
-  alternates: { canonical: "/disposal/industries" },
 };
 
 /** Sector-specific context; the CMS `description` overrides these when set. */
@@ -23,7 +23,14 @@ const CONTEXT: Record<string, string> = {
   manufacturing: "OT and industrial equipment alongside standard IT assets.",
 };
 
-export default async function IndustriesPage() {
+export default async function IndustriesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const industries = await getIndustries();
 
   return (

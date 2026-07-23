@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { FloatingNav } from "@/components/store/floating-nav";
@@ -12,7 +13,6 @@ export const metadata: Metadata = {
   },
   description:
     "Professionally refurbished laptops, desktops, servers, networking equipment and accessories — tested, graded and warranty-backed.",
-  alternates: { canonical: "/refurbished" },
   openGraph: {
     title: "Certified Refurbished Laptops & IT Equipment",
     description:
@@ -21,11 +21,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RefurbishedLayout({
+export default async function RefurbishedLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  // App Router layouts render in isolated scopes — each needs its own call
+  // for next-intl to keep the subtree statically renderable.
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   return (
     <div data-division="refurbished" className="flex min-h-dvh flex-col bg-white">
       <FloatingNav />

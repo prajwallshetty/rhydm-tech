@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight } from "lucide-react";
 
@@ -12,10 +13,16 @@ export const metadata: Metadata = {
   title: "Services",
   description:
     "Secure data wiping, hard drive destruction, IT asset disposal, e-waste recycling, corporate pickup, asset recovery and certificates of destruction.",
-  alternates: { canonical: "/disposal/services" },
 };
 
-export default async function ServicesPage() {
+export default async function ServicesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const services = await getServices();
 
   return (

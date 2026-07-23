@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
   motion,
@@ -97,25 +98,21 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
           className="lg:col-span-5 space-y-7 z-10"
         >
           {/* Sleek Glass Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-          >
+          <div
+            className="animate-reveal "
+            style={{ "--reveal-delay": "0.15s", "--reveal-blur": "0px" } as React.CSSProperties}          >
             <div className="inline-flex items-center gap-2 rounded-full bg-[#2E6F40]/10 border border-[#2E6F40]/20 px-3.5 py-1.5 backdrop-blur-md">
               <span className="size-2 rounded-full bg-[#2E6F40] animate-pulse" />
               <span className="text-[11px] font-bold tracking-widest text-[#2E6F40] uppercase">
                 {content.badge}
               </span>
             </div>
-          </motion.div>
+          </div>
 
           {/* Premium Headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            className="space-y-2"
+          <div
+            className="animate-reveal space-y-2"
+            style={{ "--reveal-delay": "0.25s", "--reveal-blur": "0px" } as React.CSSProperties}
           >
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.08] text-slate-900">
               {content.headingMain}{" "}
@@ -123,24 +120,20 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
                 {content.headingAccent}
               </span>
             </h1>
-          </motion.div>
+          </div>
 
           {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="max-w-xl text-base sm:text-lg text-slate-600 leading-relaxed font-normal"
+          <p
+            className="animate-reveal max-w-xl text-base sm:text-lg text-slate-600 leading-relaxed font-normal"
+            style={{ "--reveal-delay": "0.35s", "--reveal-blur": "0px" } as React.CSSProperties}
           >
             {content.description}
-          </motion.p>
+          </p>
 
           {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-            className="flex flex-wrap items-center gap-3.5 pt-1"
+          <div
+            className="animate-reveal flex flex-wrap items-center gap-3.5 pt-1"
+            style={{ "--reveal-delay": "0.45s", "--reveal-blur": "0px" } as React.CSSProperties}
           >
             <Link
               href={content.primaryHref}
@@ -156,14 +149,12 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
             >
               <span>{content.secondaryLabel}</span>
             </Link>
-          </motion.div>
+          </div>
 
           {/* Trust Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.55 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-200/80 pt-6 mt-6"
+          <div
+            className="animate-reveal grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-200/80 pt-6 mt-6"
+            style={{ "--reveal-delay": "0.55s", "--reveal-blur": "0px" } as React.CSSProperties}
           >
             {trustBadges.map((badge, idx) => {
               const Icon = badge.icon;
@@ -178,7 +169,7 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
                 </div>
               );
             })}
-          </motion.div>
+          </div>
         </motion.div>
 
         {/* Right Column: Floating Laptop Hero Image with Mouse Parallax Tilt */}
@@ -201,9 +192,13 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
             }}
             className="relative w-full h-full flex items-center justify-center lg:translate-x-6"
           >
-            <img
+            <Image
               src="/hero.png"
               alt="Premium Refurbished Laptop"
+              width={1280}
+              height={853}
+              priority
+              sizes="(min-width: 1024px) 55vw, 100vw"
               className="max-h-[600px] lg:max-h-[820px] w-full object-contain drop-shadow-2xl pointer-events-none scale-105 lg:scale-120"
             />
           </motion.div>

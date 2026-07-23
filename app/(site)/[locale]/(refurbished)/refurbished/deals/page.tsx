@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight, Flame, ShieldCheck, Timer, TrendingDown } from "lucide-react";
 
@@ -13,10 +14,16 @@ export const metadata: Metadata = {
   title: "Deals & Clearance",
   description:
     "The largest savings in the catalog — refurbished business hardware at clearance pricing, warranty included.",
-  alternates: { canonical: "/refurbished/deals" },
 };
 
-export default async function DealsPage() {
+export default async function DealsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const deals = await getDeals(24);
 
   const [top, ...rest] = deals;

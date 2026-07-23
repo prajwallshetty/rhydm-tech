@@ -105,7 +105,9 @@ export function DisposalFloatingNav() {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 lg:hidden cursor-pointer"
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              className="flex h-11 w-11 shrink-0 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 lg:hidden cursor-pointer"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>

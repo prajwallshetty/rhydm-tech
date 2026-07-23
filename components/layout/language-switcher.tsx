@@ -59,11 +59,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label={t("label")}
         disabled={isPending}
         className="flex h-11 items-center gap-1.5 rounded-full px-3 text-xs font-bold uppercase text-foreground/80 transition-colors hover:bg-muted hover:text-foreground sm:h-9 disabled:opacity-60"
       >
         <Globe className="size-4" strokeWidth={1.8} />
+        <span className="sr-only">{t("label")}: </span>
         <span>{locale}</span>
         <ChevronDown
           className={cn("size-3 transition-transform", open && "rotate-180")}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
@@ -32,7 +33,7 @@ import {
 import { getProductWithVariants } from "@/lib/data/variants";
 import { VariantConfigurator } from "@/components/store/variant-configurator";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export async function generateStaticParams() {
   const slugs = await getProductSlugs();
@@ -40,7 +41,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
   const product = await getProductBySlug(slug);
 
   if (!product) return { title: "Product not found" };

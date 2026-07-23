@@ -133,6 +133,7 @@ export function ItadHero({ content }: { content: DisposalHeroContent }) {
                   width={1200}
                   height={1000}
                   priority
+                  sizes="(min-width: 1024px) 50vw, 100vw"
                   className="w-full h-auto object-contain"
                 />
               </div>

@@ -24,13 +24,6 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  alternates: {
-    languages: {
-      en: "/en",
-      de: "/de",
-      "x-default": "/en",
-    },
-  },
   title: {
     default: `${COMPANY.name} — Secure IT Asset Disposal & Refurbished Electronics`,
     template: `%s | ${COMPANY.name}`,

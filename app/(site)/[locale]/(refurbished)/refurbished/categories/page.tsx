@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { FadeIn } from "@/components/motion/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
@@ -9,10 +10,16 @@ export const metadata: Metadata = {
   title: "Shop by Category",
   description:
     "Browse refurbished laptops, desktops, servers, networking, monitors, storage, components and accessories.",
-  alternates: { canonical: "/refurbished/categories" },
 };
 
-export default async function CategoriesPage() {
+export default async function CategoriesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const categories = await getCategories();
 
   return (

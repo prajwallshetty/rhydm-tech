@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   title: "Shop All Refurbished IT Equipment",
   description:
     "Browse certified refurbished laptops, desktops, servers, networking, monitors, storage and components — all tested, graded and warranty-backed.",
-  alternates: { canonical: "/refurbished/shop" },
 };
 
 // Next 16: searchParams is a Promise.

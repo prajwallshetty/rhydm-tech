@@ -162,6 +162,30 @@
 }
 
 @layer utilities {
+  /* Entrance reveal, CSS-driven so server-rendered text paints before
+     hydration (Motion's initial opacity:0 held LCP hostage on mobile). */
+  @keyframes reveal-in {
+    from {
+      /* 0.01, not 0: Chrome permanently disqualifies elements whose first
+         paint is fully transparent from LCP — a page whose hero text all
+         starts at opacity 0 reports NO_LCP and scores null. */
+      opacity: 0.01;
+      transform: translateY(var(--reveal-y, 20px));
+      filter: blur(var(--reveal-blur, 8px));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  .animate-reveal {
+    animation: reveal-in var(--reveal-duration, 0.7s)
+      cubic-bezier(0.21, 0.47, 0.32, 0.98) both;
+    animation-delay: var(--reveal-delay, 0s);
+  }
+
   @keyframes drift {
     0%,
     100% {

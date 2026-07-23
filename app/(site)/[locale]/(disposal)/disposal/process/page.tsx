@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 
 import { ProcessTimeline } from "@/components/disposal/process-timeline";
 import { ButtonLink } from "@/components/ui/button";
@@ -11,10 +12,16 @@ export const metadata: Metadata = {
   title: "Our Process",
   description:
     "From assessment and insured pickup through data wiping, physical destruction, recycling and serial-level certification.",
-  alternates: { canonical: "/disposal/process" },
 };
 
-export default async function ProcessPage() {
+export default async function ProcessPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const steps = await getProcessSteps();
 
   return (

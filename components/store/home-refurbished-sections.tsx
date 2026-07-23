@@ -146,7 +146,7 @@ export function HomeRefurbishedSections({
                 <div className="relative size-28 sm:size-32 lg:size-36 rounded-full overflow-hidden border border-slate-100 bg-slate-50 shadow-md transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg group-hover:border-[#2E6F40]/30">
                   <img
                     src={getCategoryImage(cat.slug)}
-                    alt={cat.name}
+                    alt=""
                     className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   {/* Subtle inner overlay */}

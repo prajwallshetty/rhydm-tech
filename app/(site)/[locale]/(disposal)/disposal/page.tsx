@@ -47,7 +47,6 @@ export const metadata: Metadata = {
     "Asset Recovery",
     "E-Waste Recycling",
   ],
-  alternates: { canonical: "/disposal" },
   openGraph: {
     title: "Global IT Asset Disposition (ITAD), Simplified",
     description:

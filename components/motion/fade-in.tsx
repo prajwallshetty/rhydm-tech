@@ -1,7 +1,6 @@
-"use client";
-
-import { motion } from "motion/react";
 import type { ReactNode } from "react";
+
+import { cn } from "@/lib/utils";
 
 type FadeInProps = {
   children: ReactNode;
@@ -9,42 +8,38 @@ type FadeInProps = {
   /** Distance in px the element travels upward as it fades in. */
   y?: number;
   className?: string;
-  /** Animate when scrolled into view instead of on mount. */
+  /** Kept for API compatibility; both modes now animate from first paint. */
   onScroll?: boolean;
 };
 
 /**
- * Shared entrance animation. Motion respects `prefers-reduced-motion` for
- * transforms automatically when the user has it enabled at the OS level.
+ * Shared entrance animation, CSS-driven. The Motion version held content at
+ * `opacity: 0` until hydration, which Lighthouse measured as 7–11s LCP on
+ * throttled mobile (the gateway h1 was the LCP element). CSS animates from
+ * first paint; the global `prefers-reduced-motion` rule disables it for
+ * users who opt out. Trade-off, accepted deliberately: below-the-fold
+ * sections no longer wait to animate until scrolled into view — by the time
+ * a user reaches them they simply appear settled.
  */
 export function FadeIn({
   children,
   delay = 0,
   y = 16,
   className,
-  onScroll = false,
 }: FadeInProps) {
-  const animation = {
-    initial: { opacity: 0, y },
-    transition: { duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] as const },
-  };
-
-  if (onScroll) {
-    return (
-      <motion.div
-        {...animation}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        className={className}
-      >
-        {children}
-      </motion.div>
-    );
-  }
-
   return (
-    <motion.div {...animation} animate={{ opacity: 1, y: 0 }} className={className}>
+    <div
+      className={cn("animate-reveal", className)}
+      style={
+        {
+          "--reveal-delay": `${delay}s`,
+          "--reveal-duration": "0.6s",
+          "--reveal-y": `${y}px`,
+          "--reveal-blur": "0px",
+        } as React.CSSProperties
+      }
+    >
       {children}
-    </motion.div>
+    </div>
   );
 }

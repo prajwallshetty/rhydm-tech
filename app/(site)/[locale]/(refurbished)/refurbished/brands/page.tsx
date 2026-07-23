@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
 import { FadeIn } from "@/components/motion/fade-in";
@@ -10,10 +11,16 @@ export const metadata: Metadata = {
   title: "Shop by Brand",
   description:
     "Refurbished hardware from Dell, HP, Lenovo, Apple, ASUS, Acer, Cisco and Intel.",
-  alternates: { canonical: "/refurbished/brands" },
 };
 
-export default async function BrandsPage() {
+export default async function BrandsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const brands = await getBrands();
 
   return (

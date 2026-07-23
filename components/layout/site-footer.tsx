@@ -39,9 +39,9 @@ export async function SiteFooter({ division }: { division: Division }) {
           <div className="lg:col-span-8 grid grid-cols-2 gap-8 sm:grid-cols-4">
             {/* Pages / Services */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 {t("pages")}
-              </h4>
+              </h3>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <Link href="/disposal/services" className="hover:text-[#16A34A] transition-colors">
@@ -78,9 +78,9 @@ export async function SiteFooter({ division }: { division: Division }) {
 
             {/* Socials */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 {t("socials")}
-              </h4>
+              </h3>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 {settings.socials.map((social) => (
                   <li key={social.label}>
@@ -99,9 +99,9 @@ export async function SiteFooter({ division }: { division: Division }) {
 
             {/* Legal */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 {t("legal")}
-              </h4>
+              </h3>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <Link href="#" className="hover:text-[#16A34A] transition-colors">
@@ -128,9 +128,9 @@ export async function SiteFooter({ division }: { division: Division }) {
 
             {/* Register & Shop */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 {t("register")}
-              </h4>
+              </h3>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <Link href="/refurbished" className="hover:text-[#16A34A] transition-colors">
@@ -159,7 +159,7 @@ export async function SiteFooter({ division }: { division: Division }) {
 
         {/* Giant Bottom Brand Watermark — Soft Light Watermark in Plain White Theme */}
         <div className="mt-16 sm:mt-20 border-t border-slate-100 pt-6 pb-2 text-center overflow-hidden select-none">
-          <span className="block text-[10vw] sm:text-[11vw] font-bold tracking-tight text-slate-200/70 leading-none whitespace-nowrap">
+          <span aria-hidden className="block text-[10vw] sm:text-[11vw] font-bold tracking-tight text-slate-200/70 leading-none whitespace-nowrap">
             Rhydm Tech
           </span>
         </div>

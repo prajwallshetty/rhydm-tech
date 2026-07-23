@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 
 import { Accordion } from "@/components/ui/accordion";
 import { ButtonLink } from "@/components/ui/button";
@@ -11,10 +12,16 @@ export const metadata: Metadata = {
   title: "FAQs",
   description:
     "Common questions about collection times, documentation, on-site destruction and multi-site engagements.",
-  alternates: { canonical: "/disposal/faqs" },
 };
 
-export default async function FaqsPage() {
+export default async function FaqsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const faqs = await getFaqs();
 
   // FAQPage structured data makes these eligible for rich results.

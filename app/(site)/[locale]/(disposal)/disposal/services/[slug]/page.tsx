@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import { Icon } from "@/components/icon";
@@ -12,7 +13,7 @@ import {
   getServices,
 } from "@/lib/repositories/disposal";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ locale: string; slug: string }> };
 
 /** Prerender every published service at build time. */
 export async function generateStaticParams() {
@@ -22,7 +23,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Next 16: params is a Promise — sync access was removed.
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
   const service = await getServiceBySlug(slug);
 
   if (!service) return { title: "Service not found" };
