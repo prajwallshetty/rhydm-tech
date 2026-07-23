@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import { Division, OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
+import { Division, MediaType, OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
 import type { Prisma } from "@/lib/generated/prisma/client";
 
 // ===========================================================================
@@ -1183,6 +1183,82 @@ export async function getDealCandidates() {
       sku: true,
       priceCents: true,
       category: { select: { name: true } },
+    },
+  });
+}
+
+// ===========================================================================
+// Media (Cloudinary)
+// ===========================================================================
+
+/** Reference counts for delete protection — where is this asset used? */
+export async function getMediaUsage(id: string) {
+  const asset = await db.mediaAsset.findUnique({
+    where: { id },
+    select: {
+      _count: {
+        select: {
+          productImages: true,
+          variantImages: true,
+          certifications: true,
+          posts: true,
+        },
+      },
+    },
+  });
+  if (!asset) return null;
+  const c = asset._count;
+  return {
+    products: c.productImages,
+    variants: c.variantImages,
+    certifications: c.certifications,
+    posts: c.posts,
+    total: c.productImages + c.variantImages + c.certifications + c.posts,
+  };
+}
+
+export async function getMediaLibrary(filters: {
+  search?: string;
+  type?: MediaType;
+  folder?: string;
+} = {}) {
+  const where: Prisma.MediaAssetWhereInput = {};
+  if (filters.search?.trim()) {
+    const term = filters.search.trim();
+    where.OR = [
+      { filename: { contains: term, mode: "insensitive" } },
+      { alt: { contains: term, mode: "insensitive" } },
+      { key: { contains: term, mode: "insensitive" } },
+    ];
+  }
+  if (filters.type) where.type = filters.type;
+  // Cloudinary folder is the public_id prefix (stored in `key`).
+  if (filters.folder) where.key = { startsWith: `${filters.folder}/` };
+
+  return db.mediaAsset.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    take: 120,
+    select: {
+      id: true,
+      url: true,
+      key: true,
+      type: true,
+      filename: true,
+      mimeType: true,
+      sizeBytes: true,
+      width: true,
+      height: true,
+      alt: true,
+      createdAt: true,
+      _count: {
+        select: {
+          productImages: true,
+          variantImages: true,
+          certifications: true,
+          posts: true,
+        },
+      },
     },
   });
 }

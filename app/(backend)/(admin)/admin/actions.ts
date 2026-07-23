@@ -646,3 +646,142 @@ export async function saveSiteSectionAction(
 
   return { success: true };
 }
+
+// ===========================================================================
+// Media uploads (Cloudinary)
+// ===========================================================================
+
+import {
+  destroyAsset,
+  isCloudinaryConfigured,
+  signUpload,
+} from "@/lib/media/cloudinary";
+import { isMediaFolder, MEDIA_ROOT } from "@/lib/media/folders";
+import { getMediaUsage } from "@/lib/repositories/admin";
+import { MediaType } from "@/lib/generated/prisma/enums";
+
+/**
+ * Step 1 of the upload flow: sign the parameters so the browser can POST the
+ * file straight to Cloudinary. The secret never leaves the server; the file
+ * bytes never touch it.
+ */
+export async function signMediaUploadAction(folder: string) {
+  await requireAdmin();
+  if (!isCloudinaryConfigured()) {
+    return { error: "Cloudinary is not configured. Set CLOUDINARY_* env vars." };
+  }
+  if (!isMediaFolder(folder)) {
+    return { error: "Unknown media folder." };
+  }
+  return { upload: signUpload(`${MEDIA_ROOT}/${folder}`) };
+}
+
+function mediaTypeFor(resourceType: string, format: string): MediaType {
+  if (resourceType === "video") return MediaType.VIDEO;
+  if (resourceType === "image") return MediaType.IMAGE;
+  // Cloudinary calls PDFs "image" sometimes and docs "raw" — normalise.
+  if (["pdf", "doc", "docx"].includes(format)) return MediaType.DOCUMENT;
+  return MediaType.DOCUMENT;
+}
+
+/**
+ * Step 2: persist what Cloudinary returned. Only whitelisted scalar fields
+ * are stored; the secure URL must actually be a Cloudinary URL for our
+ * account, so a tampered payload can't inject arbitrary hosts.
+ */
+export async function recordMediaUploadAction(payload: {
+  publicId: string;
+  secureUrl: string;
+  resourceType: string;
+  format: string;
+  bytes: number;
+  width?: number;
+  height?: number;
+  originalFilename: string;
+}) {
+  await requireAdmin();
+  if (!isCloudinaryConfigured()) return { error: "Cloudinary is not configured." };
+
+  const { publicId, secureUrl, resourceType, format, bytes, width, height, originalFilename } = payload;
+
+  if (
+    typeof publicId !== "string" ||
+    !publicId.startsWith(`${MEDIA_ROOT}/`) ||
+    typeof secureUrl !== "string" ||
+    !secureUrl.startsWith("https://res.cloudinary.com/")
+  ) {
+    return { error: "Invalid upload payload." };
+  }
+
+  const asset = await db.mediaAsset.upsert({
+    where: { key: publicId },
+    update: {},
+    create: {
+      key: publicId,
+      url: secureUrl,
+      type: mediaTypeFor(resourceType, format),
+      filename: String(originalFilename).slice(0, 255) || publicId.split("/").pop() || publicId,
+      mimeType: `${resourceType}/${format}`.slice(0, 100),
+      sizeBytes: Number.isFinite(bytes) ? Math.max(0, Math.round(bytes)) : 0,
+      width: width ?? null,
+      height: height ?? null,
+    },
+  });
+
+  revalidatePath("/admin/media");
+  return { success: true, asset: { id: asset.id, url: asset.url, key: asset.key, alt: asset.alt, filename: asset.filename } };
+}
+
+/**
+ * Delete with usage protection: reports where the asset is referenced and
+ * refuses unless `force` — then removes it at Cloudinary AND in the DB.
+ */
+export async function deleteMediaWithProtectionAction(id: string, force = false) {
+  await requireAdmin();
+
+  const usage = await getMediaUsage(id);
+  if (!usage) return { error: "Asset not found." };
+  if (usage.total > 0 && !force) {
+    return { inUse: usage };
+  }
+
+  const asset = await db.mediaAsset.findUnique({
+    where: { id },
+    select: { key: true, type: true },
+  });
+  if (!asset) return { error: "Asset not found." };
+
+  if (isCloudinaryConfigured() && asset.key.startsWith(`${MEDIA_ROOT}/`)) {
+    const resourceType =
+      asset.type === MediaType.VIDEO ? "video" : asset.type === MediaType.DOCUMENT ? "raw" : "image";
+    const res = await destroyAsset(asset.key, resourceType);
+    if (!res.ok) return { error: `Cloudinary refused deletion (${res.result ?? "unknown"}).` };
+  }
+
+  await db.mediaAsset.delete({ where: { id } });
+  revalidatePath("/admin/media");
+  return { success: true };
+}
+
+/** Alt text is the one editable metadata field this pass. */
+export async function updateMediaAltAction(id: string, alt: string) {
+  await requireAdmin();
+  await db.mediaAsset.update({
+    where: { id },
+    data: { alt: alt.trim().slice(0, 300) || null },
+  });
+  revalidatePath("/admin/media");
+  return { success: true };
+}
+
+/** Image list for the media picker dialog (client fetch, admin-only). */
+export async function listMediaForPickerAction() {
+  await requireAdmin();
+  const rows = await db.mediaAsset.findMany({
+    where: { type: MediaType.IMAGE },
+    orderBy: { createdAt: "desc" },
+    take: 120,
+    select: { id: true, url: true, key: true, alt: true, filename: true },
+  });
+  return { assets: rows };
+}

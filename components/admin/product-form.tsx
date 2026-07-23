@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
+
+import { MediaPicker } from "@/components/admin/media-picker";
 import { saveProductAction } from "@/app/(backend)/(admin)/admin/actions";
 import { ProductCondition, PublishStatus } from "@/lib/generated/prisma/enums";
 import { ProductVariantManager, ConfiguredOption, ManagedVariant } from "@/components/admin/product-variant-manager";
@@ -256,19 +258,53 @@ export function ProductForm({
           <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
             <h2 className="text-base font-semibold text-foreground border-b border-border/60 pb-3">Images</h2>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">Image URLs (comma separated)</label>
+            <div className="space-y-3">
+              {/* Same submission contract as before: comma-joined URLs in a
+                  hidden field — but populated from the media library, never
+                  typed by hand. */}
               <input
-                type="text"
+                type="hidden"
                 name="images"
                 value={imageUrlInput}
-                onChange={(e) => setImageUrlInput(e.target.value)}
-                placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
-                className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
               />
-              <p className="text-[11px] text-muted-foreground">
-                Leave empty to use deterministic category placeholders.
-              </p>
+
+              {imageUrlInput.trim() ? (
+                <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  {imageUrlInput.split(",").map((u: string) => u.trim()).filter(Boolean).map((url: string, i: number) => (
+                    <li key={`${url}-${i}`} className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-slate-50 dark:bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- admin thumbnails */}
+                      <img src={url} alt="" loading="lazy" className="size-full object-contain p-1.5" />
+                      <button
+                        type="button"
+                        aria-label="Remove image"
+                        onClick={() => {
+                          const urls = imageUrlInput.split(",").map((x: string) => x.trim()).filter(Boolean);
+                          urls.splice(i, 1);
+                          setImageUrlInput(urls.join(", "));
+                        }}
+                        className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  No images selected — deterministic category placeholders will
+                  be used.
+                </p>
+              )}
+
+              <MediaPicker
+                folder="products/gallery"
+                triggerLabel="Add image from library"
+                onSelect={(asset) => {
+                  const urls = imageUrlInput.split(",").map((x: string) => x.trim()).filter(Boolean);
+                  if (!urls.includes(asset.url)) urls.push(asset.url);
+                  setImageUrlInput(urls.join(", "));
+                }}
+              />
             </div>
           </div>
 

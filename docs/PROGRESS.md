@@ -41,6 +41,32 @@ Last updated: 2026-07-22
 > were intentionally left in the tree for comparison — delete once the redesign
 > is signed off.
 
+> **2026-07-23 — Cloudinary media library.** Signed direct-to-Cloudinary
+> uploads: `lib/media/cloudinary.ts` (no SDK — SHA-1 signing verified against
+> Cloudinary's documented test vector), server actions sign → browser POSTs
+> bytes straight to Cloudinary → `recordMediaUploadAction` persists the
+> MediaAsset (payload whitelisted; URL must be res.cloudinary.com). Secret
+> never leaves the server; file bytes never transit it. /admin/media rebuilt:
+> drag-drop multi-upload with per-file progress + retry, canonical folder set
+> (`lib/media/folders.ts`, all under `rhydm/`), search + type/folder filters,
+> alt-text editing, and delete protection that reports exactly where an asset
+> is referenced (product images, variant images, certifications, posts) with
+> a "delete anyway" confirm. Reusable `<MediaPicker>` dialog (library browse
+> + upload-new auto-selects) wired into the product form — the manual
+> "Image URLs (comma separated)" input is gone; the hidden `name="images"`
+> comma-join contract is preserved so `saveProductAction` is untouched.
+> next/image remotePatterns allow res.cloudinary.com.
+>
+> **Requires user action to go live:** set `CLOUDINARY_CLOUD_NAME` /
+> `API_KEY` / `API_SECRET` (see .env.example). Until then /admin/media shows
+> a clear not-configured banner and uploads are disabled — everything else
+> (browse, delete, alt, picker over existing assets) works. Live upload
+> round-trip is the one thing not yet exercised (needs real credentials).
+> Deferred from the brief: bulk ops, favorites, crop/rotate editing, storage
+> analytics dashboard, variant-image picker (no variant-image admin UI exists
+> yet to wire into), blog/CMS-section image fields (registry supports adding
+> an image field type next).
+
 > **2026-07-23 — performance pass, measured with Lighthouse (mobile).**
 > Baseline exposed that the i18n restructure had silently made every public
 > route dynamic — next-intl needs `setRequestLocale()` in *every* page AND
