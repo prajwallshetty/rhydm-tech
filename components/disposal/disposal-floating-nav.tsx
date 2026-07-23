@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "motion/react";
 import { Search, User, ArrowUpRight, Menu, X, PhoneCall } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 import { Logo } from "@/components/brand/logo";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { COMPANY } from "@/lib/business";
 
 export function DisposalFloatingNav() {
@@ -28,13 +31,14 @@ export function DisposalFloatingNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const t = useTranslations("nav.disposal");
   const navLinks = [
-    { label: "Services", href: "/disposal/services" },
-    { label: "Process", href: "/disposal/process" },
-    { label: "Industries", href: "/disposal/industries" },
-    { label: "Certificates", href: "/disposal/certificates" },
-    { label: "FAQs", href: "/disposal/faqs" },
-    { label: "Contact", href: "/disposal/contact" },
+    { label: t("services"), href: "/disposal/services" },
+    { label: t("process"), href: "/disposal/process" },
+    { label: t("industries"), href: "/disposal/industries" },
+    { label: t("certificates"), href: "/disposal/certificates" },
+    { label: t("faqs"), href: "/disposal/faqs" },
+    { label: t("contact"), href: "/disposal/contact" },
   ];
 
   return (
@@ -95,6 +99,8 @@ export function DisposalFloatingNav() {
               <span>Shop Refurbished</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
+
+            <LanguageSwitcher />
 
             {/* Mobile Menu Toggle */}
             <button

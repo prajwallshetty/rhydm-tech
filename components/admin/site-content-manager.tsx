@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Loader2, Plus, Save, Trash2 } from "lucide-react";
 
-import { saveSiteSectionAction } from "@/app/(admin)/admin/actions";
+import { saveSiteSectionAction } from "@/app/(backend)/(admin)/admin/actions";
 import { useToast } from "@/components/ui/toast";
 import type {
   FieldDef,
@@ -20,8 +20,10 @@ import { cn } from "@/lib/utils";
  */
 export function SiteContentManager({
   sections,
+  locale = "en",
 }: {
   sections: Array<{ def: SectionDef; content: SectionContent }>;
+  locale?: string;
 }) {
   const [openKey, setOpenKey] = useState<string | null>(
     sections[0]?.def.key ?? null,
@@ -33,6 +35,7 @@ export function SiteContentManager({
         <SectionEditor
           key={def.key}
           def={def}
+          locale={locale}
           initialContent={content}
           open={openKey === def.key}
           onToggle={() =>
@@ -46,11 +49,13 @@ export function SiteContentManager({
 
 function SectionEditor({
   def,
+  locale,
   initialContent,
   open,
   onToggle,
 }: {
   def: SectionDef;
+  locale: string;
   initialContent: SectionContent;
   open: boolean;
   onToggle: () => void;
@@ -67,7 +72,7 @@ function SectionEditor({
 
   async function save() {
     setSaving(true);
-    const res = await saveSiteSectionAction(def.key, content);
+    const res = await saveSiteSectionAction(def.key, content, locale);
     setSaving(false);
 
     if (res?.error) {
@@ -75,7 +80,7 @@ function SectionEditor({
       return;
     }
     setDirty(false);
-    push(`Saved "${def.label}" — live on ${def.renderedOn}`);
+    push(`Saved "${def.label}" (${locale.toUpperCase()}) — live on ${def.renderedOn}`);
   }
 
   return (

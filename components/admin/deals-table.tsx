@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Check, Loader2, Pencil, Percent, Plus, X } from "lucide-react";
 
-import { endDealAction, setDealAction } from "@/app/(admin)/admin/actions";
+import { endDealAction, setDealAction } from "@/app/(backend)/(admin)/admin/actions";
 import { useToast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";

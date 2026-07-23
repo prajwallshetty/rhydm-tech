@@ -41,6 +41,30 @@ Last updated: 2026-07-22
 > were intentionally left in the tree for comparison — delete once the redesign
 > is signed off.
 
+> **2026-07-23 — i18n (en/de) via next-intl.** Public routes moved to
+> `app/(site)/[locale]/…`; admin/auth moved to `app/(backend)/…` — two root
+> layouts via route groups (public gets `<html lang={locale}>` + intl
+> provider; backend stays English). `proxy.ts` composes the next-intl
+> middleware with the existing auth guards and division redirect (now
+> locale-aware: `/de` + division cookie → `/de/refurbished`). Legacy URLs
+> (`/disposal`) 307 to `/en/…`; German browsers land on `/de`; NEXT_LOCALE
+> cookie persists the choice. Public components import Link/useRouter/
+> usePathname from `@/i18n/navigation` (admin keeps next/link — i18n Link
+> would locale-prefix `/admin` hrefs). LanguageSwitcher lives in both
+> floating navs. CMS content is per-locale: German rows at `${key}#de`,
+> merge order defaults → en → de, so untranslated fields fall back to
+> English, never blank; /admin/content has EN/DE tabs. Sitemap emits every
+> URL per locale with hreflang alternates; layout metadata carries
+> en/de/x-default. Verified live: 6 routing behaviors, German gateway/nav/
+> footer, CMS de-override round-trip, 156-page build (78×2).
+>
+> **Translated so far:** gateway, both navs, footer, switcher, CMS sections
+> (via admin). **Still English everywhere:** database content (products,
+> services, FAQs, testimonials, categories — needs translation tables),
+> in-page hardcoded copy on store/disposal subpages (cart, checkout,
+> account, product pages…), form validation messages, and per-page metadata.
+> Adding a locale = one line in `i18n/routing.ts` + `messages/<locale>.json`.
+
 > **2026-07-22 — Site Content CMS (section registry).** Free-form page copy
 > is now CMS-editable through one mechanism: `lib/cms/registry.ts` defines
 > each editable section (fields + defaults = the previously hardcoded copy),

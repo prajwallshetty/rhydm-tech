@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Heart, ShoppingBag, ShoppingCart } from "lucide-react";
 
 import { ProductThumb } from "@/components/store/product-thumb";

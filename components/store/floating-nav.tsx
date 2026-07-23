@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "motion/react";
 import { Search, Heart, ShoppingBag, User, ArrowUpRight, Menu, X, ChevronDown, Sparkles } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 import { Logo } from "@/components/brand/logo";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { cartCount, useStore } from "@/lib/store/cart";
 import { SearchBox } from "@/components/store/search-box";
 
@@ -33,12 +36,13 @@ export function FloatingNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const t = useTranslations("nav.store");
   const navLinks = [
-    { label: "Shop", href: "/refurbished/shop" },
-    { label: "Categories", href: "/refurbished/categories" },
-    { label: "Brands", href: "/refurbished/brands" },
-    { label: "Deals", href: "/refurbished/deals" },
-    { label: "Support", href: "/disposal/faqs" },
+    { label: t("shop"), href: "/refurbished/shop" },
+    { label: t("categories"), href: "/refurbished/categories" },
+    { label: t("brands"), href: "/refurbished/brands" },
+    { label: t("deals"), href: "/refurbished/deals" },
+    { label: t("support"), href: "/disposal/faqs" },
   ];
 
   return (
@@ -135,6 +139,8 @@ export function FloatingNav() {
               <span>Dispose Assets</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
+
+            <LanguageSwitcher />
 
             {/* Mobile Menu Toggle */}
             <button

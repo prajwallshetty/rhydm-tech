@@ -1,0 +1,88 @@
+{
+  "gateway": {
+    "title": "Choose the service you're looking for",
+    "subtitle": "We provide secure IT asset disposal services and premium refurbished electronics.",
+    "switchNote": "You can switch between services at any time from the top navigation header.",
+    "disposal": {
+      "title": "Dispose IT Assets",
+      "tagline": "Certified, auditable decommissioning for enterprise IT estates.",
+      "cta": "Continue",
+      "highlights": {
+        "0": "Secure Data Wiping",
+        "1": "IT Asset Disposal",
+        "2": "Hard Drive Destruction",
+        "3": "E-Waste Recycling",
+        "4": "Corporate Pickup",
+        "5": "Certificates of Destruction"
+      }
+    },
+    "refurbished": {
+      "title": "Buy Refurbished Devices",
+      "tagline": "Professionally restored business hardware, warranty included.",
+      "cta": "Shop Now",
+      "highlights": {
+        "0": "Certified Refurbished Laptops",
+        "1": "Desktops",
+        "2": "Servers",
+        "3": "Networking Equipment",
+        "4": "Accessories"
+      }
+    }
+  },
+  "nav": {
+    "disposal": {
+      "services": "Services",
+      "process": "Process",
+      "industries": "Industries",
+      "certificates": "Certificates",
+      "faqs": "FAQs",
+      "contact": "Contact",
+      "cta": "Get a Quote",
+      "shopLink": "Shop Refurbished"
+    },
+    "store": {
+      "shop": "Shop",
+      "categories": "Categories",
+      "brands": "Brands",
+      "deals": "Deals",
+      "support": "Support",
+      "disposeAssets": "Dispose Assets",
+      "search": "Search",
+      "wishlist": "Wishlist",
+      "cart": "Cart",
+      "account": "Account",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu"
+    }
+  },
+  "switcher": {
+    "label": "Language",
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "footer": {
+    "pages": "Pages",
+    "socials": "Socials",
+    "legal": "Legal",
+    "register": "Register",
+    "allServices": "All Services",
+    "process": "Process",
+    "industries": "Industries",
+    "certificates": "Certificates",
+    "faqs": "FAQs",
+    "contact": "Contact",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "dataSecurity": "Data Security",
+    "shopRefurbished": "Shop Refurbished",
+    "signUp": "Sign Up",
+    "login": "Login",
+    "forgotPassword": "Forgot Password",
+    "copyright": "© copyright {company} {year}. All rights reserved."
+  },
+  "common": {
+    "loading": "Loading…",
+    "backToTop": "Back to top"
+  }
+}

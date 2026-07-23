@@ -30,7 +30,7 @@ import {
   saveFaqAction,
   deleteFaqAction,
   updateSubmissionStatusAction,
-} from "@/app/(admin)/admin/actions";
+} from "@/app/(backend)/(admin)/admin/actions";
 import { SubmissionStatus } from "@/lib/generated/prisma/enums";
 
 export function DisposalCmsManager({ cmsData }: { cmsData: any }) {

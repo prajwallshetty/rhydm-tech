@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { Check, ShieldCheck, Award, Truck, RotateCcw, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 

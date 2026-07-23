@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Loader2, Search, TrendingUp, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { searchAction, type SearchHit } from "@/app/(refurbished)/refurbished/search-action";
+import { searchAction, type SearchHit } from "@/app/(site)/[locale]/(refurbished)/refurbished/search-action";
 import { conditionShort, formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 

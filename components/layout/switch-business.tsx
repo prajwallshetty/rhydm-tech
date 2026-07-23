@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Repeat2 } from "lucide-react";
 
 import { SWITCH_PARAM } from "@/lib/business";

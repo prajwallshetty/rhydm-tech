@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { ProductThumb } from "@/components/store/product-thumb";

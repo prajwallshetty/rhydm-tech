@@ -1,0 +1,88 @@
+{
+  "gateway": {
+    "title": "Wählen Sie den gewünschten Service",
+    "subtitle": "Wir bieten sichere IT-Asset-Entsorgung und hochwertige generalüberholte Elektronik.",
+    "switchNote": "Sie können jederzeit über die Navigation zwischen den Services wechseln.",
+    "disposal": {
+      "title": "IT-Assets entsorgen",
+      "tagline": "Zertifizierte, auditierbare Stilllegung für Unternehmens-IT.",
+      "cta": "Weiter",
+      "highlights": {
+        "0": "Sichere Datenlöschung",
+        "1": "IT-Asset-Entsorgung",
+        "2": "Festplattenvernichtung",
+        "3": "Elektroschrott-Recycling",
+        "4": "Firmenabholung",
+        "5": "Vernichtungszertifikate"
+      }
+    },
+    "refurbished": {
+      "title": "Refurbished Geräte kaufen",
+      "tagline": "Professionell aufbereitete Business-Hardware, Garantie inklusive.",
+      "cta": "Jetzt einkaufen",
+      "highlights": {
+        "0": "Zertifizierte Refurbished-Laptops",
+        "1": "Desktops",
+        "2": "Server",
+        "3": "Netzwerktechnik",
+        "4": "Zubehör"
+      }
+    }
+  },
+  "nav": {
+    "disposal": {
+      "services": "Leistungen",
+      "process": "Ablauf",
+      "industries": "Branchen",
+      "certificates": "Zertifikate",
+      "faqs": "FAQ",
+      "contact": "Kontakt",
+      "cta": "Angebot anfordern",
+      "shopLink": "Refurbished Shop"
+    },
+    "store": {
+      "shop": "Shop",
+      "categories": "Kategorien",
+      "brands": "Marken",
+      "deals": "Angebote",
+      "support": "Support",
+      "disposeAssets": "Assets entsorgen",
+      "search": "Suchen",
+      "wishlist": "Merkliste",
+      "cart": "Warenkorb",
+      "account": "Konto",
+      "openMenu": "Menü öffnen",
+      "closeMenu": "Menü schließen"
+    }
+  },
+  "switcher": {
+    "label": "Sprache",
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "footer": {
+    "pages": "Seiten",
+    "socials": "Soziale Medien",
+    "legal": "Rechtliches",
+    "register": "Registrieren",
+    "allServices": "Alle Leistungen",
+    "process": "Ablauf",
+    "industries": "Branchen",
+    "certificates": "Zertifikate",
+    "faqs": "FAQ",
+    "contact": "Kontakt",
+    "privacyPolicy": "Datenschutzerklärung",
+    "termsOfService": "Nutzungsbedingungen",
+    "cookiePolicy": "Cookie-Richtlinie",
+    "dataSecurity": "Datensicherheit",
+    "shopRefurbished": "Refurbished Shop",
+    "signUp": "Registrieren",
+    "login": "Anmelden",
+    "forgotPassword": "Passwort vergessen",
+    "copyright": "© Copyright {company} {year}. Alle Rechte vorbehalten."
+  },
+  "common": {
+    "loading": "Wird geladen…",
+    "backToTop": "Nach oben"
+  }
+}

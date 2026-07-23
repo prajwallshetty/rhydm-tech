@@ -18,7 +18,7 @@ import {
   adminUpdateUserRoleAction,
   adminToggleUserStatusAction,
   adminDeleteUserAction,
-} from "@/app/(auth)/actions";
+} from "@/app/(backend)/(auth)/actions";
 
 interface UserItem {
   id: string;

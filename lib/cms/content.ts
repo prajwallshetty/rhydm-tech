@@ -7,43 +7,56 @@ import {
 } from "@/lib/cms/registry";
 
 /**
- * Reads a section's content: registry defaults overlaid with whatever the
- * admin has saved. A missing row, a missing field, or an empty string all
- * fall back to the default — so adding a new field to the registry never
- * breaks previously-saved sections, and clearing a field in the admin
- * restores the original copy rather than rendering blank UI.
+ * Reads a section's content for a locale.
+ *
+ * Storage: the base key holds English; other locales live in sibling rows
+ * keyed `${key}#${locale}` (e.g. `section.disposal.hero#de`). Merge order is
+ * defaults → English row → locale row, field by field — so an untranslated
+ * German field falls back to the (possibly admin-edited) English text, never
+ * to a blank, and a fresh database renders the built-in copy.
  */
 export async function getSectionContent<T extends SectionContent>(
   key: string,
+  locale: string = "en",
 ): Promise<T> {
   const def = getSectionDef(key);
   if (!def) {
     throw new Error(`Unknown CMS section "${key}" — add it to lib/cms/registry.ts`);
   }
 
-  const row = await db.pageSection.findUnique({
-    where: { key },
-    select: { content: true },
+  const keys = locale === "en" ? [key] : [key, `${key}#${locale}`];
+  const rows = await db.pageSection.findMany({
+    where: { key: { in: keys } },
+    select: { key: true, content: true },
   });
 
-  const saved = (row?.content ?? {}) as Record<string, unknown>;
+  const layers = keys.map(
+    (k) =>
+      (rows.find((row) => row.key === k)?.content ?? {}) as Record<
+        string,
+        unknown
+      >,
+  );
+
   const merged: Record<string, unknown> = { ...def.defaults };
 
-  for (const [field, defaultValue] of Object.entries(def.defaults)) {
-    const savedValue = saved[field];
+  for (const layer of layers) {
+    for (const [field, defaultValue] of Object.entries(def.defaults)) {
+      const value = layer[field];
 
-    if (Array.isArray(defaultValue)) {
-      // Lists replace wholesale — but only when the saved value is a
-      // non-empty array of objects; anything else keeps the default.
-      if (
-        Array.isArray(savedValue) &&
-        savedValue.length > 0 &&
-        savedValue.every((item) => item && typeof item === "object")
-      ) {
-        merged[field] = savedValue;
+      if (Array.isArray(defaultValue)) {
+        // Lists replace wholesale — but only when the saved value is a
+        // non-empty array of objects; anything else keeps the layer below.
+        if (
+          Array.isArray(value) &&
+          value.length > 0 &&
+          value.every((item) => item && typeof item === "object")
+        ) {
+          merged[field] = value;
+        }
+      } else if (typeof value === "string" && value.trim().length > 0) {
+        merged[field] = value;
       }
-    } else if (typeof savedValue === "string" && savedValue.trim().length > 0) {
-      merged[field] = savedValue;
     }
   }
 

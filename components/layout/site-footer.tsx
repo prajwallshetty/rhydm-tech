@@ -1,12 +1,16 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { COMPANY, DIVISION_META, type Division } from "@/lib/business";
+import { getLocale, getTranslations } from "next-intl/server";
+
 import { getSectionContent } from "@/lib/cms/content";
 import type { SiteSettingsContent } from "@/lib/cms/registry";
 
 export async function SiteFooter({ division }: { division: Division }) {
   const meta = DIVISION_META[division];
   // Social links are editable in /admin/content ("Footer — social links").
-  const settings = await getSectionContent<SiteSettingsContent>("site.settings");
+  const locale = await getLocale();
+  const settings = await getSectionContent<SiteSettingsContent>("site.settings", locale);
+  const t = await getTranslations("footer");
 
   return (
     <footer className="relative w-full overflow-hidden bg-white text-slate-900 pt-16 lg:pt-20 border-t border-slate-200">
@@ -27,7 +31,7 @@ export async function SiteFooter({ division }: { division: Division }) {
             </div>
 
             <p className="text-xs text-slate-500 font-medium">
-              &copy; copyright {COMPANY.name} {new Date().getFullYear()}. All rights reserved.
+              {t("copyright", { company: COMPANY.name, year: new Date().getFullYear() })}
             </p>
           </div>
 
@@ -36,37 +40,37 @@ export async function SiteFooter({ division }: { division: Division }) {
             {/* Pages / Services */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                Pages
+                {t("pages")}
               </h4>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <Link href="/disposal/services" className="hover:text-[#16A34A] transition-colors">
-                    All Services
+                    {t("allServices")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/disposal/process" className="hover:text-[#16A34A] transition-colors">
-                    Process
+                    {t("process")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/disposal/industries" className="hover:text-[#16A34A] transition-colors">
-                    Industries
+                    {t("industries")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/disposal/certificates" className="hover:text-[#16A34A] transition-colors">
-                    Certificates
+                    {t("certificates")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/disposal/faqs" className="hover:text-[#16A34A] transition-colors">
-                    FAQs
+                    {t("faqs")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/disposal/contact" className="hover:text-[#16A34A] transition-colors">
-                    Contact
+                    {t("contact")}
                   </Link>
                 </li>
               </ul>
@@ -75,7 +79,7 @@ export async function SiteFooter({ division }: { division: Division }) {
             {/* Socials */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                Socials
+                {t("socials")}
               </h4>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 {settings.socials.map((social) => (
@@ -96,27 +100,27 @@ export async function SiteFooter({ division }: { division: Division }) {
             {/* Legal */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                Legal
+                {t("legal")}
               </h4>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <Link href="#" className="hover:text-[#16A34A] transition-colors">
-                    Privacy Policy
+                    {t("privacyPolicy")}
                   </Link>
                 </li>
                 <li>
                   <Link href="#" className="hover:text-[#16A34A] transition-colors">
-                    Terms of Service
+                    {t("termsOfService")}
                   </Link>
                 </li>
                 <li>
                   <Link href="#" className="hover:text-[#16A34A] transition-colors">
-                    Cookie Policy
+                    {t("cookiePolicy")}
                   </Link>
                 </li>
                 <li>
                   <Link href="#" className="hover:text-[#16A34A] transition-colors">
-                    Data Security
+                    {t("dataSecurity")}
                   </Link>
                 </li>
               </ul>
@@ -125,27 +129,27 @@ export async function SiteFooter({ division }: { division: Division }) {
             {/* Register & Shop */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                Register
+                {t("register")}
               </h4>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <Link href="/refurbished" className="hover:text-[#16A34A] transition-colors">
-                    Shop Refurbished
+                    {t("shopRefurbished")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/signup" className="hover:text-[#16A34A] transition-colors">
-                    Sign Up
+                    {t("signUp")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/login" className="hover:text-[#16A34A] transition-colors">
-                    Login
+                    {t("login")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/forgot-password" className="hover:text-[#16A34A] transition-colors">
-                    Forgot Password
+                    {t("forgotPassword")}
                   </Link>
                 </li>
               </ul>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { motion, useInView, useMotionValue, useSpring, useTransform } from "motion/react";
 import {
   ArrowRight,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { motion, useInView } from "motion/react";
 import { ArrowRight, PhoneCall, ShieldCheck, CheckCircle2, Sparkles } from "lucide-react";
 

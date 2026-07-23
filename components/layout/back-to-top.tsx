@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowUp } from "lucide-react";
 

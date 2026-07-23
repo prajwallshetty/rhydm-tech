@@ -25,7 +25,7 @@ import {
   X,
   Menu,
 } from "lucide-react";
-import { logoutAdminAction } from "@/app/(admin)/admin/actions";
+import { logoutAdminAction } from "@/app/(backend)/(admin)/admin/actions";
 import { cn } from "@/lib/utils";
 
 type NavGroup = {
