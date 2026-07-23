@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, ShieldCheck, Loader2, AlertCircle } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 import { loginAction } from "@/app/(backend)/(auth)/actions";
 
 export default function LoginPage() {
@@ -47,14 +48,9 @@ export default function LoginPage() {
         className="w-full max-w-md space-y-6 relative z-10"
       >
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-[#2E6F40] text-white shadow-lg shadow-[#2E6F40]/25 transition-transform group-hover:scale-105">
-              <ShieldCheck className="size-6" />
-            </div>
-            <span className="font-extrabold tracking-tight text-slate-900 dark:text-white text-xl">
-              Rhydm Tech
-            </span>
+        <div className="text-center space-y-2 flex flex-col items-center">
+          <Link href="/" className="inline-block group transition-transform hover:scale-105">
+            <Logo className="h-20 w-auto mx-auto" />
           </Link>
           <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             Welcome back

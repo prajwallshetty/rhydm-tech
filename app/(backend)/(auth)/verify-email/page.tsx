@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand/logo";
 import { CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default async function VerifyEmailPage({
@@ -13,14 +14,11 @@ export default async function VerifyEmailPage({
       <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[36rem] rounded-full bg-[#2E6F40]/10 blur-3xl" />
 
       <div className="w-full max-w-md space-y-6 relative z-10 text-center">
-        <Link href="/" className="inline-flex items-center gap-2 group">
-          <div className="flex size-10 items-center justify-center rounded-2xl bg-[#2E6F40] text-white shadow-lg shadow-[#2E6F40]/25 transition-transform group-hover:scale-105">
-            <ShieldCheck className="size-6" />
-          </div>
-          <span className="font-extrabold tracking-tight text-slate-900 dark:text-white text-xl">
-            Rhydm Tech
-          </span>
-        </Link>
+        <div className="flex flex-col items-center">
+          <Link href="/" className="inline-block group transition-transform hover:scale-105">
+            <Logo className="h-20 w-auto mx-auto" />
+          </Link>
+        </div>
 
         <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-xl backdrop-blur-md dark:border-border dark:bg-card space-y-6">
           <div className="flex size-16 mx-auto items-center justify-center rounded-full bg-emerald-100 text-[#2E6F40] dark:bg-emerald-950/50">

@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { logoutAdminAction } from "@/app/(backend)/(admin)/admin/actions";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/logo";
 
 type NavGroup = {
   title?: string;
@@ -102,17 +103,8 @@ export function AdminSidebar() {
       <div>
         {/* Brand Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-border/60">
-          <Link href="/admin" className="flex items-center gap-3 group">
-            {/* Green Leaf / Logo Icon */}
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-[#2E6F40] text-white shadow-md shadow-[#2E6F40]/25 transition-transform group-hover:scale-105">
-              <svg className="size-6 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
-              </svg>
-            </div>
-            <div>
-              <span className="font-extrabold tracking-tight text-slate-900 dark:text-white text-lg">RENEWED</span>
-              <p className="text-[10px] text-muted-foreground font-medium -mt-0.5">Smarter Tech. Cleaner Tomorrow.</p>
-            </div>
+          <Link href="/admin" className="inline-block group transition-transform hover:scale-105">
+            <Logo className="h-10 w-auto" />
           </Link>
 
           <button

@@ -10,21 +10,21 @@ type LogoProps = {
 };
 
 export function Logo({ className, markOnly = false, showShield = true }: LogoProps) {
-  return (
-    <span className={cn("inline-flex items-center gap-3", className)}>
-      {showShield && (
-        <img
-          src="/icon.png"
-          alt={COMPANY.name}
-          className="size-10 sm:size-12 object-contain shrink-0"
-        />
-      )}
+  if (markOnly) {
+    return (
+      <img
+        src="/favicon.svg"
+        alt={COMPANY.name}
+        className={cn("size-10 sm:size-12 object-contain shrink-0", className)}
+      />
+    );
+  }
 
-      {!markOnly && (
-        <span className="text-xl sm:text-2xl font-black tracking-tight text-[#2E6F40]">
-          {COMPANY.name}
-        </span>
-      )}
-    </span>
+  return (
+    <img
+      src="/logo.png"
+      alt={COMPANY.name}
+      className={cn("h-14 sm:h-16 w-auto object-contain shrink-0", className)}
+    />
   );
 }

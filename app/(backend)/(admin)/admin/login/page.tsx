@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Shield, Lock, Mail, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 import { loginAdminAction } from "@/app/(backend)/(admin)/admin/actions";
 
 export default function AdminLoginPage() {
@@ -24,10 +25,8 @@ export default function AdminLoginPage() {
 
       <div className="relative w-full max-w-md space-y-8 rounded-2xl border border-border/80 bg-card/70 p-8 shadow-2xl backdrop-blur-xl">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-            <Shield className="h-7 w-7" />
-          </div>
+        <div className="text-center space-y-3 flex flex-col items-center">
+          <Logo className="h-20 w-auto mx-auto" />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Admin Portal</h1>
           <p className="text-sm text-muted-foreground">Sign in to manage Disposal & Store operations</p>
         </div>

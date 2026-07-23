@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { COMPANY, DIVISION_META, type Division } from "@/lib/business";
 import { getLocale, getTranslations } from "next-intl/server";
+import { Logo } from "@/components/brand/logo";
 
 import { getSectionContent } from "@/lib/cms/content";
 import type { SiteSettingsContent } from "@/lib/cms/registry";
@@ -19,16 +20,9 @@ export async function SiteFooter({ division }: { division: Division }) {
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
           {/* Left Column: Logo & Copyright */}
           <div className="lg:col-span-4 space-y-4">
-            <div className="flex items-center gap-3">
-              <img
-                src="/icon.png"
-                alt={COMPANY.name}
-                className="size-9 object-contain"
-              />
-              <span className="text-xl font-bold tracking-tight text-[#16A34A]">
-                {COMPANY.name}
-              </span>
-            </div>
+            <Link href="/" className="inline-block">
+              <Logo className="h-12 w-auto" />
+            </Link>
 
             <p className="text-xs text-slate-500 font-medium">
               {t("copyright", { company: COMPANY.name, year: new Date().getFullYear() })}

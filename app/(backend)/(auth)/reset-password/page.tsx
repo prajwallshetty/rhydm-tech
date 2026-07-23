@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, ShieldCheck, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 import { resetPasswordAction } from "@/app/(backend)/(auth)/actions";
 
 export default function ResetPasswordPage({
@@ -46,14 +47,9 @@ export default function ResetPasswordPage({
         transition={{ duration: 0.4 }}
         className="w-full max-w-md space-y-6 relative z-10"
       >
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-[#2E6F40] text-white shadow-lg shadow-[#2E6F40]/25 transition-transform group-hover:scale-105">
-              <ShieldCheck className="size-6" />
-            </div>
-            <span className="font-extrabold tracking-tight text-slate-900 dark:text-white text-xl">
-              Rhydm Tech
-            </span>
+        <div className="text-center space-y-2 flex flex-col items-center">
+          <Link href="/" className="inline-block group transition-transform hover:scale-105">
+            <Logo className="h-20 w-auto mx-auto" />
           </Link>
           <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             Set new password
