@@ -4,9 +4,10 @@ import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { Loader2, Search, TrendingUp, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 
 import { searchAction, type SearchHit } from "@/app/(site)/[locale]/(refurbished)/refurbished/search-action";
-import { conditionShort, formatPrice } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const RECENT_KEY = "rhydm.recentSearches";
@@ -32,6 +33,8 @@ function readRecent(): string[] {
 
 export function SearchBox({ className }: { className?: string }) {
   const router = useRouter();
+  const t = useTranslations("store.search");
+  const tc = useTranslations("store.conditionShort");
   const [term, setTerm] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [open, setOpen] = useState(false);
@@ -107,7 +110,7 @@ export function SearchBox({ className }: { className?: string }) {
         }}
       >
         <label htmlFor="store-search" className="sr-only">
-          Search products
+          {t("label")}
         </label>
         <Search
           aria-hidden
@@ -122,7 +125,7 @@ export function SearchBox({ className }: { className?: string }) {
             setRecent(readRecent());
             setOpen(true);
           }}
-          placeholder="Search laptops, servers, docks…"
+          placeholder={t("placeholder")}
           autoComplete="off"
           role="combobox"
           aria-expanded={open}
@@ -135,7 +138,7 @@ export function SearchBox({ className }: { className?: string }) {
             onClick={() => {
               setTerm("");
             }}
-            aria-label="Clear search"
+            aria-label={t("clear")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
           >
             <X className="size-4" />
@@ -153,7 +156,7 @@ export function SearchBox({ className }: { className?: string }) {
               {recent.length > 0 && (
                 <>
                   <p className="px-3 py-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                    Recent
+                    {t("recent")}
                   </p>
                   {recent.map((item) => (
                     <button
@@ -170,7 +173,7 @@ export function SearchBox({ className }: { className?: string }) {
               )}
 
               <p className="px-3 py-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                Trending
+                {t("trending")}
               </p>
               {TRENDING.map((item) => (
                 <button
@@ -191,22 +194,22 @@ export function SearchBox({ className }: { className?: string }) {
               {isPending && visibleHits.length === 0 && (
                 <p className="flex items-center gap-2 px-3 py-6 text-sm text-muted-foreground">
                   <Loader2 className="size-4 animate-spin" />
-                  Searching…
+                  {t("searching")}
                 </p>
               )}
 
               {!isPending && visibleHits.length === 0 && (
                 <div className="px-3 py-6 text-center">
-                  <p className="text-sm font-medium">No matches for “{term}”</p>
+                  <p className="text-sm font-medium">{t("noMatches", { term })}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Try a broader term, or browse all products.
+                    {t("tryBroader")}
                   </p>
                   <Link
                     href="/refurbished/shop"
                     onClick={() => setOpen(false)}
                     className="mt-3 inline-block text-sm font-medium text-brand"
                   >
-                    Browse the shop →
+                    {t("browseShop")}
                   </Link>
                 </div>
               )}
@@ -224,7 +227,7 @@ export function SearchBox({ className }: { className?: string }) {
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       {hit.brandName ? `${hit.brandName} · ` : ""}
-                      {hit.categoryName} · {conditionShort(hit.condition)}
+                      {hit.categoryName} · {tc(hit.condition)}
                     </span>
                   </span>
                   <span className="shrink-0 text-sm font-medium">
@@ -239,7 +242,7 @@ export function SearchBox({ className }: { className?: string }) {
                   onClick={() => commit(term)}
                   className="mt-1 w-full rounded-lg px-3 py-2.5 text-center text-sm font-medium text-brand transition-colors hover:bg-accent"
                 >
-                  See all results for “{term}”
+                  {t("seeAll", { term })}
                 </button>
               )}
             </div>

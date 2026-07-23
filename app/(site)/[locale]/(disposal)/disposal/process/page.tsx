@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ProcessTimeline } from "@/components/disposal/process-timeline";
 import { ButtonLink } from "@/components/ui/button";
@@ -8,11 +8,15 @@ import { Section } from "@/components/ui/section";
 import { FadeIn } from "@/components/motion/fade-in";
 import { getProcessSteps } from "@/lib/repositories/disposal";
 
-export const metadata: Metadata = {
-  title: "Our Process",
-  description:
-    "From assessment and insured pickup through data wiping, physical destruction, recycling and serial-level certification.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "disposal.process" });
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
 
 export default async function ProcessPage({
   params,
@@ -22,17 +26,19 @@ export default async function ProcessPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("disposal.process");
+  const tc = await getTranslations("disposal");
   const steps = await getProcessSteps();
 
   return (
     <>
       <PageHeader
-        eyebrow="Process"
-        title="Seven stages, fully documented"
-        description="Every asset is tracked from collection to certificate. Nothing leaves the chain of custody unrecorded."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Disposal", href: "/disposal" },
-          { label: "Process" },
+          { label: tc("crumb"), href: "/disposal" },
+          { label: t("crumb") },
         ]}
       />
 
@@ -44,15 +50,14 @@ export default async function ProcessPage({
         <FadeIn onScroll>
           <div className="rounded-3xl bg-brand px-8 py-16 text-center sm:px-16">
             <h2 className="mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-brand-foreground text-balance sm:text-4xl">
-              Start with an assessment
+              {t("ctaTitle")}
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-brand-foreground/85 text-pretty">
-              We scope your estate and compliance obligations before anything is
-              collected.
+              {t("ctaBody")}
             </p>
             <div className="mt-9 flex justify-center">
               <ButtonLink href="/disposal/contact" variant="inverse" size="lg">
-                Schedule Consultation
+                {t("ctaButton")}
               </ButtonLink>
             </div>
           </div>

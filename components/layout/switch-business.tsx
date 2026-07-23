@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { Repeat2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { SWITCH_PARAM } from "@/lib/business";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
  * they pick again.
  */
 export function SwitchBusiness({ className }: { className?: string }) {
+  const t = useTranslations("common");
   return (
     <Link
       href={`/?${SWITCH_PARAM}=1`}
@@ -22,7 +24,7 @@ export function SwitchBusiness({ className }: { className?: string }) {
       )}
     >
       <Repeat2 aria-hidden className="size-4" strokeWidth={1.8} />
-      Switch Business
+      {t("switchBusiness")}
     </Link>
   );
 }

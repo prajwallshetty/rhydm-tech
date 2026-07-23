@@ -2,16 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
+import { z } from "zod";
 
 import { submitContact } from "@/app/(site)/[locale]/(disposal)/disposal/contact/actions";
 import { Button } from "@/components/ui/button";
-import {
-  TOPIC_OPTIONS,
-  contactSchema,
-  type ContactInput,
-} from "@/lib/validation/contact";
+import { type ContactInput } from "@/lib/validation/contact";
 import { cn } from "@/lib/utils";
 
 const fieldClass =
@@ -20,6 +18,33 @@ const fieldClass =
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const t = useTranslations("disposal.contactForm");
+
+  // The server action re-validates with its own schema; this client copy just
+  // localizes the messages the user sees. Kept in sync field-for-field.
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z.string().trim().min(2, t("valName")),
+        email: z.email(t("valEmail")),
+        phone: z.string().trim().max(40, t("valPhone")).optional().or(z.literal("")),
+        company: z.string().trim().max(120, t("valCompany")).optional().or(z.literal("")),
+        topic: z.enum(["pickup", "consultation", "quote", "other"]),
+        message: z
+          .string()
+          .trim()
+          .min(20, t("valMessageMin"))
+          .max(4000, t("valMessageMax")),
+      }),
+    [t],
+  );
+
+  const TOPIC_KEYS = [
+    ["pickup", "topicPickup"],
+    ["consultation", "topicConsultation"],
+    ["quote", "topicQuote"],
+    ["other", "topicOther"],
+  ] as const;
 
   const {
     register,
@@ -27,7 +52,7 @@ export function ContactForm() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ContactInput>({
-    resolver: zodResolver(contactSchema),
+    resolver: zodResolver(schema),
     defaultValues: { topic: "pickup" },
   });
 
@@ -50,17 +75,16 @@ export function ContactForm() {
         <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-muted text-brand">
           <CheckCircle2 className="size-6" strokeWidth={1.6} />
         </span>
-        <h2 className="mt-5 text-xl font-medium">Enquiry received</h2>
+        <h2 className="mt-5 text-xl font-medium">{t("successTitle")}</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          A specialist will be in touch within one business day. For urgent
-          collections, call us directly.
+          {t("successBody")}
         </p>
         <Button
           variant="outline"
           className="mt-7"
           onClick={() => setSubmitted(false)}
         >
-          Send another enquiry
+          {t("sendAnother")}
         </Button>
       </div>
     );
@@ -73,7 +97,7 @@ export function ContactForm() {
       className="space-y-5 rounded-2xl border border-border/80 bg-card p-7 sm:p-8"
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Name" error={errors.name?.message} htmlFor="name" required>
+        <Field label={t("name")} error={errors.name?.message} htmlFor="name" required>
           <input
             id="name"
             autoComplete="name"
@@ -84,7 +108,7 @@ export function ContactForm() {
         </Field>
 
         <Field
-          label="Work email"
+          label={t("workEmail")}
           error={errors.email?.message}
           htmlFor="email"
           required
@@ -99,7 +123,7 @@ export function ContactForm() {
           />
         </Field>
 
-        <Field label="Phone" error={errors.phone?.message} htmlFor="phone">
+        <Field label={t("phone")} error={errors.phone?.message} htmlFor="phone">
           <input
             id="phone"
             type="tel"
@@ -109,7 +133,7 @@ export function ContactForm() {
           />
         </Field>
 
-        <Field label="Company" error={errors.company?.message} htmlFor="company">
+        <Field label={t("company")} error={errors.company?.message} htmlFor="company">
           <input
             id="company"
             autoComplete="organization"
@@ -119,22 +143,22 @@ export function ContactForm() {
         </Field>
       </div>
 
-      <Field label="How can we help?" error={errors.topic?.message} htmlFor="topic">
+      <Field label={t("howHelp")} error={errors.topic?.message} htmlFor="topic">
         <select id="topic" className={fieldClass} {...register("topic")}>
-          {TOPIC_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          {TOPIC_KEYS.map(([value, key]) => (
+            <option key={value} value={value}>
+              {t(key)}
             </option>
           ))}
         </select>
       </Field>
 
       <Field
-        label="Details"
+        label={t("details")}
         error={errors.message?.message}
         htmlFor="message"
         required
-        hint="Rough asset counts, locations and any compliance requirements help us respond accurately."
+        hint={t("detailsHint")}
       >
         <textarea
           id="message"
@@ -153,7 +177,7 @@ export function ContactForm() {
 
       <Button type="submit" size="lg" disabled={isSubmitting} className="w-full sm:w-auto">
         {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-        {isSubmitting ? "Sending…" : "Send enquiry"}
+        {isSubmitting ? t("sending") : t("send")}
       </Button>
     </form>
   );

@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 import { SORT_OPTIONS } from "@/lib/store/sort";
 
@@ -9,11 +10,12 @@ export function SortSelect() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("store.sort");
 
   return (
     <div className="flex items-center gap-2">
       <label htmlFor="sort" className="text-sm text-muted-foreground">
-        Sort
+        {t("label")}
       </label>
       <select
         id="sort"
@@ -28,7 +30,7 @@ export function SortSelect() {
       >
         {SORT_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {t(option.key)}
           </option>
         ))}
       </select>

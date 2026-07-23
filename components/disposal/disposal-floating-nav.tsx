@@ -96,7 +96,7 @@ export function DisposalFloatingNav() {
               href="/refurbished"
               className="inline-flex items-center gap-1 rounded-full bg-[#16A34A] text-white px-4 py-2 text-xs font-semibold shadow-md shadow-[#16A34A]/25 transition-all hover:bg-[#15803D] hover:scale-105 active:scale-95"
             >
-              <span>Shop Refurbished</span>
+              <span>{t("shopLink")}</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
 
@@ -106,7 +106,7 @@ export function DisposalFloatingNav() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={mobileMenuOpen ? t("closeMenu") : t("openMenu")}
               className="flex h-11 w-11 shrink-0 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 lg:hidden cursor-pointer"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -141,7 +141,7 @@ export function DisposalFloatingNav() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-between rounded-xl bg-[#16A34A] px-4 py-3 text-sm font-bold text-white shadow-md"
                 >
-                  <span>Shop Refurbished Hardware</span>
+                  <span>{t("shopLink")}</span>
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>

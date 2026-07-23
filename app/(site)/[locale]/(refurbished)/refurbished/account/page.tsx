@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { getSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { AccountClient, SerializedOrder, SerializedAddress } from "./account-client";
@@ -6,6 +7,7 @@ import { AccountClient, SerializedOrder, SerializedAddress } from "./account-cli
 export const dynamic = "force-dynamic";
 
 export default async function AccountPage() {
+  const locale = await getLocale();
   const session = await getSession();
   if (!session) {
     redirect("/login");
@@ -60,7 +62,7 @@ export default async function AccountPage() {
   const initialOrders: SerializedOrder[] = dbOrders.map((o) => ({
     id: o.id,
     orderNumber: o.orderNumber,
-    createdAtStr: new Date(o.createdAt).toLocaleDateString("en-US", {
+    createdAtStr: new Date(o.createdAt).toLocaleDateString(locale, {
       month: "long",
       day: "numeric",
       year: "numeric",

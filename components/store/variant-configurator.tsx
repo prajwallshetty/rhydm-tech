@@ -5,11 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Check, ShieldCheck, Award, Truck, RotateCcw, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useTranslations } from "next-intl";
 
 import { ProductGallery } from "@/components/store/product-gallery";
 import { AddToCart } from "@/components/store/add-to-cart";
 import { RatingStars } from "@/components/store/rating-stars";
-import { formatPrice, discountPercent, conditionLabel, stockLabel } from "@/lib/format";
+import { formatPrice, discountPercent, stockLabel } from "@/lib/format";
 import { ProductWithVariantsDTO, ProductVariantDTO } from "@/lib/data/variant-utils";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,9 @@ export function VariantConfigurator({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("store.detail");
+  const ts = useTranslations("store.stock");
+  const tcond = useTranslations("store.condition");
 
   // 1. Initialize option state from URL parameters or default to first available variant
   const initialSelected = useMemo(() => {
@@ -164,7 +168,7 @@ export function VariantConfigurator({
                 </span>
                 {discount != null && (
                   <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
-                    Save {discount}%
+                    {t("save", { discount })}
                   </span>
                 )}
               </>
@@ -185,10 +189,10 @@ export function VariantConfigurator({
                   stock.tone === "out" ? "bg-red-500" : "bg-[#16A34A] animate-pulse",
                 )}
               />
-              {stock.label}
+              {ts(stock.tone, { count: stock.count })}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="font-mono text-xs text-slate-500">SKU: {sku}</span>
+            <span className="font-mono text-xs text-slate-500">{t("sku", { sku })}</span>
           </div>
 
           {/* Shopify-Style Option Selectors */}
@@ -262,23 +266,23 @@ export function VariantConfigurator({
           <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-100 pt-6">
             <Assurance
               icon={ShieldCheck}
-              title={`${warrantyMonths}-month warranty`}
-              detail="Return-to-base coverage"
+              title={t("warrantyMonths", { count: warrantyMonths })}
+              detail={t("warrantyCoverage")}
             />
             <Assurance
               icon={Award}
-              title={conditionLabel(condition)}
-              detail="Enterprise Certified & Tested"
+              title={tcond(condition)}
+              detail={t("certifiedDetail")}
             />
             <Assurance
               icon={Truck}
-              title="Express Dispatch"
-              detail="Tracked courier delivery"
+              title={t("expressTitle")}
+              detail={t("expressDetail")}
             />
             <Assurance
               icon={RotateCcw}
-              title="30-day returns"
-              detail="Hassle-free guarantee"
+              title={t("returnsTitle")}
+              detail={t("returnsDetail")}
             />
           </dl>
         </div>

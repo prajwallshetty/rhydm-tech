@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { usePathname } from "@/i18n/navigation";
 import { useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Logo } from "@/components/brand/logo";
 import { SwitchBusiness } from "@/components/layout/switch-business";
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 export function SiteHeader({ division }: { division: Division }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const t = useTranslations("common");
 
   const items = NAV[division];
   const meta = DIVISION_META[division];
@@ -29,10 +31,10 @@ export function SiteHeader({ division }: { division: Division }) {
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-6">
         <Link href={meta.href} className="shrink-0 rounded-md">
           <Logo />
-          <span className="sr-only">{meta.name} home</span>
+          <span className="sr-only">{t("homeLink", { name: meta.name })}</span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden lg:block">
+        <nav aria-label={t("primaryNav")} className="hidden lg:block">
           <ul className="flex items-center gap-1">
             {items.map((item) => (
               <li key={item.href}>
@@ -82,7 +84,7 @@ export function SiteHeader({ division }: { division: Division }) {
       {open && (
         <nav
           id="mobile-nav"
-          aria-label="Primary mobile"
+          aria-label={t("primaryMobileNav")}
           className="border-t border-border/70 bg-background lg:hidden"
         >
           <ul className="mx-auto max-w-7xl px-6 py-3">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 
 import { ContactForm } from "@/components/disposal/contact-form";
@@ -8,11 +8,15 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { COMPANY } from "@/lib/business";
 
-export const metadata: Metadata = {
-  title: "Contact & Request Pickup",
-  description:
-    "Request a collection or schedule a consultation with an IT asset disposal specialist.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "disposal.contact" });
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
 
 export default async function ContactPage({
   params,
@@ -22,15 +26,18 @@ export default async function ContactPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("disposal.contact");
+  const tc = await getTranslations("disposal");
+
   return (
     <>
       <PageHeader
-        eyebrow="Contact"
-        title="Request a pickup"
-        description="Tell us roughly what you need decommissioned and we'll come back with a scope and timeline."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Disposal", href: "/disposal" },
-          { label: "Contact" },
+          { label: tc("crumb"), href: "/disposal" },
+          { label: t("crumb") },
         ]}
       />
 
@@ -43,7 +50,7 @@ export default async function ContactPage({
           <FadeIn delay={0.1}>
             <div className="space-y-8">
               <div className="space-y-5">
-                <ContactRow icon={Mail} label="Email">
+                <ContactRow icon={Mail} label={t("email")}>
                   <a
                     href={`mailto:${COMPANY.email}`}
                     className="transition-colors hover:text-brand"
@@ -52,7 +59,7 @@ export default async function ContactPage({
                   </a>
                 </ContactRow>
 
-                <ContactRow icon={Phone} label="Phone">
+                <ContactRow icon={Phone} label={t("phone")}>
                   <a
                     href={`tel:${COMPANY.phone.replace(/[^+\d]/g, "")}`}
                     className="transition-colors hover:text-brand"
@@ -61,7 +68,7 @@ export default async function ContactPage({
                   </a>
                 </ContactRow>
 
-                <ContactRow icon={MapPin} label="Office">
+                <ContactRow icon={MapPin} label={t("office")}>
                   {COMPANY.address.street}
                   <br />
                   {COMPANY.address.postalCode} {COMPANY.address.city}
@@ -69,10 +76,10 @@ export default async function ContactPage({
                   {COMPANY.address.country}
                 </ContactRow>
 
-                <ContactRow icon={Clock} label="Hours">
-                  Mon–Fri, 9:00–18:00 CET
+                <ContactRow icon={Clock} label={t("hours")}>
+                  {t("hoursValue")}
                   <br />
-                  Emergency collections by arrangement
+                  {t("emergency")}
                 </ContactRow>
               </div>
 

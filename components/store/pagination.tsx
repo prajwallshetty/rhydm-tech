@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export function Pagination({
   pageCount: number;
   buildHref: (page: number) => string;
 }) {
+  const t = useTranslations("store.pagination");
   if (pageCount <= 1) return null;
 
   // Window of pages around the current one, so long catalogs don't render
@@ -35,11 +37,11 @@ export function Pagination({
   }
 
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5">
+    <nav aria-label={t("nav")} className="flex items-center justify-center gap-1.5">
       <PageLink
         href={buildHref(page - 1)}
         disabled={page <= 1}
-        aria-label="Previous page"
+        aria-label={t("prev")}
       >
         <ChevronLeft className="size-4" />
       </PageLink>
@@ -54,7 +56,7 @@ export function Pagination({
             key={entry}
             href={buildHref(entry)}
             current={entry === page}
-            aria-label={`Page ${entry}`}
+            aria-label={t("page", { n: entry })}
           >
             {entry}
           </PageLink>
@@ -64,7 +66,7 @@ export function Pagination({
       <PageLink
         href={buildHref(page + 1)}
         disabled={page >= pageCount}
-        aria-label="Next page"
+        aria-label={t("next")}
       >
         <ChevronRight className="size-4" />
       </PageLink>

@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { FadeIn } from "@/components/motion/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { getCategories } from "@/lib/repositories/store";
 import { CategoryListCard } from "@/components/store/category-list-card";
 
-export const metadata: Metadata = {
-  title: "Shop by Category",
-  description:
-    "Browse refurbished laptops, desktops, servers, networking, monitors, storage, components and accessories.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "store.pages" });
+  return { title: t("categoriesMetaTitle"), description: t("categoriesMetaDescription") };
+}
 
 export default async function CategoriesPage({
   params,
@@ -20,17 +24,18 @@ export default async function CategoriesPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("store.pages");
   const categories = await getCategories();
 
   return (
     <>
       <PageHeader
-        eyebrow="Categories"
-        title="Shop by category"
-        description="Business-grade hardware sourced from corporate refresh cycles and lease returns."
+        eyebrow={t("categoriesEyebrow")}
+        title={t("categoriesTitle")}
+        description={t("categoriesDescription")}
         breadcrumbs={[
-          { label: "Store", href: "/refurbished" },
-          { label: "Categories" },
+          { label: t("crumbStore"), href: "/refurbished" },
+          { label: t("crumbCategories") },
         ]}
       />
 

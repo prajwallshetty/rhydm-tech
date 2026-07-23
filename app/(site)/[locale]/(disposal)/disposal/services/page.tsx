@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight } from "lucide-react";
 
@@ -9,11 +9,15 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { getServices } from "@/lib/repositories/disposal";
 
-export const metadata: Metadata = {
-  title: "Services",
-  description:
-    "Secure data wiping, hard drive destruction, IT asset disposal, e-waste recycling, corporate pickup, asset recovery and certificates of destruction.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "disposal.services" });
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
 
 export default async function ServicesPage({
   params,
@@ -23,17 +27,19 @@ export default async function ServicesPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("disposal.services");
+  const tc = await getTranslations("disposal");
   const services = await getServices();
 
   return (
     <>
       <PageHeader
-        eyebrow="Services"
-        title="Everything the decommission requires"
-        description="Engage a single service or hand over the entire asset lifecycle. Every option produces the same audit-grade documentation."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Disposal", href: "/disposal" },
-          { label: "Services" },
+          { label: tc("crumb"), href: "/disposal" },
+          { label: t("crumb") },
         ]}
       />
 
@@ -53,7 +59,7 @@ export default async function ServicesPage({
                   {service.summary}
                 </p>
                 <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand">
-                  Learn More
+                  {t("learnMore")}
                   <ArrowRight
                     aria-hidden
                     className="size-3.5 transition-transform group-hover:translate-x-0.5"

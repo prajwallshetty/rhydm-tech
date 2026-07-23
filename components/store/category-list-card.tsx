@@ -4,9 +4,11 @@ import { useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ProductThumb } from "@/components/store/product-thumb";
 
 export function CategoryListCard({ category }: { category: any }) {
+  const t = useTranslations("common");
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
@@ -85,14 +87,14 @@ export function CategoryListCard({ category }: { category: any }) {
           </span>
         </div>
         <p className="mt-3 flex-1 text-xs leading-relaxed text-slate-500 font-medium">
-          {category.description || `Browse our premium certified refurbished ${category.name.toLowerCase()} collections.`}
+          {category.description || t("categoryFallback", { name: category.name.toLowerCase() })}
         </p>
         <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
           <Link
             href={`/refurbished/categories/${category.slug}`}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2E6F40] hover:text-[#255833]"
           >
-            <span>Browse Products</span>
+            <span>{t("browseProducts")}</span>
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>

@@ -2,32 +2,9 @@
 
 import { Link } from "@/i18n/navigation";
 import { motion } from "motion/react";
-import {
-  ArrowRight,
-  ShieldCheck,
-  Award,
-  RotateCcw,
-  Truck,
-  Leaf,
-  CheckCircle2,
-  Cpu,
-  Laptop,
-  Monitor,
-  Server,
-  Network,
-  HardDrive,
-  Headphones,
-  Box,
-  ShoppingCart,
-  Heart,
-  Sparkles,
-} from "lucide-react";
-import { formatMoney } from "@/lib/format";
-import { useStore } from "@/lib/store/cart";
+import { ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ProductCard } from "@/components/store/product-card";
-import { ProductThumb } from "@/components/store/product-thumb";
-
-import { useState, useRef } from "react";
 
 export function HomeRefurbishedSections({
   categories,
@@ -40,57 +17,7 @@ export function HomeRefurbishedSections({
   bestSellers: any[];
   brands: any[];
 }) {
-  const addToCart = useStore((s) => s.addToCart);
-
-  // Category Icon Mapping
-  const getCategoryIcon = (slug: string) => {
-    switch (slug) {
-      case "laptops": return Laptop;
-      case "desktops": return Monitor;
-      case "servers": return Server;
-      case "networking": return Network;
-      case "storage": return HardDrive;
-      case "accessories": return Headphones;
-      case "monitors": return Monitor;
-      default: return Cpu;
-    }
-  };
-
-
-
-  // Why Choose Us Feature Cards
-  const featureCards = [
-    {
-      icon: ShieldCheck,
-      title: "Certified Devices",
-      description: "Every unit undergoes a rigorous 40-point hardware & functional inspection.",
-    },
-    {
-      icon: Award,
-      title: "12-Month Warranty Included",
-      description: "Full return-to-base coverage with extended 24 & 36-month options.",
-    },
-    {
-      icon: CheckCircle2,
-      title: "Professionally Tested",
-      description: "Storage sanitized to NIST 800-88 standards for guaranteed data security.",
-    },
-    {
-      icon: Truck,
-      title: "Fast & Secure Shipping",
-      description: "Tracked dispatch within 24 hours with custom protective transit packaging.",
-    },
-    {
-      icon: Leaf,
-      title: "100% Eco Friendly",
-      description: "Reduces e-waste and carbon footprint without sacrificing performance.",
-    },
-    {
-      icon: Box,
-      title: "Business Ready Batches",
-      description: "Identical spec matching available for bulk company team rollouts.",
-    },
-  ];
+  const t = useTranslations("store.home");
 
   // Category Image Mapping
   const getCategoryImage = (slug: string) => {
@@ -120,10 +47,10 @@ export function HomeRefurbishedSections({
       <section className="mx-auto max-w-7xl px-6 text-center">
         <div className="space-y-3 max-w-2xl mx-auto mb-12">
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            Top Collections
+            {t("collectionsTitle")}
           </h2>
           <p className="text-sm text-slate-500 leading-relaxed font-normal">
-            High-performance enterprise hardware sourced from corporate refresh cycles—reliability meets value.
+            {t("collectionsSubtitle")}
           </p>
         </div>
 
@@ -169,16 +96,16 @@ export function HomeRefurbishedSections({
       <section className="mx-auto max-w-7xl px-6">
         <div className="flex items-end justify-between border-b border-slate-200 pb-6">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2E6F40]">Featured Devices</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2E6F40]">{t("featuredEyebrow")}</span>
             <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl mt-1">
-              Popular Certified Laptops & Workstations
+              {t("featuredTitle")}
             </h2>
           </div>
           <Link
             href="/refurbished/shop"
             className="flex min-h-11 items-center gap-1.5 py-2 -my-2 text-xs font-bold text-[#2E6F40] hover:brightness-125 transition-colors"
           >
-            <span>View all products</span>
+            <span>{t("viewAllProducts")}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -202,10 +129,10 @@ export function HomeRefurbishedSections({
       <section className="mx-auto max-w-7xl px-6">
         <div className="space-y-3 max-w-2xl mx-auto mb-16 text-center">
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            Customer Say!
+            {t("testimonialsTitle")}
           </h2>
           <p className="text-sm text-slate-500 leading-relaxed font-normal">
-            Customers love our products and we always strive to please them all.
+            {t("testimonialsSubtitle")}
           </p>
         </div>
 
@@ -222,7 +149,7 @@ export function HomeRefurbishedSections({
             <div className="w-full sm:w-[42%] shrink-0 relative min-h-[220px] sm:min-h-auto">
               <img
                 src="/workspace_setup.png"
-                alt="Workspace Setup Review"
+                alt={t("reviewAlt1")}
                 className="absolute inset-0 size-full object-cover"
               />
             </div>
@@ -236,11 +163,11 @@ export function HomeRefurbishedSections({
                 </div>
                 {/* Author Name */}
                 <div className="text-sm font-bold text-slate-900">
-                  Sarah Jenkins <span className="text-xs font-normal text-slate-400 ml-1.5 italic">✓ Verified Buyer</span>
+                  Sarah Jenkins <span className="text-xs font-normal text-slate-400 ml-1.5 italic">✓ {t("verifiedBuyer")}</span>
                 </div>
                 {/* Review Text */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium mt-3">
-                  "These are sooo pretty and very comfy. Perfect color as well. I love using this setup with my new corporate client laptop. Wicked cute... 😍"
+                  {t("review1")}
                 </p>
               </div>
 
@@ -271,7 +198,7 @@ export function HomeRefurbishedSections({
             <div className="w-full sm:w-[42%] shrink-0 relative min-h-[220px] sm:min-h-auto">
               <img
                 src="/developer_setup.png"
-                alt="Developer Workstation Review"
+                alt={t("reviewAlt2")}
                 className="absolute inset-0 size-full object-cover"
               />
             </div>
@@ -285,11 +212,11 @@ export function HomeRefurbishedSections({
                 </div>
                 {/* Author Name */}
                 <div className="text-sm font-bold text-slate-900">
-                  David Miller <span className="text-xs font-normal text-slate-400 ml-1.5 italic">✓ Verified Buyer</span>
+                  David Miller <span className="text-xs font-normal text-slate-400 ml-1.5 italic">✓ {t("verifiedBuyer")}</span>
                 </div>
                 {/* Review Text */}
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium mt-3">
-                  "A perfect product, it keeps the workstation performing beautifully without any heating. Sourced Latitude laptops for our coding team. Couldn't be happier with the purchase!"
+                  {t("review2")}
                 </p>
               </div>
 
@@ -321,27 +248,27 @@ export function HomeRefurbishedSections({
         >
           <div className="relative z-10 max-w-2xl mx-auto space-y-4">
             <span className="rounded-full bg-white/20 px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-white border border-white/30">
-              STAY INSPIRED
+              {t("newsletterEyebrow")}
             </span>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-              Get Early Access to Inventory Drops
+              {t("newsletterTitle")}
             </h2>
             <p className="text-xs sm:text-sm text-emerald-100 font-medium leading-relaxed">
-              Corporate fleet refreshes move fast. Subscribe to receive matching lot releases before they hit the catalog.
+              {t("newsletterSubtitle")}
             </p>
 
             <form action="/refurbished" className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto pt-4">
               <input
                 type="email"
                 required
-                placeholder="Enter work email..."
+                placeholder={t("emailPlaceholder")}
                 className="flex-1 rounded-full border border-white/30 bg-white/10 px-5 py-3.5 text-xs text-white placeholder:text-white/60 outline-none backdrop-blur-md focus:border-white"
               />
               <button
                 type="submit"
                 className="rounded-full bg-white px-7 py-3.5 text-xs font-bold text-slate-900 shadow-xl hover:bg-slate-100 transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
-                Subscribe
+                {t("subscribe")}
               </button>
             </form>
           </div>

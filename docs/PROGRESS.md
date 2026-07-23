@@ -130,6 +130,27 @@ Last updated: 2026-07-22
 > Remaining to reach 90+ perf on the two 89s: ~100KB unused JS
 > (motion/next-intl chunks) — bundle surgery, diminishing returns.
 
+> **2026-07-23 — i18n translation completeness pass.** Second i18n pass:
+> drove the static-string audit from a 1,245-string baseline (custom scanner,
+> `scripts/i18n-audit.mjs`) to 0 real hardcoded strings (4 remaining are brand
+> names + a TS type — legit). Every visible UI string on public routes now
+> switches en↔de. New message namespaces (`messages/{en,de}.json`, 577 keys,
+> exact parity): `store` (condition/stock/sort/filters/search/product/cart/
+> checkout/wishlist/pagination/detail/home/deals/pages), `disposal` (all
+> subpage chrome + itad homepage sections: compliance/services/industries/
+> testimonials/process/hero + contactForm with localized zod messages),
+> `account` (full customer panel incl. order statuses), `errors` (404), and an
+> expanded shared `common`. `lib/format.ts` stock/condition helpers now expose
+> tone/count/enum-key so callers translate (no English baked in); `lib/store/
+> sort.ts` carries message keys. Locale-aware order dates via `getLocale()`.
+> Deleted 11 dead components found during the sweep (7 legacy `disposal-*`, 4
+> unused `itad/*`). Verified live against a production build: German renders on
+> cart/shop/disposal-faqs/disposal-home, English control unaffected, build
+> clean. **Still English (deferred, by design):** DB content (products,
+> services, FAQs, testimonials, categories — needs translation tables), the
+> admin panel (`app/(backend)`, intentionally English), and transactional
+> emails.
+>
 > **2026-07-23 — i18n (en/de) via next-intl.** Public routes moved to
 > `app/(site)/[locale]/…`; admin/auth moved to `app/(backend)/…` — two root
 > layouts via route groups (public gets `<html lang={locale}>` + intl

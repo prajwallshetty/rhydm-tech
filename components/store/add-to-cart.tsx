@@ -2,6 +2,7 @@
 
 import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { useToast } from "@/components/ui/toast";
 import { useStore } from "@/lib/store/cart";
@@ -30,6 +31,7 @@ export function AddToCart({
   const wishlisted = useStore((s) => s.wishlist.includes(slug));
   const recordView = useStore((s) => s.recordView);
   const push = useToast((s) => s.push);
+  const t = useTranslations("store.product");
 
   // Recording the view here rather than on the server keeps the product page
   // statically renderable.
@@ -48,7 +50,7 @@ export function AddToCart({
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             disabled={quantity <= 1 || outOfStock}
-            aria-label="Decrease quantity"
+            aria-label={t("decreaseQty")}
             className="grid size-11 place-items-center rounded-l-xl transition-colors hover:bg-accent disabled:opacity-40"
           >
             <Minus className="size-4" />
@@ -63,7 +65,7 @@ export function AddToCart({
             type="button"
             onClick={() => setQuantity((q) => Math.min(max, q + 1))}
             disabled={quantity >= max || outOfStock}
-            aria-label="Increase quantity"
+            aria-label={t("increaseQty")}
             className="grid size-11 place-items-center rounded-r-xl transition-colors hover:bg-accent disabled:opacity-40"
           >
             <Plus className="size-4" />
@@ -80,15 +82,15 @@ export function AddToCart({
             });
             push(
               quantity > 1
-                ? `Added ${quantity} × ${name} to cart`
-                : `Added ${name} to cart`,
+                ? t("addedCartQty", { count: quantity, name })
+                : t("addedCart", { name }),
             );
           }}
           disabled={outOfStock}
           className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-8"
         >
           <ShoppingCart className="size-4" strokeWidth={1.8} />
-          {outOfStock ? "Out of stock" : "Add to cart"}
+          {outOfStock ? t("outOfStock") : t("addToCart")}
         </button>
 
         <button
@@ -96,11 +98,17 @@ export function AddToCart({
           onClick={() => {
             toggleWishlist(slug);
             push(
-              wishlisted ? `Removed ${name} from wishlist` : `Saved ${name}`,
+              wishlisted
+                ? t("removedWishlist", { name })
+                : t("savedWishlist", { name }),
               "heart",
             );
           }}
-          aria-label={wishlisted ? "Remove from wishlist" : "Save to wishlist"}
+          aria-label={
+            wishlisted
+              ? t("removeWishlist", { name })
+              : t("saveWishlist", { name })
+          }
           aria-pressed={wishlisted}
           className="grid size-11 place-items-center rounded-xl border border-border transition-colors hover:bg-accent"
         >
@@ -113,7 +121,7 @@ export function AddToCart({
 
       {stock > 0 && stock <= 5 && (
         <p className="text-sm text-amber-600 dark:text-amber-500">
-          Only {stock} left in stock — order soon.
+          {t("onlyLeft", { count: stock })}
         </p>
       )}
     </div>

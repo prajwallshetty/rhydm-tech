@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { motion } from "motion/react";
+import { useTranslations } from "next-intl";
 import {
   Building2,
   Landmark,
@@ -76,6 +77,7 @@ const DEFAULT_META = {
 };
 
 export function ItadIndustries({ industries }: { industries: IndustryItem[] }) {
+  const t = useTranslations("disposal.industriesSec");
   return (
     <section
       className="relative overflow-hidden bg-white py-24 sm:py-32 border-y border-slate-200/60"
@@ -85,7 +87,7 @@ export function ItadIndustries({ industries }: { industries: IndustryItem[] }) {
         <div className="mx-auto max-w-3xl text-center">
           <BlurReveal>
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-              TARGETED COMPLIANCE
+              {t("eyebrow")}
             </p>
           </BlurReveal>
 
@@ -94,7 +96,7 @@ export function ItadIndustries({ industries }: { industries: IndustryItem[] }) {
               id="itad-industries-heading"
               className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
             >
-              Built for the Strict Demands of Regulated Sectors
+              {t("title")}
             </h2>
           </BlurReveal>
 
@@ -160,7 +162,7 @@ export function ItadIndustries({ industries }: { industries: IndustryItem[] }) {
                       href="/disposal/contact"
                       className="inline-flex min-h-11 items-center gap-1 py-2 -my-2 text-xs font-bold text-[#16A34A] transition-colors group-hover:text-[#15803D]"
                     >
-                      <span>Sector Solutions</span>
+                      <span>{t("badge")}</span>
                       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </div>

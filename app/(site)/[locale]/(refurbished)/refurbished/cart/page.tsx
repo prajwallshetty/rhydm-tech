@@ -3,12 +3,13 @@
 import { Link } from "@/i18n/navigation";
 import { Heart, Loader2, Minus, Plus, ShoppingBag, Tag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { getCartProducts, type CartProduct } from "@/app/(site)/[locale]/(refurbished)/refurbished/cart/actions";
 import { ProductThumb } from "@/components/store/product-thumb";
 import { ButtonLink } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { conditionShort, formatPriceExact } from "@/lib/format";
+import { formatPriceExact } from "@/lib/format";
 import { useStore } from "@/lib/store/cart";
 import {
   amountToFreeShipping,
@@ -22,6 +23,9 @@ export default function CartPage() {
   const removeFromCart = useStore((s) => s.removeFromCart);
   const toggleWishlist = useStore((s) => s.toggleWishlist);
   const push = useToast((s) => s.push);
+  const t = useTranslations("store.cart");
+  const tp = useTranslations("store.product");
+  const tc = useTranslations("store.conditionShort");
 
   const [products, setProducts] = useState<CartProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,14 +81,13 @@ export default function CartPage() {
             <ShoppingBag className="size-6" strokeWidth={1.6} />
           </span>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">
-            Your cart is empty
+            {t("emptyTitle")}
           </h1>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            Browse tested, warranty-backed business hardware and add something
-            to get started.
+            {t("emptyBody")}
           </p>
           <ButtonLink href="/refurbished/shop" size="lg" className="mt-8">
-            Start shopping
+            {t("startShopping")}
           </ButtonLink>
         </div>
       </div>
@@ -94,10 +97,10 @@ export default function CartPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 sm:py-16">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Your cart
+        {t("title")}
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {lines.length} {lines.length === 1 ? "item" : "items"}
+        {t("itemCount", { count: lines.length })}
       </p>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]">
@@ -105,11 +108,12 @@ export default function CartPage() {
         <div className="space-y-4">
           {remaining > 0 && (
             <div className="rounded-xl border border-brand/25 bg-brand-muted px-5 py-4 text-sm">
-              Add{" "}
-              <span className="font-semibold text-brand">
-                {formatPriceExact(remaining)}
-              </span>{" "}
-              more to qualify for free shipping.
+              {t.rich("freeShippingRemaining", {
+                amount: formatPriceExact(remaining),
+                strong: (chunks) => (
+                  <span className="font-semibold text-brand">{chunks}</span>
+                ),
+              })}
             </div>
           )}
 
@@ -145,8 +149,8 @@ export default function CartPage() {
                       </Link>
                     </h2>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {conditionShort(line.product.condition)} ·{" "}
-                      {line.product.warrantyMonths}-mo warranty
+                      {tc(line.product.condition)} ·{" "}
+                      {tp("warrantyBadge", { count: line.product.warrantyMonths })}
                     </p>
                   </div>
 
@@ -160,7 +164,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       onClick={() => setQuantity(line.slug, line.quantity - 1)}
-                      aria-label={`Decrease quantity of ${line.product.name}`}
+                      aria-label={t("decreaseOf", { name: line.product.name })}
                       className="grid size-9 place-items-center rounded-l-lg transition-colors hover:bg-accent"
                     >
                       <Minus className="size-3.5" />
@@ -172,7 +176,7 @@ export default function CartPage() {
                       type="button"
                       onClick={() => setQuantity(line.slug, line.quantity + 1)}
                       disabled={line.quantity >= line.product.stock}
-                      aria-label={`Increase quantity of ${line.product.name}`}
+                      aria-label={t("increaseOf", { name: line.product.name })}
                       className="grid size-9 place-items-center rounded-r-lg transition-colors hover:bg-accent disabled:opacity-40"
                     >
                       <Plus className="size-3.5" />
@@ -184,24 +188,24 @@ export default function CartPage() {
                     onClick={() => {
                       toggleWishlist(line.slug);
                       removeFromCart(line.slug);
-                      push(`Moved ${line.product.name} to wishlist`, "heart");
+                      push(t("movedToWishlist", { name: line.product.name }), "heart");
                     }}
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <Heart className="size-3.5" />
-                    Move to wishlist
+                    {t("moveToWishlist")}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => {
                       removeFromCart(line.slug);
-                      push(`Removed ${line.product.name}`);
+                      push(t("removed", { name: line.product.name }));
                     }}
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-destructive"
                   >
                     <Trash2 className="size-3.5" />
-                    Remove
+                    {t("remove")}
                   </button>
                 </div>
               </div>
@@ -209,32 +213,32 @@ export default function CartPage() {
           ))}
 
           <ButtonLink href="/refurbished/shop" variant="outline">
-            Continue shopping
+            {t("continueShopping")}
           </ButtonLink>
         </div>
 
         {/* Summary */}
         <aside className="lg:sticky lg:top-24 lg:h-fit">
           <div className="rounded-2xl border border-border/80 bg-card p-6">
-            <h2 className="text-lg font-medium">Order summary</h2>
+            <h2 className="text-lg font-medium">{t("summary")}</h2>
 
             <div className="mt-5 space-y-3 text-sm">
-              <Row label="Subtotal" value={formatPriceExact(totals.subtotalCents)} />
+              <Row label={t("subtotal")} value={formatPriceExact(totals.subtotalCents)} />
               <Row
-                label="Shipping"
+                label={t("shipping")}
                 value={
                   totals.shippingCents === 0
-                    ? "Free"
+                    ? t("free")
                     : formatPriceExact(totals.shippingCents)
                 }
               />
               <Row
-                label="Estimated tax"
+                label={t("tax")}
                 value={formatPriceExact(totals.taxCents)}
               />
               <div className="border-t border-border pt-3">
                 <Row
-                  label="Total"
+                  label={t("total")}
                   value={formatPriceExact(totals.totalCents)}
                   emphasis
                 />
@@ -246,15 +250,11 @@ export default function CartPage() {
               className="mt-6"
               onSubmit={(event) => {
                 event.preventDefault();
-                setCouponMessage(
-                  coupon.trim()
-                    ? "Coupon codes are not active yet — coming with payment integration."
-                    : null,
-                );
+                setCouponMessage(coupon.trim() ? t("couponSoon") : null);
               }}
             >
               <label htmlFor="coupon" className="text-sm font-medium">
-                Coupon code
+                {t("coupon")}
               </label>
               <div className="mt-2 flex gap-2">
                 <div className="relative flex-1">
@@ -266,7 +266,7 @@ export default function CartPage() {
                     id="coupon"
                     value={coupon}
                     onChange={(e) => setCoupon(e.target.value)}
-                    placeholder="Enter code"
+                    placeholder={t("couponPlaceholder")}
                     className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus-visible:border-brand"
                   />
                 </div>
@@ -274,7 +274,7 @@ export default function CartPage() {
                   type="submit"
                   className="h-10 rounded-lg border border-border px-4 text-sm font-medium transition-colors hover:bg-accent"
                 >
-                  Apply
+                  {t("apply")}
                 </button>
               </div>
               {couponMessage && (
@@ -289,12 +289,13 @@ export default function CartPage() {
               size="lg"
               className="mt-6 w-full"
             >
-              Proceed to checkout
+              {t("checkout")}
             </ButtonLink>
 
             <p className="mt-3 text-center text-xs text-muted-foreground">
-              Free shipping on orders over{" "}
-              {formatPriceExact(FREE_SHIPPING_THRESHOLD_CENTS)}
+              {t("freeOver", {
+                amount: formatPriceExact(FREE_SHIPPING_THRESHOLD_CENTS),
+              })}
             </p>
           </div>
         </aside>

@@ -3,12 +3,13 @@
 import { Link } from "@/i18n/navigation";
 import { Heart, Loader2, Share2, ShoppingCart, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { getCartProducts, type CartProduct } from "@/app/(site)/[locale]/(refurbished)/refurbished/cart/actions";
 import { ProductThumb } from "@/components/store/product-thumb";
 import { ButtonLink } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { conditionShort, formatPrice } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import { useStore } from "@/lib/store/cart";
 
 export default function WishlistPage() {
@@ -16,6 +17,9 @@ export default function WishlistPage() {
   const removeFromWishlist = useStore((s) => s.removeFromWishlist);
   const moveToCart = useStore((s) => s.moveToCart);
   const push = useToast((s) => s.push);
+  const t = useTranslations("store.wishlist");
+  const tp = useTranslations("store.product");
+  const tc = useTranslations("store.conditionShort");
 
   const [products, setProducts] = useState<CartProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,14 +42,14 @@ export default function WishlistPage() {
     // The Web Share API is unavailable on most desktop browsers.
     if (navigator.share) {
       try {
-        await navigator.share({ title: "My wishlist", url });
+        await navigator.share({ title: t("title"), url });
         return;
       } catch {
         // User dismissed the share sheet — fall through to clipboard.
       }
     }
     await navigator.clipboard.writeText(url);
-    push("Wishlist link copied to clipboard");
+    push(t("shared"));
   }
 
   if (loading) {
@@ -61,10 +65,10 @@ export default function WishlistPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Wishlist
+            {t("title")}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {products.length} saved {products.length === 1 ? "item" : "items"}
+            {t("savedCount", { count: products.length })}
           </p>
         </div>
 
@@ -75,7 +79,7 @@ export default function WishlistPage() {
             className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
           >
             <Share2 className="size-4" />
-            Share wishlist
+            {t("share")}
           </button>
         )}
       </div>
@@ -85,12 +89,12 @@ export default function WishlistPage() {
           <span className="mx-auto grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
             <Heart className="size-6" strokeWidth={1.6} />
           </span>
-          <h2 className="mt-6 text-xl font-medium">Your wishlist is empty</h2>
+          <h2 className="mt-6 text-xl font-medium">{t("emptyTitle")}</h2>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            Tap the heart on any product to save it here for later.
+            {t("emptyBody")}
           </p>
           <ButtonLink href="/refurbished/shop" size="lg" className="mt-8">
-            Browse products
+            {t("browse")}
           </ButtonLink>
         </div>
       ) : (
@@ -125,8 +129,8 @@ export default function WishlistPage() {
                   </Link>
                 </h2>
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  {conditionShort(product.condition)} · {product.warrantyMonths}-mo
-                  warranty
+                  {tc(product.condition)} ·{" "}
+                  {tp("warrantyBadge", { count: product.warrantyMonths })}
                 </p>
 
                 <p className="mt-4 text-lg font-semibold">
@@ -138,21 +142,21 @@ export default function WishlistPage() {
                     type="button"
                     onClick={() => {
                       moveToCart(product.slug);
-                      push(`Moved ${product.name} to cart`);
+                      push(t("movedToCart", { name: product.name }));
                     }}
                     disabled={product.stock <= 0}
                     className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-3 py-2.5 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
                   >
                     <ShoppingCart className="size-4" strokeWidth={1.8} />
-                    Move to cart
+                    {t("moveToCart")}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       removeFromWishlist(product.slug);
-                      push(`Removed ${product.name} from wishlist`);
+                      push(t("removedToast", { name: product.name }));
                     }}
-                    aria-label={`Remove ${product.name} from wishlist`}
+                    aria-label={t("removeAria", { name: product.name })}
                     className="grid size-10 place-items-center rounded-xl border border-border transition-colors hover:text-destructive"
                   >
                     <Trash2 className="size-4" />

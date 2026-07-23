@@ -85,7 +85,7 @@ export function FloatingNav() {
             <button
               onClick={() => setSearchOpen(!searchOpen)}
               className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all cursor-pointer"
-              aria-label="Search"
+              aria-label={t("search")}
             >
               <Search className="h-4 w-4" />
             </button>
@@ -94,7 +94,7 @@ export function FloatingNav() {
             <Link
               href="/refurbished/wishlist"
               className="relative flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
-              aria-label="Wishlist"
+              aria-label={t("wishlist")}
             >
               <Heart className="h-4 w-4" />
               {wishlist.length > 0 && (
@@ -108,7 +108,7 @@ export function FloatingNav() {
             <Link
               href="/refurbished/cart"
               className="relative flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
-              aria-label="Cart"
+              aria-label={t("cart")}
             >
               <ShoppingBag className="h-4 w-4" />
               {cartCount(cart) > 0 && (
@@ -125,7 +125,7 @@ export function FloatingNav() {
             <Link
               href="/refurbished/account"
               className="hidden sm:flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
-              aria-label="Account"
+              aria-label={t("account")}
             >
               <User className="h-4 w-4" />
             </Link>
@@ -136,7 +136,7 @@ export function FloatingNav() {
               style={{ backgroundColor: "#2E6F40" }}
               className="hidden sm:flex items-center gap-1 rounded-full text-white px-4 py-2 text-xs font-semibold shadow-md shadow-[#2E6F40]/20 transition-all hover:brightness-110 hover:scale-105 active:scale-95"
             >
-              <span>Dispose Assets</span>
+              <span>{t("disposeAssets")}</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
 
@@ -146,7 +146,7 @@ export function FloatingNav() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={mobileMenuOpen ? t("closeMenu") : t("openMenu")}
               className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-border/70 text-foreground lg:hidden"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -196,7 +196,7 @@ export function FloatingNav() {
                   style={{ backgroundColor: "#2E6F40" }}
                   className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md"
                 >
-                  <span>Dispose IT Assets</span>
+                  <span>{t("disposeAssets")}</span>
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>

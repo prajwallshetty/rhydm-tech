@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import { Icon } from "@/components/icon";
@@ -27,7 +27,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(locale);
   const service = await getServiceBySlug(slug);
 
-  if (!service) return { title: "Service not found" };
+  if (!service) {
+    const t = await getTranslations({ locale, namespace: "disposal.serviceDetail" });
+    return { title: t("notFound") };
+  }
 
   return {
     title: service.title,
@@ -42,7 +45,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ServiceDetailPage({ params }: Props) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
 
   const [service, allServices] = await Promise.all([
     getServiceBySlug(slug),
@@ -51,17 +55,19 @@ export default async function ServiceDetailPage({ params }: Props) {
 
   if (!service) notFound();
 
+  const t = await getTranslations("disposal.serviceDetail");
+  const tc = await getTranslations("disposal");
   const related = allServices.filter((s) => s.slug !== service.slug).slice(0, 3);
 
   return (
     <>
       <PageHeader
-        eyebrow="Service"
+        eyebrow={t("eyebrow")}
         title={service.title}
         description={service.summary}
         breadcrumbs={[
-          { label: "Disposal", href: "/disposal" },
-          { label: "Services", href: "/disposal/services" },
+          { label: tc("crumb"), href: "/disposal" },
+          { label: t("crumbServices"), href: "/disposal/services" },
           { label: service.title },
         ]}
       />
@@ -82,29 +88,22 @@ export default async function ServiceDetailPage({ params }: Props) {
                 ) : (
                   <>
                     <p>{service.summary}</p>
-                    <p>
-                      Every engagement produces a serial-level audit record, so
-                      you can demonstrate exactly what happened to each asset —
-                      not just that a process was followed.
-                    </p>
-                    <p>
-                      Detailed content for this service is managed in the
-                      Disposal CMS and will appear here once published.
-                    </p>
+                    <p>{t("auditLine")}</p>
+                    <p>{t("cmsNote")}</p>
                   </>
                 )}
               </div>
 
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <ButtonLink href="/disposal/contact" size="lg">
-                  Request Pickup
+                  {t("requestPickup")}
                 </ButtonLink>
                 <ButtonLink
                   href="/disposal/process"
                   variant="outline"
                   size="lg"
                 >
-                  See Our Process
+                  {t("seeProcess")}
                 </ButtonLink>
               </div>
             </div>
@@ -113,7 +112,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           <FadeIn delay={0.1}>
             <aside className="rounded-2xl border border-border/80 bg-card p-7">
               <h2 className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                Other services
+                {t("otherServices")}
               </h2>
               <ul className="mt-5 space-y-4">
                 {related.map((item) => (

@@ -1,29 +1,15 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import {
-  Award,
-  PackageCheck,
-  RotateCcw,
-  ShieldCheck,
-  Truck,
-} from "lucide-react";
+import { PackageCheck } from "lucide-react";
 
-import { AddToCart } from "@/components/store/add-to-cart";
-import { ProductGallery } from "@/components/store/product-gallery";
 import { ProductGrid } from "@/components/store/product-grid";
 import { RatingStars } from "@/components/store/rating-stars";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { FadeIn } from "@/components/motion/fade-in";
 import { SITE_URL } from "@/lib/business";
-import {
-  conditionLabel,
-  discountPercent,
-  formatPrice,
-  stockLabel,
-} from "@/lib/format";
 import {
   getProductBySlug,
   getProductSlugs,
@@ -45,7 +31,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(locale);
   const product = await getProductBySlug(slug);
 
-  if (!product) return { title: "Product not found" };
+  if (!product) {
+    const t = await getTranslations({ locale, namespace: "store.detail" });
+    return { title: t("notFound") };
+  }
 
   return {
     title: product.name,
@@ -61,18 +50,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductDetailPage({ params }: Props) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
   const product = await getProductBySlug(slug);
 
   if (!product) notFound();
 
+  const t = await getTranslations("store.detail");
+  const tcond = await getTranslations("store.condition");
+
   const productWithVariants = await getProductWithVariants(slug);
   const related = await getRelatedProducts(product.categoryId, product.id);
 
-  // Group specs by their `group` label for the specification table.
+  // Group specs by their `group` label for the specification table. Specs with
+  // no group fall under a localized "General" bucket.
   const specGroups = product.specs.reduce<Record<string, typeof product.specs>>(
     (groups, spec) => {
-      const key = spec.group ?? "General";
+      const key = spec.group ?? t("specGroupGeneral");
       (groups[key] ??= []).push(spec);
       return groups;
     },
@@ -119,8 +113,8 @@ export default async function ProductDetailPage({ params }: Props) {
       <div className="mx-auto max-w-7xl px-6 pt-8">
         <Breadcrumbs
           items={[
-            { label: "Store", href: "/refurbished" },
-            { label: "Shop", href: "/refurbished/shop" },
+            { label: t("crumbStore"), href: "/refurbished" },
+            { label: t("crumbShop"), href: "/refurbished/shop" },
             {
               label: product.category.name,
               href: `/refurbished/categories/${product.category.slug}`,
@@ -131,7 +125,7 @@ export default async function ProductDetailPage({ params }: Props) {
       </div>
 
       {productWithVariants && (
-        <Suspense fallback={<div className="mx-auto max-w-7xl px-6 py-20 text-center text-slate-400">Loading configurator…</div>}>
+        <Suspense fallback={<div className="mx-auto max-w-7xl px-6 py-20 text-center text-slate-400">{t("loadingConfigurator")}</div>}>
           <VariantConfigurator
             product={productWithVariants}
             ratingAvg={product.ratingAvg}
@@ -151,10 +145,10 @@ export default async function ProductDetailPage({ params }: Props) {
         <div className="grid gap-12 lg:grid-cols-2">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Condition report
+              {t("conditionReport")}
             </h2>
             <p className="mt-2 text-sm font-medium text-brand">
-              {conditionLabel(product.condition)}
+              {tcond(product.condition)}
             </p>
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
               {product.conditionNotes}
@@ -162,14 +156,14 @@ export default async function ProductDetailPage({ params }: Props) {
 
             {product.description && (
               <>
-                <h3 className="mt-10 text-lg font-medium">About this unit</h3>
+                <h3 className="mt-10 text-lg font-medium">{t("aboutUnit")}</h3>
                 <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
                   {product.description}
                 </p>
               </>
             )}
 
-            <h3 className="mt-10 text-lg font-medium">What&rsquo;s included</h3>
+            <h3 className="mt-10 text-lg font-medium">{t("included")}</h3>
             <ul className="mt-3 space-y-2 text-[15px] text-muted-foreground">
               <li className="flex items-center gap-2.5">
                 <PackageCheck aria-hidden className="size-4 text-brand" />
@@ -177,15 +171,15 @@ export default async function ProductDetailPage({ params }: Props) {
               </li>
               <li className="flex items-center gap-2.5">
                 <PackageCheck aria-hidden className="size-4 text-brand" />
-                Compatible power adapter
+                {t("powerAdapter")}
               </li>
               <li className="flex items-center gap-2.5">
                 <PackageCheck aria-hidden className="size-4 text-brand" />
-                Data sanitisation certificate
+                {t("dataCertificate")}
               </li>
               <li className="flex items-center gap-2.5">
                 <PackageCheck aria-hidden className="size-4 text-brand" />
-                {product.warrantyMonths}-month warranty documentation
+                {t("warrantyDocs", { count: product.warrantyMonths })}
               </li>
             </ul>
           </div>
@@ -193,7 +187,7 @@ export default async function ProductDetailPage({ params }: Props) {
           {/* Specifications */}
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Specifications
+              {t("specifications")}
             </h2>
             <div className="mt-6 overflow-hidden rounded-2xl border border-border/80 bg-card">
               {Object.entries(specGroups).map(([group, specs]) => (
@@ -223,11 +217,9 @@ export default async function ProductDetailPage({ params }: Props) {
       {product.reviews.length > 0 && (
         <Section className="border-t border-border/70">
           <SectionHeading
-            eyebrow="Reviews"
-            title={`${product.ratingAvg.toFixed(1)} out of 5`}
-            description={`Based on ${product.ratingCount} verified customer ${
-              product.ratingCount === 1 ? "review" : "reviews"
-            }.`}
+            eyebrow={t("reviewsEyebrow")}
+            title={t("ratingOutOf", { avg: product.ratingAvg.toFixed(1) })}
+            description={t("reviewsBasedOn", { count: product.ratingCount })}
             align="left"
           />
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -247,7 +239,7 @@ export default async function ProductDetailPage({ params }: Props) {
                     </span>
                     {review.verified && (
                       <span className="rounded-full bg-brand-muted px-2 py-0.5 text-brand">
-                        Verified purchase
+                        {t("verifiedPurchase")}
                       </span>
                     )}
                   </footer>
@@ -262,8 +254,8 @@ export default async function ProductDetailPage({ params }: Props) {
       {related.length > 0 && (
         <Section className="border-t border-border/70 bg-muted/30">
           <SectionHeading
-            eyebrow="Related"
-            title={`More in ${product.category.name}`}
+            eyebrow={t("relatedEyebrow")}
+            title={t("moreIn", { category: product.category.name })}
             align="left"
           />
           <div className="mt-10">
@@ -272,25 +264,5 @@ export default async function ProductDetailPage({ params }: Props) {
         </Section>
       )}
     </>
-  );
-}
-
-function Assurance({
-  icon: Icon,
-  title,
-  detail,
-}: {
-  icon: React.ElementType;
-  title: string;
-  detail: string;
-}) {
-  return (
-    <div className="flex gap-3">
-      <Icon aria-hidden className="mt-0.5 size-5 shrink-0 text-brand" strokeWidth={1.6} />
-      <div>
-        <dt className="text-sm font-medium">{title}</dt>
-        <dd className="text-xs text-muted-foreground">{detail}</dd>
-      </div>
-    </div>
   );
 }
