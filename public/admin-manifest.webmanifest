@@ -1,0 +1,57 @@
+{
+  "name": "Renewed Admin",
+  "short_name": "Renewed",
+  "description": "Enterprise dashboard for managing refurbished electronics and IT asset disposal.",
+  "id": "/admin",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#16A34A",
+  "background_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "/icons/admin-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/admin-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/admin-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/admin",
+      "icons": [{ "src": "/icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Products",
+      "url": "/admin/products",
+      "icons": [{ "src": "/icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Orders",
+      "url": "/admin/orders",
+      "icons": [{ "src": "/icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Customers",
+      "url": "/admin/customers",
+      "icons": [{ "src": "/icons/admin-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics",
+      "url": "/admin/analytics",
+      "icons": [{ "src": "/icons/admin-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

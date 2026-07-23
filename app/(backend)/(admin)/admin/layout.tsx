@@ -1,7 +1,28 @@
+import type { Metadata, Viewport } from "next";
+
 import { getAdminSession } from "@/lib/auth/admin";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
+import { PwaProvider } from "@/components/admin/pwa-provider";
+
+// PWA identity is scoped to /admin — public pages don't reference the
+// manifest, so only the admin installs as "Renewed Admin".
+export const metadata: Metadata = {
+  manifest: "/admin-manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Renewed",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/icons/admin-192.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#16A34A",
+};
 
 export default async function AdminLayout({
   children,
@@ -12,7 +33,12 @@ export default async function AdminLayout({
 
   // If not logged in as admin (e.g. on /admin/login page), render raw children
   if (!adminUser) {
-    return <div className="min-h-screen bg-background text-foreground">{children}</div>;
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        {children}
+        <PwaProvider />
+      </div>
+    );
   }
 
   return (
@@ -27,6 +53,7 @@ export default async function AdminLayout({
           {children}
         </main>
       </div>
+      <PwaProvider />
     </div>
   );
 }

@@ -41,6 +41,38 @@ Last updated: 2026-07-22
 > were intentionally left in the tree for comparison — delete once the redesign
 > is signed off.
 
+> **2026-07-23 — Admin PWA.** /admin installs as "Renewed Admin"
+> (standalone, #16A34A, portrait): `public/admin-manifest.webmanifest`
+> (id/scope /admin, 192/512/maskable icons regenerated from the pre-resample
+> 1024px source recovered from git history, 5 shortcuts to real routes),
+> hand-written `public/sw.js` (no workbox), offline page, and
+> `PwaProvider` in the admin layout — SW registration, glass install banner
+> (beforeinstallprompt, dismissal persisted, hides on appinstalled/
+> standalone), and an update toast (waiting-worker detection → SKIP_WAITING
+> → reload on controllerchange). Manifest metadata lives on the admin
+> layout only, so public pages don't reference it.
+>
+> **Deliberate security posture:** authenticated admin HTML and data are
+> NEVER written to Cache Storage (the spec's "cache orders/customers
+> offline" conflicts with its own "never expose private API responses" —
+> security won, like Stripe's dashboard). Cache-first is limited to
+> immutable /_next/static, icons, fonts; admin navigations are network-only
+> with the offline page as fallback; non-GET and cross-origin are never
+> intercepted.
+>
+> Verified in real headless Chrome: SW registers + activates, precache +
+> runtime cache contain only static assets (zero admin HTML — checked), and
+> with the server killed an uncached /admin route serves the offline page.
+> (Gotcha for future tests: Puppeteer's setOfflineMode does NOT apply to
+> service-worker fetches — kill the server to test offline.) Manifest JSON
+> validated; linked on admin pages only.
+>
+> Deferred, stated: Background Sync action queue, Web Push (needs VAPID
+> keys + subscription storage), sidebar/filter state persistence, iOS
+> splash-screen image set (apple-touch-icon + appleWebApp meta are in).
+> Note: Lighthouse removed its PWA category in v12 — "PWA 100" is no longer
+> a thing that can be scored.
+
 > **2026-07-23 — Cloudinary media library.** Signed direct-to-Cloudinary
 > uploads: `lib/media/cloudinary.ts` (no SDK — SHA-1 signing verified against
 > Cloudinary's documented test vector), server actions sign → browser POSTs

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Offline — Renewed Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+    }
+    .card {
+      text-align: center;
+      max-width: 380px;
+      animation: fade 0.5s ease both;
+    }
+    .icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      margin: 0 auto 20px;
+      display: grid;
+      place-items: center;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    .icon svg { width: 34px; height: 34px; stroke: #16a34a; }
+    h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    p { margin-top: 10px; font-size: 14px; line-height: 1.6; color: #64748b; }
+    button {
+      margin-top: 24px;
+      padding: 12px 28px;
+      border: 0;
+      border-radius: 999px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: #15803d; }
+    @keyframes fade { from { opacity: 0; transform: translateY(10px); } }
+    @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">
+      <svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22M8.5 16.4a5 5 0 0 1 7 0M5 12.8a10 10 0 0 1 5.2-2.7M12 20h.01M19 12.8a9.96 9.96 0 0 0-3-2M1.4 8.6A15.9 15.9 0 0 1 8 5.2M22.6 8.6a16 16 0 0 0-6.4-3.3" />
+      </svg>
+    </div>
+    <h1>You're offline</h1>
+    <p>
+      Renewed Admin needs a connection for live data. For security, order and
+      customer data is never stored on this device — reconnect to continue.
+    </p>
+    <button onclick="location.reload()">Try again</button>
+  </div>
+</body>
+</html>
