@@ -14,6 +14,7 @@ export type CartProduct = {
   categorySlug: string;
   categoryName: string;
   brandName: string | null;
+  imageUrl: string | null;
 };
 
 /**
@@ -42,6 +43,7 @@ export async function getCartProducts(
     categorySlug: product.category.slug,
     categoryName: product.category.name,
     brandName: product.brand?.name ?? null,
+    imageUrl: product.images?.[0]?.url ?? null,
   }));
 }
 

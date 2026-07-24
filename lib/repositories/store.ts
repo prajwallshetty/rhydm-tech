@@ -27,6 +27,10 @@ const CARD_SELECT = {
   bestSeller: true,
   brand: { select: { name: true, slug: true } },
   category: { select: { name: true, slug: true } },
+  images: {
+    select: { url: true, alt: true },
+    orderBy: { position: "asc" },
+  },
 } satisfies Prisma.ProductSelect;
 
 export type ProductCardData = Prisma.ProductGetPayload<{

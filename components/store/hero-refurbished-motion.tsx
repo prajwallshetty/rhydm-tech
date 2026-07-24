@@ -101,16 +101,19 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
           className="lg:col-span-5 space-y-7 z-10"
         >
           {/* Sleek Glass Badge */}
-          <div
-            className="animate-reveal "
-            style={{ "--reveal-delay": "0.15s", "--reveal-blur": "0px" } as React.CSSProperties}          >
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#2E6F40]/10 border border-[#2E6F40]/20 px-3.5 py-1.5 backdrop-blur-md">
-              <span className="size-2 rounded-full bg-[#2E6F40] animate-pulse" />
-              <span className="text-[11px] font-bold tracking-widest text-[#2E6F40] uppercase">
-                {content.badge}
-              </span>
+          {content.badge && (
+            <div
+              className="animate-reveal "
+              style={{ "--reveal-delay": "0.15s", "--reveal-blur": "0px" } as React.CSSProperties}
+            >
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#2E6F40]/10 border border-[#2E6F40]/20 px-3.5 py-1.5 backdrop-blur-md">
+                <span className="size-2 rounded-full bg-[#2E6F40] animate-pulse" />
+                <span className="text-[11px] font-bold tracking-widest text-[#2E6F40] uppercase">
+                  {content.badge}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Premium Headline */}
           <div

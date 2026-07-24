@@ -49,6 +49,7 @@ export type SectionDef = {
   renderedOn: string;
   fields: FieldDef[];
   defaults: SectionContent;
+  localizedDefaults?: Record<string, SectionContent>;
 };
 
 export type SectionContent = Record<
@@ -163,6 +164,24 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Serial-Level Certificates" },
         { label: "120+ Countries" },
       ],
+    },
+    localizedDefaults: {
+      de: {
+        eyebrow: "Enterprise ITAD & Datenvernichtung",
+        headingMain: "Globale IT-Asset-Disposition.",
+        headingAccent: "Vereinfacht.",
+        description:
+          "Sicherer Abbau, Löschung, Aufarbeitung, Recycling, Bereitstellung und Rückgewinnung von IT-Systemen in über 120 Ländern mit vollständiger Audit-Bereitschaft.",
+        primaryLabel: "30-Minuten-Demo buchen",
+        primaryHref: "/disposal/contact",
+        secondaryLabel: "Ablauf ansehen",
+        secondaryHref: "#itad-process",
+        badges: [
+          { label: "NIST 800-88 Löschung" },
+          { label: "Seriennummern-Zertifikate" },
+          { label: "120+ Länder" },
+        ],
+      },
     },
   },
   {
@@ -304,7 +323,7 @@ export const SECTION_DEFS: SectionDef[] = [
       ...ctaFields,
     ],
     defaults: {
-      badge: "ENTERPRISE CERTIFIED REFURBISHED",
+      badge: "",
       headingMain: "Next-Gen Refurbished Tech.",
       headingAccent: "Built for Professionals.",
       description:
@@ -313,6 +332,19 @@ export const SECTION_DEFS: SectionDef[] = [
       primaryHref: "/refurbished/shop",
       secondaryLabel: "View Best Sellers",
       secondaryHref: "/refurbished/shop?sort=best-selling",
+    },
+    localizedDefaults: {
+      de: {
+        badge: "",
+        headingMain: "Refurbished Tech der nächsten Generation.",
+        headingAccent: "Für Profis gebaut.",
+        description:
+          "Professionell getestete Business-Laptops & Workstations. Komplett mit 12 Monaten Garantie & klimaneutraler Lieferung.",
+        primaryLabel: "Kollektion entdecken",
+        primaryHref: "/refurbished/shop",
+        secondaryLabel: "Bestseller ansehen",
+        secondaryHref: "/refurbished/shop?sort=best-selling",
+      },
     },
   },
   {

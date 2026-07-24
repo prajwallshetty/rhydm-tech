@@ -7,12 +7,16 @@ import { PrismaClient } from "@/lib/generated/prisma/client";
  * constructed with a driver adapter.
  */
 function createClient() {
-  const connectionString = process.env.DATABASE_URL;
+  let connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
     throw new Error(
       "DATABASE_URL is not set. Copy .env.example to .env and fill it in.",
     );
+  }
+
+  if (connectionString.includes("sslmode=require") && !connectionString.includes("uselibpqcompat=")) {
+    connectionString += (connectionString.includes("?") ? "&" : "?") + "uselibpqcompat=true";
   }
 
   return new PrismaClient({

@@ -4,6 +4,18 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { createAdminSession, clearAdminSession, hashPassword, requireAdmin } from "@/lib/auth/admin";
+
+function revalidateRefurbishedStorefront() {
+  revalidatePath("/[locale]/refurbished", "layout");
+  revalidatePath("/en/refurbished", "layout");
+  revalidatePath("/de/refurbished", "layout");
+}
+
+function revalidateDisposalStorefront() {
+  revalidatePath("/[locale]/disposal", "layout");
+  revalidatePath("/en/disposal", "layout");
+  revalidatePath("/de/disposal", "layout");
+}
 import {
   createAdminProduct,
   updateAdminProduct,
@@ -191,7 +203,7 @@ export async function saveProductAction(formData: FormData) {
   }
 
   revalidatePath("/admin/products");
-  revalidatePath("/refurbished", "layout");
+  revalidateRefurbishedStorefront();
   redirect("/admin/products");
 }
 
@@ -237,7 +249,7 @@ export async function saveCategoryAction(formData: FormData) {
   }
 
   revalidatePath("/admin/categories");
-  revalidatePath("/refurbished", "layout");
+  revalidateRefurbishedStorefront();
   redirect("/admin/categories");
 }
 
@@ -245,7 +257,7 @@ export async function deleteCategoryAction(id: string) {
   await requireAdmin();
   await deleteAdminCategory(id);
   revalidatePath("/admin/categories");
-  revalidatePath("/refurbished", "layout");
+  revalidateRefurbishedStorefront();
 }
 
 // ===========================================================================
@@ -266,7 +278,7 @@ export async function saveBrandAction(formData: FormData) {
   }
 
   revalidatePath("/admin/brands");
-  revalidatePath("/refurbished", "layout");
+  revalidateRefurbishedStorefront();
   redirect("/admin/brands");
 }
 
@@ -274,7 +286,7 @@ export async function deleteBrandAction(id: string) {
   await requireAdmin();
   await deleteAdminBrand(id);
   revalidatePath("/admin/brands");
-  revalidatePath("/refurbished", "layout");
+  revalidateRefurbishedStorefront();
 }
 
 // ===========================================================================
@@ -336,7 +348,7 @@ export async function saveDisposalHeroAction(formData: FormData) {
 
   await updateDisposalHero({ eyebrow, heading, subheading });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function saveDisposalServiceAction(formData: FormData) {
@@ -349,14 +361,14 @@ export async function saveDisposalServiceAction(formData: FormData) {
 
   await upsertDisposalService({ id, title, slug, summary, icon });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function deleteDisposalServiceAction(id: string) {
   await requireAdmin();
   await deleteDisposalService(id);
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function saveProcessStepAction(formData: FormData) {
@@ -368,14 +380,14 @@ export async function saveProcessStepAction(formData: FormData) {
 
   await upsertProcessStep({ id, step, title, description });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function deleteProcessStepAction(id: string) {
   await requireAdmin();
   await deleteProcessStep(id);
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function saveIndustryAction(formData: FormData) {
@@ -387,14 +399,14 @@ export async function saveIndustryAction(formData: FormData) {
 
   await upsertIndustry({ id, name, slug, description });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function deleteIndustryAction(id: string) {
   await requireAdmin();
   await deleteIndustry(id);
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function saveCertificationAction(formData: FormData) {
@@ -406,14 +418,14 @@ export async function saveCertificationAction(formData: FormData) {
 
   await upsertCertification({ id, name, issuer, description });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function deleteCertificationAction(id: string) {
   await requireAdmin();
   await deleteCertification(id);
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 
@@ -426,21 +438,21 @@ export async function saveFaqAction(formData: FormData) {
 
   await upsertFaq({ id, question, answer, category });
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function deleteFaqAction(id: string) {
   await requireAdmin();
   await deleteFaq(id);
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 export async function updateSubmissionStatusAction(id: string, status: SubmissionStatus) {
   await requireAdmin();
   await updateContactSubmissionStatus(id, status);
   revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
+  revalidateDisposalStorefront();
 }
 
 // ===========================================================================
@@ -954,7 +966,11 @@ export async function getStockHistoryAction(productId: string) {
 function revalidateTestimonials(division: Division) {
   revalidatePath("/admin/testimonials");
   // Testimonials are division-scoped, so only that site needs refreshing.
-  revalidatePath(division === Division.DISPOSAL ? "/disposal" : "/refurbished", "layout");
+  if (division === Division.DISPOSAL) {
+    revalidateDisposalStorefront();
+  } else {
+    revalidateRefurbishedStorefront();
+  }
 }
 
 export async function saveTestimonialCmsAction(formData: FormData) {

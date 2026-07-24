@@ -70,22 +70,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Gateway division redirect: a returning visitor goes straight to their
-  // division, keeping whichever locale the URL (or cookie/detection) carries.
-  if (pathNoLocale === "/" && !searchParams.has(SWITCH_PARAM)) {
-    const preference = request.cookies.get(DIVISION_COOKIE)?.value;
-    if (isDivision(preference)) {
-      const localeMatch = pathname.match(LOCALE_PATTERN);
-      const locale =
-        localeMatch?.[1] ??
-        request.cookies.get("NEXT_LOCALE")?.value ??
-        routing.defaultLocale;
-      const url = request.nextUrl.clone();
-      url.pathname = `/${locale}/${preference}`;
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
-  }
+
 
   // Locale detection, "/" → "/en" redirect, NEXT_LOCALE cookie persistence.
   return intlMiddleware(request);

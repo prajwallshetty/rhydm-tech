@@ -170,6 +170,7 @@ export default function CartPage() {
                   slug={line.slug}
                   category={line.product.categorySlug}
                   name={line.product.name}
+                  imageUrl={line.product.imageUrl}
                   className="size-24 sm:size-28"
                 />
               </Link>

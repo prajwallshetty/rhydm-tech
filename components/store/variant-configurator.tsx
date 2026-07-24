@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 interface VariantConfiguratorProps {
   product: ProductWithVariantsDTO;
+  baseImages?: string[];
   ratingAvg?: number;
   ratingCount?: number;
   brandName?: string;
@@ -28,6 +29,7 @@ interface VariantConfiguratorProps {
 
 export function VariantConfigurator({
   product,
+  baseImages = [],
   ratingAvg = 0,
   ratingCount = 0,
   brandName,
@@ -125,7 +127,9 @@ export function VariantConfigurator({
   const galleryImages =
     activeVariant && activeVariant.images.length > 0
       ? activeVariant.images.map((img) => img.url)
-      : undefined;
+      : baseImages.length > 0
+        ? baseImages
+        : undefined;
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">

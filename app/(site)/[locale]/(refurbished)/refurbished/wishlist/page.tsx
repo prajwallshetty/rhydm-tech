@@ -112,6 +112,7 @@ export default function WishlistPage() {
                   slug={product.slug}
                   category={product.categorySlug}
                   name={product.name}
+                  imageUrl={product.imageUrl}
                   className="absolute inset-4"
                 />
               </Link>
