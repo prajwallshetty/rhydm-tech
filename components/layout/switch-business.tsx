@@ -17,7 +17,7 @@ export function SwitchBusiness({ className }: { className?: string }) {
   const t = useTranslations("common");
   return (
     <Link
-      href={`/?${SWITCH_PARAM}=1`}
+      href="/"
       className={cn(
         "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
         className,

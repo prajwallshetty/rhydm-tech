@@ -95,6 +95,7 @@ export function ProductThumb({
   slug,
   category,
   name,
+  imageUrl,
   className,
   /** Subtle shift used for the card's hover ("second angle") image. */
   variant = "primary",
@@ -102,9 +103,20 @@ export function ProductThumb({
   slug: string;
   category: string;
   name: string;
+  imageUrl?: string | null;
   className?: string;
   variant?: "primary" | "hover";
 }) {
+  if (imageUrl) {
+    return (
+      <img
+        src={imageUrl}
+        alt={name}
+        className={cn("h-full w-full object-contain", className)}
+      />
+    );
+  }
+
   const [hueA, hueB] = PALETTES[category] ?? PALETTES.laptops;
   const drift = hashSlug(slug) % 24;
   const shift = variant === "hover" ? 18 : 0;

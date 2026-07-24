@@ -58,6 +58,11 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return; // never intercept mutations
 
   const url = new URL(request.url);
+  
+  // Bypass caching on localhost during development to prevent stale Turbopack chunk crashes.
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return;
+  }
   if (url.origin !== self.location.origin) return; // never cache third parties
 
   // Immutable build assets + icons: cache-first (hashed filenames).

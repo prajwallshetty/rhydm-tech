@@ -20,8 +20,16 @@ import {
 } from "./catalog";
 
 // Prisma 7 requires an explicit driver adapter.
+const connectionString = (() => {
+  let url = process.env.DATABASE_URL;
+  if (url && url.includes("sslmode=require") && !url.includes("uselibpqcompat=")) {
+    url += (url.includes("?") ? "&" : "?") + "uselibpqcompat=true";
+  }
+  return url;
+})();
+
 const db = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  adapter: new PrismaPg({ connectionString }),
 });
 
 function slugify(value: string) {
@@ -201,6 +209,41 @@ async function main() {
     if (!existing) {
       await db.testimonial.create({
         data: { ...testimonial, division: Division.DISPOSAL, position: index },
+      });
+    }
+  }
+
+  const refurbishedTestimonials = [
+    {
+      quote: "These are sooo pretty and very comfy. Perfect colour as well. I love using this setup with my new corporate client laptop. Wicked cute… 😍",
+      author: "Sarah Jenkins",
+      role: "Verified Buyer",
+      company: "Apple MacBook Pro 14 M3 - €1,499.00",
+      rating: 5,
+      avatarUrl: "/workspace_setup.png",
+    },
+    {
+      quote: "A perfect product — it keeps the workstation performing beautifully without any heating. Sourced Latitude laptops for our coding team. Couldn’t be happier with the purchase!",
+      author: "David Miller",
+      role: "Verified Buyer",
+      company: "Dell Latitude 7440 Workstation - €749.00",
+      rating: 5,
+      avatarUrl: "/developer_setup.png",
+    },
+  ];
+
+  for (const [index, testimonial] of refurbishedTestimonials.entries()) {
+    const existing = await db.testimonial.findFirst({
+      where: { author: testimonial.author, division: Division.REFURBISHED },
+    });
+    if (!existing) {
+      await db.testimonial.create({
+        data: { ...testimonial, division: Division.REFURBISHED, position: index },
+      });
+    } else {
+      await db.testimonial.update({
+        where: { id: existing.id },
+        data: { ...testimonial },
       });
     }
   }

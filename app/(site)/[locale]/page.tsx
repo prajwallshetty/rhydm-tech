@@ -6,6 +6,7 @@ import { GatewayCard } from "@/components/gateway/gateway-card";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { FadeIn } from "@/components/motion/fade-in";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { COMPANY, DIVISION_LIST } from "@/lib/business";
 
 export const metadata: Metadata = {
@@ -48,9 +49,11 @@ export default async function GatewayPage({
       </div>
 
       <div className="relative w-full max-w-4xl flex-1 flex flex-col justify-between my-auto py-2">
-        {/* Top Header Logo */}
-        <FadeIn className="flex justify-center">
+        {/* Top Header Logo & Language Switcher */}
+        <FadeIn className="flex justify-between items-center w-full">
+          <div className="w-14" /> {/* Spacer to balance LanguageSwitcher width */}
           <Logo />
+          <LanguageSwitcher className="text-slate-900 dark:text-white" />
         </FadeIn>
 
         {/* Title & Subtitle */}

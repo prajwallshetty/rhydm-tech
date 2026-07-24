@@ -38,7 +38,10 @@ export async function getSectionContent<T extends SectionContent>(
       >,
   );
 
-  const merged: Record<string, unknown> = { ...def.defaults };
+  const merged: Record<string, unknown> = {
+    ...def.defaults,
+    ...(def.localizedDefaults?.[locale] ?? {}),
+  };
 
   for (const layer of layers) {
     for (const [field, defaultValue] of Object.entries(def.defaults)) {

@@ -123,6 +123,7 @@ export default async function DealsPage({
                   slug={top.slug}
                   category={top.category.slug}
                   name={top.name}
+                  imageUrl={top.images?.[0]?.url}
                   className="absolute inset-8 transition-transform duration-500 group-hover:scale-105"
                 />
               </div>

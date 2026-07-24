@@ -77,12 +77,20 @@ export function ProductCard({
 
           {/* Center Product Image / Thumb */}
           <Link href={href} className="absolute inset-0 flex items-center justify-center p-4">
-            <ProductThumb
-              slug={product.slug}
-              category={product.category.slug}
-              name={product.name}
-              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
-            />
+            {product.images && product.images.length > 0 ? (
+              <img
+                src={product.images[0].url}
+                alt={product.images[0].alt ?? product.name}
+                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+              />
+            ) : (
+              <ProductThumb
+                slug={product.slug}
+                category={product.category.slug}
+                name={product.name}
+                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+              />
+            )}
           </Link>
         </div>
 

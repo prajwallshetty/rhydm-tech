@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProductCard } from "@/components/store/product-card";
+import { cn } from "@/lib/utils";
 
 export function HomeRefurbishedSections({
   categories,
@@ -149,44 +150,77 @@ export function HomeRefurbishedSections({
         {testimonials.length > 0 ? (
           /* CMS-driven testimonials (Testimonials CMS, division = Refurbished) */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {testimonials.map((tm, i) => (
-              <motion.div
-                key={tm.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: (i % 2) * 0.1 }}
-                className="flex flex-col rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-xs transition-all duration-300 hover:border-[#2E6F40]/30 hover:shadow-xl hover:shadow-slate-200/40"
-              >
-                <div className="mb-3 flex gap-0.5 text-amber-500">
-                  {"★".repeat(tm.rating ?? 5)}
-                </div>
-                <p className="flex-1 text-sm font-medium italic leading-relaxed text-slate-600">
-                  “{tm.quote}”
-                </p>
-                <div className="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
-                  {tm.avatarUrl ? (
-                    <img
-                      src={tm.avatarUrl}
-                      alt={tm.author}
-                      className="size-10 shrink-0 rounded-full border border-slate-200 object-cover"
-                    />
-                  ) : (
-                    <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#2E6F40]/10 text-xs font-bold text-[#2E6F40]">
-                      {tm.author.slice(0, 2).toUpperCase()}
+            {testimonials.map((tm, i) => {
+              const hasSideImage = !!tm.avatarUrl;
+              return (
+                <motion.div
+                  key={tm.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: (i % 2) * 0.1 }}
+                  className={cn(
+                    "flex flex-col overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-xs transition-all duration-300 hover:border-[#2E6F40]/30 hover:shadow-xl hover:shadow-slate-200/40",
+                    hasSideImage ? "sm:flex-row" : ""
+                  )}
+                >
+                  {/* Left Image Section */}
+                  {hasSideImage && (
+                    <div className="w-full sm:w-[42%] shrink-0 relative min-h-[220px] sm:min-h-auto">
+                      <img
+                        src={tm.avatarUrl!}
+                        alt={tm.author}
+                        className="absolute inset-0 size-full object-cover"
+                      />
                     </div>
                   )}
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-slate-900">{tm.author}</div>
-                    {(tm.role || tm.company) && (
-                      <div className="text-[11px] font-semibold text-slate-500">
-                        {[tm.role, tm.company].filter(Boolean).join(", ")}
+
+                  {/* Review Section */}
+                  <div className="flex-1 p-6 flex flex-col justify-between">
+                    <div>
+                      {/* Stars */}
+                      <div className="flex text-amber-500 gap-0.5 mb-2">
+                        {"★".repeat(tm.rating ?? 5)}
+                      </div>
+                      {/* Author Name */}
+                      <div className="text-sm font-bold text-slate-900">
+                        {tm.author}
+                        {tm.role && (
+                          <span className="text-xs font-normal text-slate-400 ml-1.5 italic">
+                            ✓ {tm.role}
+                          </span>
+                        )}
+                      </div>
+                      {/* Review Text */}
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium mt-3">
+                        “{tm.quote}”
+                      </p>
+                    </div>
+
+                    {/* Product Badge if company field is used as product info */}
+                    {tm.company && (
+                      <div className="mt-6 pt-4 border-t border-slate-100">
+                        <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl p-2.5">
+                          <div className="flex size-10 items-center justify-center rounded-full bg-white border border-slate-200/80 text-[#2E6F40] shadow-3xs shrink-0 font-bold text-xs">
+                            {tm.company.toLowerCase().includes("workstation") || tm.company.toLowerCase().includes("desktop") ? "🖥️" : "💻"}
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-900">
+                              {tm.company.split(" - ")[0]}
+                            </h4>
+                            {tm.company.includes(" - ") && (
+                              <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                                {tm.company.split(" - ")[1]}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -301,9 +335,6 @@ export function HomeRefurbishedSections({
           className="rounded-[40px] p-8 sm:p-14 text-center text-white shadow-2xl relative overflow-hidden"
         >
           <div className="relative z-10 max-w-2xl mx-auto space-y-4">
-            <span className="rounded-full bg-white/20 px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-white border border-white/30">
-              {t("newsletterEyebrow")}
-            </span>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
               {t("newsletterTitle")}
             </h2>

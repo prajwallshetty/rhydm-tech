@@ -85,7 +85,7 @@ export default async function ProductDetailPage({ params }: Props) {
     offers: {
       "@type": "Offer",
       url: `${SITE_URL}/refurbished/products/${product.slug}`,
-      priceCurrency: "USD",
+      priceCurrency: "EUR",
       price: (product.priceCents / 100).toFixed(2),
       itemCondition: "https://schema.org/RefurbishedCondition",
       availability:
@@ -128,6 +128,7 @@ export default async function ProductDetailPage({ params }: Props) {
         <Suspense fallback={<div className="mx-auto max-w-7xl px-6 py-20 text-center text-slate-400">{t("loadingConfigurator")}</div>}>
           <VariantConfigurator
             product={productWithVariants}
+            baseImages={product.images.map((img) => img.url)}
             ratingAvg={product.ratingAvg}
             ratingCount={product.ratingCount}
             brandName={product.brand?.name}

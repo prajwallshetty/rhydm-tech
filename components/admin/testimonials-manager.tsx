@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -50,7 +50,8 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
   const [division, setDivision] = useState<Division>("REFURBISHED");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Testimonial | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
 
@@ -78,11 +79,13 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
 
   async function persistOrder(ids: string[]) {
     setLocalOrder((prev) => ({ ...prev, [division]: ids }));
-    const res = await reorderTestimonialsAction(ids, division);
-    if (res?.success) {
-      push("Order saved");
-      router.refresh();
-    }
+    startTransition(async () => {
+      const res = await reorderTestimonialsAction(ids, division);
+      if (res?.success) {
+        push("Order saved");
+        router.refresh();
+      }
+    });
   }
 
   function move(id: string, dir: -1 | 1) {
@@ -109,27 +112,30 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true);
-    const res = await saveTestimonialCmsAction(new FormData(e.currentTarget));
-    setBusy(false);
-    if (res?.error) {
-      push(res.error);
-      return;
-    }
-    push(editing ? "Testimonial updated" : "Testimonial added", "check");
-    setShowForm(false);
-    setEditing(null);
-    router.refresh();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const res = await saveTestimonialCmsAction(formData);
+      if (res?.error) {
+        push(res.error);
+        return;
+      }
+      push(editing ? "Testimonial updated" : "Testimonial added", "check");
+      setShowForm(false);
+      setEditing(null);
+      router.refresh();
+    });
   }
 
   async function toggleStatus(t: Testimonial) {
-    setBusy(true);
-    const res = await toggleTestimonialStatusAction(t.id, t.status !== "PUBLISHED", t.division);
-    setBusy(false);
-    if (res?.success) {
-      push(t.status === "PUBLISHED" ? "Hidden from storefront" : "Published");
-      router.refresh();
-    }
+    setLoadingId(t.id);
+    startTransition(async () => {
+      const res = await toggleTestimonialStatusAction(t.id, t.status !== "PUBLISHED", t.division);
+      if (res?.success) {
+        push(t.status === "PUBLISHED" ? "Hidden from storefront" : "Published");
+        router.refresh();
+      }
+      setLoadingId(null);
+    });
   }
 
   async function remove(t: Testimonial) {
@@ -138,14 +144,18 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
       return;
     }
     setConfirmId(null);
-    setBusy(true);
-    const res = await deleteTestimonialCmsAction(t.id, t.division);
-    setBusy(false);
-    if (res?.success) {
-      push("Testimonial deleted");
-      router.refresh();
-    }
+    setLoadingId(t.id);
+    startTransition(async () => {
+      const res = await deleteTestimonialCmsAction(t.id, t.division);
+      if (res?.success) {
+        push("Testimonial deleted");
+        router.refresh();
+      }
+      setLoadingId(null);
+    });
   }
+
+
 
   return (
     <div className="space-y-5">
@@ -212,7 +222,7 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                   <button
                     type="button"
                     onClick={() => move(t.id, -1)}
-                    disabled={i === 0}
+                    disabled={i === 0 || isPending}
                     className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                     aria-label="Move up"
                   >
@@ -221,7 +231,7 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                   <button
                     type="button"
                     onClick={() => move(t.id, 1)}
-                    disabled={i === rows.length - 1}
+                    disabled={i === rows.length - 1 || isPending}
                     className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                     aria-label="Move down"
                   >
@@ -280,12 +290,14 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                 <button
                   type="button"
                   onClick={() => toggleStatus(t)}
-                  disabled={busy}
+                  disabled={isPending}
                   className="rounded p-1.5 text-muted-foreground hover:bg-muted disabled:opacity-50"
                   aria-label={t.status === "PUBLISHED" ? "Hide" : "Publish"}
                   title={t.status === "PUBLISHED" ? "Hide from storefront" : "Publish"}
                 >
-                  {t.status === "PUBLISHED" ? (
+                  {loadingId === t.id && isPending ? (
+                    <Loader2 className="size-4 animate-spin text-primary" />
+                  ) : t.status === "PUBLISHED" ? (
                     <Eye className="size-4" />
                   ) : (
                     <EyeOff className="size-4" />
@@ -297,7 +309,8 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                     setEditing(t);
                     setShowForm(true);
                   }}
-                  className="rounded p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  disabled={isPending}
+                  className="rounded p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary disabled:opacity-50"
                   aria-label="Edit"
                 >
                   <Pencil className="size-4" />
@@ -306,15 +319,22 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                   type="button"
                   onClick={() => remove(t)}
                   onBlur={() => setConfirmId(null)}
+                  disabled={isPending}
                   className={cn(
-                    "rounded p-1.5 transition-colors",
+                    "rounded p-1.5 transition-colors disabled:opacity-50",
                     confirmId === t.id
                       ? "bg-destructive text-white"
                       : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
                   )}
                   aria-label={confirmId === t.id ? "Confirm delete" : "Delete"}
                 >
-                  {confirmId === t.id ? <Check className="size-4" /> : <Trash2 className="size-4" />}
+                  {loadingId === t.id && isPending ? (
+                    <Loader2 className="size-4 animate-spin text-destructive" />
+                  ) : confirmId === t.id ? (
+                    <Check className="size-4 text-emerald-500" />
+                  ) : (
+                    <Trash2 className="size-4" />
+                  )}
                 </button>
               </div>
             </li>
@@ -325,7 +345,7 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
       {/* Create / edit dialog */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isPending && setShowForm(false)} />
           <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-bold text-foreground">
@@ -334,7 +354,8 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
+                disabled={isPending}
+                className="rounded-lg p-1 text-muted-foreground hover:bg-muted disabled:opacity-50"
                 aria-label="Close"
               >
                 <X className="size-5" />
@@ -348,8 +369,9 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                 <select
                   id="division"
                   name="division"
+                  disabled={isPending}
                   defaultValue={editing?.division ?? division}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-60"
                 >
                   <option value="REFURBISHED">Refurbished store</option>
                   <option value="DISPOSAL">Disposal site</option>
@@ -362,9 +384,10 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                   name="quote"
                   required
                   rows={3}
+                  disabled={isPending}
                   defaultValue={editing?.quote ?? ""}
                   placeholder="This service exceeded our expectations…"
-                  className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-60"
                 />
               </Field>
 
@@ -374,16 +397,18 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                     id="author"
                     name="author"
                     required
+                    disabled={isPending}
                     defaultValue={editing?.author ?? ""}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-60"
                   />
                 </Field>
                 <Field label="Rating" htmlFor="rating">
                   <select
                     id="rating"
                     name="rating"
+                    disabled={isPending}
                     defaultValue={String(editing?.rating ?? 5)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-60"
                   >
                     {[5, 4, 3, 2, 1].map((r) => (
                       <option key={r} value={r}>
@@ -399,17 +424,19 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                   <input
                     id="role"
                     name="role"
+                    disabled={isPending}
                     defaultValue={editing?.role ?? ""}
                     placeholder="IT Director"
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-60"
                   />
                 </Field>
                 <Field label="Company" htmlFor="company" hint="Optional">
                   <input
                     id="company"
                     name="company"
+                    disabled={isPending}
                     defaultValue={editing?.company ?? ""}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-60"
                   />
                 </Field>
               </div>
@@ -418,9 +445,10 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                 <input
                   id="avatarUrl"
                   name="avatarUrl"
+                  disabled={isPending}
                   defaultValue={editing?.avatarUrl ?? ""}
                   placeholder="https://…"
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-60"
                 />
               </Field>
 
@@ -430,8 +458,9 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                     type="checkbox"
                     name="status"
                     value="PUBLISHED"
+                    disabled={isPending}
                     defaultChecked={editing ? editing.status === "PUBLISHED" : true}
-                    className="size-4 rounded accent-[var(--primary)]"
+                    className="size-4 rounded accent-[var(--primary)] disabled:opacity-60"
                   />
                   Published (visible on the storefront)
                 </label>
@@ -439,8 +468,9 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                   <input
                     type="checkbox"
                     name="featured"
+                    disabled={isPending}
                     defaultChecked={editing ? editing.featured : false}
-                    className="size-4 rounded accent-[var(--primary)]"
+                    className="size-4 rounded accent-[var(--primary)] disabled:opacity-60"
                   />
                   Featured (shown first on the storefront)
                 </label>
@@ -449,16 +479,17 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
               <div className="flex items-center gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={busy}
+                  disabled={isPending}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {busy && <Loader2 className="size-4 animate-spin" />}
+                  {isPending && <Loader2 className="size-4 animate-spin" />}
                   {editing ? "Save changes" : "Add testimonial"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="rounded-lg border border-border px-5 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted"
+                  disabled={isPending}
+                  className="rounded-lg border border-border px-5 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted disabled:opacity-50"
                 >
                   Cancel
                 </button>
