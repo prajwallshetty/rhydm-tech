@@ -6,7 +6,6 @@ import { GatewayCard } from "@/components/gateway/gateway-card";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { FadeIn } from "@/components/motion/fade-in";
-import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { COMPANY, DIVISION_LIST } from "@/lib/business";
 
 export const metadata: Metadata = {
