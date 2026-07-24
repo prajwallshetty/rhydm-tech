@@ -1,5 +1,16 @@
 # Build Progress
 
+> **2026-07-24 — admin notification center + audit pass.** The header bell is
+> now a real feed: `getAdminNotifications()` aggregates live actionable counts
+> (orders to process, reviews to moderate, new enquiries, low stock) into a
+> dropdown with a true badge, re-fetched with the 15s layout refresh; empty =
+> "all caught up" (no fabricated items). Audit fixes: relabelled the misleading
+> "Banners" sidebar item to "Disposal CMS" (it opens the whole disposal CMS);
+> added the missing empty state to `/admin/brands`. Every sidebar route now
+> resolves (no broken nav). Still open (no migration, lower priority): a full
+> CMS-split *reorg* of site-content-manager, and a broader perf pass.
+
+
 Living record of what exists, what is verified, and what is next. **Update this
 as work lands** — it is the handover document between sessions, so it should be
 accurate even when nobody remembers the conversation that produced it.

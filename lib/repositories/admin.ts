@@ -30,6 +30,82 @@ export async function getDashboardStats() {
   };
 }
 
+export type AdminNotification = {
+  id: string;
+  type: "order" | "review" | "inquiry" | "stock";
+  title: string;
+  detail: string;
+  href: string;
+  tone: "info" | "warning" | "success";
+  count: number;
+};
+
+/**
+ * Live "things that need attention" for the header bell — every entry is a
+ * real, actionable count (pending orders, reviews awaiting moderation, new
+ * enquiries, low stock). No fabricated activity; an empty result means an
+ * empty bell.
+ */
+export async function getAdminNotifications(): Promise<{
+  items: AdminNotification[];
+  total: number;
+}> {
+  const [pendingOrders, pendingReviews, newInquiries, lowStock] = await Promise.all([
+    db.order.count({ where: { status: { in: [OrderStatus.PENDING, OrderStatus.CONFIRMED] } } }),
+    db.review.count({ where: { status: "PENDING" } }),
+    db.contactSubmission.count({ where: { status: SubmissionStatus.NEW } }),
+    db.product.count({ where: { stock: { lte: LOW_STOCK_THRESHOLD } } }),
+  ]);
+
+  const items: AdminNotification[] = [];
+  if (pendingOrders > 0) {
+    items.push({
+      id: "orders",
+      type: "order",
+      title: `${pendingOrders} order${pendingOrders > 1 ? "s" : ""} to process`,
+      detail: "Awaiting confirmation or fulfilment",
+      href: "/admin/orders",
+      tone: "info",
+      count: pendingOrders,
+    });
+  }
+  if (pendingReviews > 0) {
+    items.push({
+      id: "reviews",
+      type: "review",
+      title: `${pendingReviews} review${pendingReviews > 1 ? "s" : ""} to moderate`,
+      detail: "Approve or reject pending reviews",
+      href: "/admin/reviews?status=PENDING",
+      tone: "warning",
+      count: pendingReviews,
+    });
+  }
+  if (newInquiries > 0) {
+    items.push({
+      id: "inquiries",
+      type: "inquiry",
+      title: `${newInquiries} new enquir${newInquiries > 1 ? "ies" : "y"}`,
+      detail: "Unread disposal contact submissions",
+      href: "/admin/disposal",
+      tone: "success",
+      count: newInquiries,
+    });
+  }
+  if (lowStock > 0) {
+    items.push({
+      id: "stock",
+      type: "stock",
+      title: `${lowStock} product${lowStock > 1 ? "s" : ""} low on stock`,
+      detail: `At or below ${LOW_STOCK_THRESHOLD} units on hand`,
+      href: "/admin/inventory?level=low",
+      tone: "warning",
+      count: lowStock,
+    });
+  }
+
+  return { items, total: items.reduce((sum, n) => sum + n.count, 0) };
+}
+
 export async function getRecentOrders(limit = 5) {
   return db.order.findMany({
     take: limit,

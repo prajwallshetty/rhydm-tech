@@ -68,7 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { name: "Coupons", href: "/admin/coupons", icon: Tag },
       { name: "Site Content", href: "/admin/content", icon: LayoutTemplate },
       { name: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote },
-      { name: "Banners", href: "/admin/disposal", icon: ImageIcon },
+      { name: "Disposal CMS", href: "/admin/disposal", icon: ImageIcon },
       { name: "Blog", href: "/admin/blogs", icon: FileText },
     ],
   },

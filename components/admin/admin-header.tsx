@@ -1,16 +1,66 @@
 "use client";
 
-import { Search, Bell, Menu, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import {
+  Search,
+  Bell,
+  Menu,
+  User,
+  ShoppingCart,
+  Star,
+  Mail,
+  Boxes,
+} from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useAdminUi } from "@/lib/store/admin-ui";
+import { cn } from "@/lib/utils";
+
+type Notification = {
+  id: string;
+  type: "order" | "review" | "inquiry" | "stock";
+  title: string;
+  detail: string;
+  href: string;
+  tone: "info" | "warning" | "success";
+  count: number;
+};
+
+const NOTIF_ICON: Record<Notification["type"], React.ElementType> = {
+  order: ShoppingCart,
+  review: Star,
+  inquiry: Mail,
+  stock: Boxes,
+};
+
+const TONE_STYLE: Record<Notification["tone"], string> = {
+  info: "bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400",
+  warning: "bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
+  success: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
+};
 
 export function AdminHeader({
   adminUser,
+  notifications = { items: [], total: 0 },
 }: {
   adminUser: { name?: string | null; email: string };
+  notifications?: { items: Notification[]; total: number };
 }) {
   const setMobileOpen = useAdminUi((s) => s.setMobileOpen);
   const toggleCollapsed = useAdminUi((s) => s.toggleCollapsed);
+
+  const [open, setOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onPointerDown(e: MouseEvent) {
+      if (!bellRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, []);
+
+  const badge = notifications.total > 99 ? "99+" : String(notifications.total);
 
   // One button, breakpoint-aware: opens the drawer on mobile, toggles the
   // icon rail on desktop. Both paths now drive real shared state (previously
@@ -56,14 +106,76 @@ export function AdminHeader({
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Notification Bell — no fabricated count; a real notification center
-            can hang off this once an events pipeline exists. */}
-        <button
-          className="relative flex size-9 items-center justify-center rounded-full text-slate-600 dark:text-muted-foreground hover:bg-slate-100 dark:hover:bg-muted transition-colors cursor-pointer"
-          aria-label="Notifications"
-        >
-          <Bell className="size-4.5" />
-        </button>
+        {/* Notification bell — badge and feed are real, actionable counts. */}
+        <div className="relative" ref={bellRef}>
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="relative flex size-9 items-center justify-center rounded-full text-slate-600 dark:text-muted-foreground hover:bg-slate-100 dark:hover:bg-muted transition-colors cursor-pointer"
+            aria-label={`Notifications${notifications.total ? ` (${notifications.total})` : ""}`}
+            aria-expanded={open}
+          >
+            <Bell className="size-4.5" />
+            {notifications.total > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-xs">
+                {badge}
+              </span>
+            )}
+          </button>
+
+          {open && (
+            <div className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+              <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                <span className="text-sm font-bold text-foreground">Notifications</span>
+                {notifications.total > 0 && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                    {notifications.total} pending
+                  </span>
+                )}
+              </div>
+
+              {notifications.items.length === 0 ? (
+                <div className="px-4 py-10 text-center">
+                  <Bell className="mx-auto size-7 text-muted-foreground/40" />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    You&rsquo;re all caught up.
+                  </p>
+                </div>
+              ) : (
+                <ul className="max-h-96 divide-y divide-border/60 overflow-y-auto">
+                  {notifications.items.map((n) => {
+                    const Icon = NOTIF_ICON[n.type];
+                    return (
+                      <li key={n.id}>
+                        <Link
+                          href={n.href}
+                          onClick={() => setOpen(false)}
+                          className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+                        >
+                          <span
+                            className={cn(
+                              "grid size-8 shrink-0 place-items-center rounded-lg",
+                              TONE_STYLE[n.tone],
+                            )}
+                          >
+                            <Icon className="size-4" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-xs font-bold text-foreground">
+                              {n.title}
+                            </span>
+                            <span className="block text-[11px] text-muted-foreground">
+                              {n.detail}
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* User Profile Pill */}
         <div className="flex items-center gap-3 border-l border-slate-200 dark:border-border pl-3 ml-1">
