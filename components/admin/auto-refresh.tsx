@@ -19,9 +19,17 @@ export function AutoRefresh({ intervalMs = 15_000 }: { intervalMs?: number }) {
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
 
+    function tick() {
+      const activeTag = document.activeElement?.tagName;
+      const isEditing = activeTag && ["INPUT", "TEXTAREA", "SELECT"].includes(activeTag);
+      if (!isEditing && !document.hidden) {
+        router.refresh();
+      }
+    }
+
     function start() {
       if (timer) return;
-      timer = setInterval(() => router.refresh(), intervalMs);
+      timer = setInterval(tick, intervalMs);
     }
 
     function stop() {
@@ -34,7 +42,7 @@ export function AutoRefresh({ intervalMs = 15_000 }: { intervalMs?: number }) {
       if (document.hidden) {
         stop();
       } else {
-        router.refresh();
+        tick();
         start();
       }
     }

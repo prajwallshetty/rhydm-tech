@@ -179,6 +179,7 @@ export function AdminSidebar({
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setMobileOpen(false)}
                     title={collapsedView ? item.name : undefined}
                     aria-label={item.name}

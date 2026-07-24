@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { GatewayBackdrop } from "@/components/gateway/gateway-backdrop";
 import { GatewayCard } from "@/components/gateway/gateway-card";
 import { Logo } from "@/components/brand/logo";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { FadeIn } from "@/components/motion/fade-in";
 import { COMPANY, DIVISION_LIST } from "@/lib/business";
 
@@ -41,6 +42,10 @@ export default async function GatewayPage({
   return (
     <main className="relative flex h-screen min-h-screen w-full flex-col items-center justify-between overflow-hidden px-6 py-6 sm:py-8 font-sans">
       <GatewayBackdrop />
+
+      <div className="absolute top-4 right-6 z-50">
+        <LanguageSwitcher />
+      </div>
 
       <div className="relative w-full max-w-4xl flex-1 flex flex-col justify-between my-auto py-2">
         {/* Top Header Logo */}

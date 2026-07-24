@@ -214,7 +214,7 @@ export function ProductForm({
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Price ($) *</label>
+                <label className="text-xs font-semibold text-muted-foreground">Price (€) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -228,7 +228,7 @@ export function ProductForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Compare At Price ($)</label>
+                <label className="text-xs font-semibold text-muted-foreground">Compare At Price (€)</label>
                 <input
                   type="number"
                   step="0.01"

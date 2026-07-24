@@ -171,9 +171,21 @@ export async function loginAction(prevState: unknown, formData: FormData) {
       details: { rememberMe, role: user.role },
     });
 
-    const redirectUrl = ([Role.SUPER_ADMIN, Role.ADMIN, Role.MANAGER, Role.EDITOR, Role.STAFF] as Role[]).includes(user.role)
+    const rawCallback = (formData.get("callbackUrl") as string)?.trim();
+    let redirectUrl = ([Role.SUPER_ADMIN, Role.ADMIN, Role.MANAGER, Role.EDITOR, Role.STAFF] as Role[]).includes(user.role)
       ? "/admin"
       : "/refurbished/account";
+
+    if (
+      rawCallback &&
+      rawCallback.startsWith("/") &&
+      !rawCallback.startsWith("//") &&
+      !rawCallback.startsWith("/login") &&
+      !rawCallback.startsWith("/admin/login") &&
+      !rawCallback.startsWith("/auth")
+    ) {
+      redirectUrl = rawCallback;
+    }
 
     return { success: true, redirectUrl };
   } catch (err: unknown) {
@@ -480,7 +492,7 @@ export async function addAddressAction(formData: FormData) {
   const city = formData.get("city") as string;
   const region = formData.get("region") as string;
   const postalCode = formData.get("postalCode") as string;
-  const country = (formData.get("country") as string) || "US";
+  const country = (formData.get("country") as string) || "Germany";
   const isDefault = formData.get("isDefault") === "true" || formData.get("isDefault") === "on";
 
   if (!fullName || !line1 || !city || !region || !postalCode) {

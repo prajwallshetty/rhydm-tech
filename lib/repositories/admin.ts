@@ -1353,19 +1353,23 @@ export async function getAdminDeals() {
   });
 }
 
-/** Published products not currently on a deal — the add-to-deal picker. */
+/** Products not currently on an active deal — the add-to-deal picker. */
 export async function getDealCandidates() {
-  return db.product.findMany({
-    where: { compareAtCents: null, status: PublishStatus.PUBLISHED },
+  const products = await db.product.findMany({
     orderBy: { name: "asc" },
     select: {
       id: true,
       name: true,
       sku: true,
       priceCents: true,
+      compareAtCents: true,
       category: { select: { name: true } },
     },
   });
+
+  return products.filter(
+    (p) => !p.compareAtCents || p.compareAtCents <= p.priceCents,
+  );
 }
 
 // ===========================================================================

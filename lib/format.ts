@@ -3,16 +3,16 @@
  * These helpers are the only place that conversion should happen.
  */
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
+const currencyFormatter = new Intl.NumberFormat("de-DE", {
   style: "currency",
-  currency: "USD",
+  currency: "EUR",
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
 
-const preciseCurrencyFormatter = new Intl.NumberFormat("en-US", {
+const preciseCurrencyFormatter = new Intl.NumberFormat("de-DE", {
   style: "currency",
-  currency: "USD",
+  currency: "EUR",
 });
 
 /** Whole-dollar display, e.g. "$749". Used on cards and listings. */

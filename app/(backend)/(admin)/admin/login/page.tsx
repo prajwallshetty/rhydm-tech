@@ -1,9 +1,16 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { Suspense, useActionState, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Shield, Lock, Mail, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { loginAdminAction } from "@/app/(backend)/(admin)/admin/actions";
+
+function CallbackInput() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "";
+  return <input type="hidden" name="callbackUrl" value={callbackUrl} />;
+}
 
 export default function AdminLoginPage() {
   const [state, formAction, isPending] = useActionState(loginAdminAction, null);
@@ -53,6 +60,9 @@ export default function AdminLoginPage() {
 
         {/* Form */}
         <form action={formAction} className="space-y-5">
+          <Suspense fallback={null}>
+            <CallbackInput />
+          </Suspense>
           {state?.error && (
             <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive font-medium">
               {state.error}

@@ -87,7 +87,11 @@ export async function loginAdminAction(prevState: any, formData: FormData) {
   }
 
   await createAdminSession(user.id);
-  redirect("/admin");
+  const rawCallback = formData.get("callbackUrl")?.toString();
+  const target = rawCallback && rawCallback.startsWith("/admin") && rawCallback !== "/admin/login"
+    ? rawCallback
+    : "/admin";
+  redirect(target);
 }
 
 export async function logoutAdminAction() {

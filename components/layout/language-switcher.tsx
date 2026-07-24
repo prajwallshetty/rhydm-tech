@@ -42,6 +42,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   function select(next: AppLocale) {
     setOpen(false);
     if (next === locale) return;
+    document.cookie = `NEXT_LOCALE=${next};path=/;max-age=31536000;SameSite=Lax`;
     startTransition(() => {
       // Same pathname, different locale — dynamic params pass through.
       router.replace(

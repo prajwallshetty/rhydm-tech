@@ -38,7 +38,6 @@ export function DisposalFloatingNav() {
     { label: t("industries"), href: "/disposal/industries" },
     { label: t("certificates"), href: "/disposal/certificates" },
     { label: t("faqs"), href: "/disposal/faqs" },
-    { label: t("contact"), href: "/disposal/contact" },
   ];
 
   return (
