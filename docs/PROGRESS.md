@@ -4,7 +4,48 @@ Living record of what exists, what is verified, and what is next. **Update this
 as work lands** — it is the handover document between sessions, so it should be
 accurate even when nobody remembers the conversation that produced it.
 
-Last updated: 2026-07-22
+Last updated: 2026-07-24
+
+> **2026-07-24 — admin panel audit + module build-out (phase 1 of a larger
+> program).** Audit corrected several stale premises: the sidebar already
+> rendered `/logo.png` (not a "Renewed" wordmark); "Inventory", "Reviews",
+> "Coupons" and "Roles & Permissions" were **placeholder links pointing at
+> existing pages**, not real modules; toasts already worked (the header bell
+> was a static fake showing "8"); `Review` and `Coupon` models existed in the
+> schema with **zero application code**; `Role` is a `User` enum (no RBAC
+> tables). So this was largely a build-out, not a bug-fix pass.
+>
+> **Shipped this pass:**
+> - **Admin shell:** shared `useAdminUi` store (`lib/store/admin-ui.ts`, zustand
+>   + persist) drives a real desktop **collapse-to-icon-rail** (smooth width
+>   transition, tooltips via `title`, persisted, mobile drawer unaffected). The
+>   header menu button now toggles it (previously it had no handler wired). Chat
+>   (`MessageSquare`) button removed; fabricated bell "8" removed; footer shows
+>   the real admin email/name; "Renewed" strings replaced with `COMPANY.name`.
+>   "Roles & Permissions" sidebar item removed (auth `Role` enum kept).
+> - **Reviews** (`/admin/reviews`): list with per-review moderation (verify
+>   toggle, delete), search (author/title/body/product), rating + verified
+>   filters, stat row, pagination, empty state. Revalidates the storefront.
+> - **Coupons** (`/admin/coupons`): full CRUD over the `Coupon` model
+>   (PERCENT/FIXED, value, min-spend, expiry, active), enable/disable, delete,
+>   dialog form with validation. **Checkout validation is live:** cart calls
+>   `validateCoupon()` (server-side: existence/active/expiry/min-spend, discount
+>   computed on the server so a tampered client can't fake it); `calculateTotals`
+>   gained an optional `discountCents` and the cart shows a Discount row.
+> - **Inventory** (`/admin/inventory`): stock-focused view over `Product`
+>   (SKUs, units on hand, low/out-of-stock stats + filters, inline stock edit,
+>   search, pagination). Syncs to storefront on save.
+>
+> All typecheck + full production build clean; sidebar hrefs now resolve (no
+> broken nav). **Deferred (need a Prisma migration against shared Neon — kept
+> out of this turn deliberately):** review approve/reject *status* (only
+> `verified` exists today), coupon product/category scoping + usage-limit +
+> one-time, inventory movement history / warehouse / reserved stock, category
+> image/banner/thumbnail/icon fields, testimonial `featured`/`order` for DnD.
+> **Still to build (no migration):** shadcn/recharts dashboard charts on real
+> data, testimonials CMS, CMS split consolidation, cross-admin consistency
+> sweep. Carrying an applied coupon into the *placed order* is a follow-up
+> (schema already notes coupons are "UI-only until payments integrated").
 
 > **2026-07-22 — repo reorganised by collaborator (prajwallshetty):** routes
 > moved into groups (`app/(disposal)/disposal/…`, `app/(refurbished)/…`,

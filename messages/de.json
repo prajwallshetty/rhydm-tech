@@ -205,7 +205,14 @@
       "checkout": "Zur Kasse",
       "freeOver": "Kostenloser Versand ab {amount}",
       "decreaseOf": "Menge von {name} verringern",
-      "increaseOf": "Menge von {name} erhöhen"
+      "increaseOf": "Menge von {name} erhöhen",
+      "discount": "Rabatt",
+      "applied": "Angewendet",
+      "couponApplied": "Gutschein {code} angewendet.",
+      "couponMinSpend": "Mindestbestellwert {amount}, um diesen Code zu nutzen.",
+      "coupon_invalid": "Dieser Code ist ungültig.",
+      "coupon_inactive": "Dieser Code ist nicht mehr aktiv.",
+      "coupon_expired": "Dieser Code ist abgelaufen."
     },
     "wishlist": {
       "title": "Merkliste",

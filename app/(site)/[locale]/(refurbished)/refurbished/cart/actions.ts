@@ -1,6 +1,7 @@
 "use server";
 
 import { getProductsBySlugs } from "@/lib/repositories/store";
+import { db } from "@/lib/db";
 
 export type CartProduct = {
   slug: string;
@@ -42,4 +43,51 @@ export async function getCartProducts(
     categoryName: product.category.name,
     brandName: product.brand?.name ?? null,
   }));
+}
+
+export type CouponResult =
+  | {
+      ok: true;
+      code: string;
+      discountCents: number;
+      type: "PERCENT" | "FIXED";
+      value: number;
+    }
+  | { ok: false; reason: "invalid" | "inactive" | "expired" | "minspend"; minSpendCents?: number };
+
+/**
+ * Server-side coupon validation. The subtotal is passed by the client but the
+ * coupon's rules — existence, active flag, expiry, minimum spend — are all
+ * checked against the database here, so a tampered client can never conjure a
+ * discount. The computed `discountCents` is what the summary should apply.
+ */
+export async function validateCoupon(
+  rawCode: string,
+  subtotalCents: number,
+): Promise<CouponResult> {
+  const code = rawCode.trim().toUpperCase();
+  if (!code) return { ok: false, reason: "invalid" };
+
+  const coupon = await db.coupon.findUnique({ where: { code } });
+  if (!coupon) return { ok: false, reason: "invalid" };
+  if (!coupon.active) return { ok: false, reason: "inactive" };
+  if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+    return { ok: false, reason: "expired" };
+  }
+  if (coupon.minSpendCents && subtotalCents < coupon.minSpendCents) {
+    return { ok: false, reason: "minspend", minSpendCents: coupon.minSpendCents };
+  }
+
+  const discountCents =
+    coupon.type === "PERCENT"
+      ? Math.round((subtotalCents * coupon.value) / 100)
+      : Math.min(coupon.value, subtotalCents);
+
+  return {
+    ok: true,
+    code: coupon.code,
+    discountCents,
+    type: coupon.type,
+    value: coupon.value,
+  };
 }

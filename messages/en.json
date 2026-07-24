@@ -205,7 +205,14 @@
       "checkout": "Proceed to checkout",
       "freeOver": "Free shipping on orders over {amount}",
       "decreaseOf": "Decrease quantity of {name}",
-      "increaseOf": "Increase quantity of {name}"
+      "increaseOf": "Increase quantity of {name}",
+      "discount": "Discount",
+      "applied": "Applied",
+      "couponApplied": "Coupon {code} applied.",
+      "couponMinSpend": "Spend at least {amount} to use this code.",
+      "coupon_invalid": "That code isn’t valid.",
+      "coupon_inactive": "That code is no longer active.",
+      "coupon_expired": "That code has expired."
     },
     "wishlist": {
       "title": "Wishlist",

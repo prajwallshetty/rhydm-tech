@@ -1,23 +1,39 @@
 "use client";
 
-import { Search, Bell, MessageSquare, Menu, User } from "lucide-react";
+import { Search, Bell, Menu, User } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { useAdminUi } from "@/lib/store/admin-ui";
 
 export function AdminHeader({
   adminUser,
-  onMenuToggle,
 }: {
   adminUser: { name?: string | null; email: string };
-  onMenuToggle?: () => void;
 }) {
+  const setMobileOpen = useAdminUi((s) => s.setMobileOpen);
+  const toggleCollapsed = useAdminUi((s) => s.toggleCollapsed);
+
+  // One button, breakpoint-aware: opens the drawer on mobile, toggles the
+  // icon rail on desktop. Both paths now drive real shared state (previously
+  // the handler was never passed in, so this button did nothing).
+  const handleMenu = () => {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(min-width: 768px)").matches
+    ) {
+      toggleCollapsed();
+    } else {
+      setMobileOpen(true);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/90 dark:bg-card/90 px-6 backdrop-blur-md">
       {/* Left Menu Toggle & Search Bar */}
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <button
-          onClick={onMenuToggle}
+          onClick={handleMenu}
           className="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-muted transition-colors cursor-pointer"
-          aria-label="Toggle Navigation"
+          aria-label="Toggle navigation"
         >
           <Menu className="size-5" />
         </button>
@@ -40,23 +56,13 @@ export function AdminHeader({
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Notification Bell with Badge */}
+        {/* Notification Bell — no fabricated count; a real notification center
+            can hang off this once an events pipeline exists. */}
         <button
           className="relative flex size-9 items-center justify-center rounded-full text-slate-600 dark:text-muted-foreground hover:bg-slate-100 dark:hover:bg-muted transition-colors cursor-pointer"
           aria-label="Notifications"
         >
           <Bell className="size-4.5" />
-          <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-xs">
-            8
-          </span>
-        </button>
-
-        {/* Message Bubble Icon */}
-        <button
-          className="flex size-9 items-center justify-center rounded-full text-slate-600 dark:text-muted-foreground hover:bg-slate-100 dark:hover:bg-muted transition-colors cursor-pointer"
-          aria-label="Messages"
-        >
-          <MessageSquare className="size-4.5" />
         </button>
 
         {/* User Profile Pill */}
@@ -68,7 +74,9 @@ export function AdminHeader({
             <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
               {adminUser.name || "Admin"}
             </h4>
-            <p className="text-[10px] text-slate-400 font-medium leading-tight">Super Admin</p>
+            <p className="text-[10px] text-slate-400 font-medium leading-tight">
+              {adminUser.email}
+            </p>
           </div>
         </div>
       </div>

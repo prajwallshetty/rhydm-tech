@@ -5,7 +5,7 @@ import { Heart, Loader2, Minus, Plus, ShoppingBag, Tag, Trash2 } from "lucide-re
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { getCartProducts, type CartProduct } from "@/app/(site)/[locale]/(refurbished)/refurbished/cart/actions";
+import { getCartProducts, validateCoupon, type CartProduct } from "@/app/(site)/[locale]/(refurbished)/refurbished/cart/actions";
 import { ProductThumb } from "@/components/store/product-thumb";
 import { ButtonLink } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -31,6 +31,8 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
   const [coupon, setCoupon] = useState("");
   const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [applied, setApplied] = useState<{ code: string; discountCents: number } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
 
   // Prices are resolved server-side on every render of this page.
   useEffect(() => {
@@ -62,8 +64,39 @@ export default function CartPage() {
     (total, line) => total + line.product.priceCents * line.quantity,
     0,
   );
-  const totals = calculateTotals({ subtotalCents });
+  // A previously-applied coupon is re-clamped whenever the cart changes, so an
+  // edited cart can never carry a stale over-discount.
+  const discountCents = applied ? Math.min(applied.discountCents, subtotalCents) : 0;
+  const totals = calculateTotals({ subtotalCents, discountCents });
   const remaining = amountToFreeShipping(subtotalCents);
+
+  async function applyCoupon(e: React.FormEvent) {
+    e.preventDefault();
+    const code = coupon.trim();
+    if (!code) {
+      setApplied(null);
+      setCouponMessage(null);
+      return;
+    }
+    setCouponBusy(true);
+    const res = await validateCoupon(code, subtotalCents);
+    setCouponBusy(false);
+
+    if (res.ok) {
+      setApplied({ code: res.code, discountCents: res.discountCents });
+      setCouponMessage(null);
+      push(t("couponApplied", { code: res.code }), "check");
+    } else {
+      setApplied(null);
+      setCouponMessage(
+        res.reason === "minspend"
+          ? t("couponMinSpend", {
+              amount: formatPriceExact(res.minSpendCents ?? 0),
+            })
+          : t(`coupon_${res.reason}` as "coupon_invalid"),
+      );
+    }
+  }
 
   if (loading) {
     return (
@@ -224,6 +257,12 @@ export default function CartPage() {
 
             <div className="mt-5 space-y-3 text-sm">
               <Row label={t("subtotal")} value={formatPriceExact(totals.subtotalCents)} />
+              {totals.discountCents > 0 && applied && (
+                <Row
+                  label={`${t("discount")} · ${applied.code}`}
+                  value={`−${formatPriceExact(totals.discountCents)}`}
+                />
+              )}
               <Row
                 label={t("shipping")}
                 value={
@@ -245,14 +284,8 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* Coupon field is UI-only until payments are integrated. */}
-            <form
-              className="mt-6"
-              onSubmit={(event) => {
-                event.preventDefault();
-                setCouponMessage(coupon.trim() ? t("couponSoon") : null);
-              }}
-            >
+            {/* Coupon codes are validated server-side (see cart/actions). */}
+            <form className="mt-6" onSubmit={applyCoupon}>
               <label htmlFor="coupon" className="text-sm font-medium">
                 {t("coupon")}
               </label>
@@ -272,13 +305,19 @@ export default function CartPage() {
                 </div>
                 <button
                   type="submit"
-                  className="h-10 rounded-lg border border-border px-4 text-sm font-medium transition-colors hover:bg-accent"
+                  disabled={couponBusy}
+                  className="h-10 rounded-lg border border-border px-4 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-50"
                 >
-                  {t("apply")}
+                  {couponBusy ? "…" : applied ? t("applied") : t("apply")}
                 </button>
               </div>
+              {applied && (
+                <p className="mt-2 text-xs font-medium text-brand">
+                  {t("couponApplied", { code: applied.code })}
+                </p>
+              )}
               {couponMessage && (
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs text-destructive">
                   {couponMessage}
                 </p>
               )}

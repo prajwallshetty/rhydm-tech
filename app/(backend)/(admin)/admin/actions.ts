@@ -40,6 +40,14 @@ import {
   upsertAdminSeoMeta,
   deleteAdminSeoMeta,
   updateAdminSiteSettings,
+  setReviewVerified,
+  deleteAdminReview,
+  createAdminCoupon,
+  updateAdminCoupon,
+  setCouponActive,
+  deleteAdminCoupon,
+  updateProductStock,
+  type AdminCouponInput,
 } from "@/lib/repositories/admin";
 import { OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
 import type { Prisma as PrismaNS } from "@/lib/generated/prisma/client";
@@ -784,4 +792,118 @@ export async function listMediaForPickerAction() {
     select: { id: true, url: true, key: true, alt: true, filename: true },
   });
   return { assets: rows };
+}
+
+// ===========================================================================
+// Review Actions
+// ===========================================================================
+
+export async function setReviewVerifiedAction(id: string, verified: boolean) {
+  await requireAdmin();
+  await setReviewVerified(id, verified);
+  revalidatePath("/admin/reviews");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+export async function deleteReviewAction(id: string) {
+  await requireAdmin();
+  await deleteAdminReview(id);
+  revalidatePath("/admin/reviews");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+// ===========================================================================
+// Coupon Actions
+// ===========================================================================
+
+/** Parses and validates the coupon form; shared by create and update. */
+function parseCouponForm(formData: FormData): AdminCouponInput | { error: string } {
+  const code = String(formData.get("code") ?? "").trim();
+  if (!code) return { error: "A coupon code is required." };
+
+  const type = String(formData.get("type") ?? "PERCENT") === "FIXED" ? "FIXED" : "PERCENT";
+  const rawValue = Number(formData.get("value"));
+  if (!Number.isFinite(rawValue) || rawValue <= 0) {
+    return { error: "Enter a discount value greater than zero." };
+  }
+  if (type === "PERCENT" && rawValue > 100) {
+    return { error: "A percentage discount cannot exceed 100%." };
+  }
+  // Percent is stored as a whole number; fixed is stored in cents.
+  const value = type === "FIXED" ? Math.round(rawValue * 100) : Math.round(rawValue);
+
+  const minSpendRaw = formData.get("minSpend");
+  const minSpend = minSpendRaw && String(minSpendRaw).trim() !== "" ? Number(minSpendRaw) : null;
+  const minSpendCents =
+    minSpend != null && Number.isFinite(minSpend) && minSpend > 0
+      ? Math.round(minSpend * 100)
+      : null;
+
+  const expiresRaw = String(formData.get("expiresAt") ?? "").trim();
+  const expiresAt = expiresRaw ? new Date(expiresRaw) : null;
+  if (expiresAt && Number.isNaN(expiresAt.getTime())) {
+    return { error: "The expiry date is invalid." };
+  }
+
+  const active = formData.get("active") === "on" || formData.get("active") === "true";
+
+  return { code, type, value, minSpendCents, active, expiresAt };
+}
+
+export async function createCouponAction(formData: FormData) {
+  await requireAdmin();
+  const parsed = parseCouponForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+  try {
+    await createAdminCoupon(parsed);
+  } catch {
+    return { error: "That coupon code is already in use." };
+  }
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+export async function updateCouponAction(id: string, formData: FormData) {
+  await requireAdmin();
+  const parsed = parseCouponForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+  try {
+    await updateAdminCoupon(id, parsed);
+  } catch {
+    return { error: "That coupon code is already in use." };
+  }
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+export async function setCouponActiveAction(id: string, active: boolean) {
+  await requireAdmin();
+  await setCouponActive(id, active);
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+export async function deleteCouponAction(id: string) {
+  await requireAdmin();
+  await deleteAdminCoupon(id);
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+// ===========================================================================
+// Inventory Actions
+// ===========================================================================
+
+export async function updateStockAction(id: string, stock: number) {
+  await requireAdmin();
+  if (!Number.isFinite(stock) || stock < 0) {
+    return { error: "Stock must be a non-negative number." };
+  }
+  await updateProductStock(id, stock);
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin/products");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
 }

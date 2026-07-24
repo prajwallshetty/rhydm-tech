@@ -5,14 +5,16 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
 import { PwaProvider } from "@/components/admin/pwa-provider";
+import { COMPANY } from "@/lib/business";
 
 // PWA identity is scoped to /admin — public pages don't reference the
-// manifest, so only the admin installs as "Renewed Admin".
+// manifest, so only the admin installs as the company admin app.
 export const metadata: Metadata = {
+  title: `${COMPANY.name} Admin`,
   manifest: "/admin-manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Renewed",
+    title: `${COMPANY.name} Admin`,
     statusBarStyle: "default",
   },
   icons: {
@@ -46,7 +48,7 @@ export default async function AdminLayout({
       {/* Server Components re-run every 15s (paused in hidden tabs), so new
           orders and CMS edits appear without a manual reload. */}
       <AutoRefresh intervalMs={15_000} />
-      <AdminSidebar />
+      <AdminSidebar admin={adminUser} />
       <div className="flex flex-1 flex-col min-w-0">
         <AdminHeader adminUser={adminUser} />
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6">

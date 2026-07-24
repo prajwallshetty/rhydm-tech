@@ -1262,3 +1262,194 @@ export async function getMediaLibrary(filters: {
     },
   });
 }
+
+// ===========================================================================
+// Reviews Module
+// ===========================================================================
+
+export type AdminReviewFilters = {
+  search?: string;
+  rating?: number;
+  verified?: "verified" | "unverified";
+  productId?: string;
+  page?: number;
+  limit?: number;
+};
+
+export async function getAdminReviews(filters: AdminReviewFilters = {}) {
+  const page = Math.max(1, filters.page ?? 1);
+  const limit = Math.max(1, filters.limit ?? 20);
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.ReviewWhereInput = {};
+  if (filters.search) {
+    const q = filters.search.trim();
+    where.OR = [
+      { author: { contains: q, mode: "insensitive" } },
+      { title: { contains: q, mode: "insensitive" } },
+      { body: { contains: q, mode: "insensitive" } },
+      { product: { name: { contains: q, mode: "insensitive" } } },
+    ];
+  }
+  if (filters.rating) where.rating = filters.rating;
+  if (filters.verified === "verified") where.verified = true;
+  if (filters.verified === "unverified") where.verified = false;
+  if (filters.productId) where.productId = filters.productId;
+
+  const [items, total, verifiedCount, avg] = await Promise.all([
+    db.review.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        product: { select: { name: true, slug: true } },
+      },
+    }),
+    db.review.count({ where }),
+    db.review.count({ where: { ...where, verified: true } }),
+    db.review.aggregate({ where, _avg: { rating: true } }),
+  ]);
+
+  return {
+    items,
+    total,
+    verifiedCount,
+    averageRating: avg._avg.rating ?? 0,
+    page,
+    limit,
+    pageCount: Math.max(1, Math.ceil(total / limit)),
+  };
+}
+
+export async function setReviewVerified(id: string, verified: boolean) {
+  return db.review.update({ where: { id }, data: { verified } });
+}
+
+export async function deleteAdminReview(id: string) {
+  return db.review.delete({ where: { id } });
+}
+
+// ===========================================================================
+// Coupons Module
+// ===========================================================================
+
+export type AdminCouponInput = {
+  code: string;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  minSpendCents: number | null;
+  active: boolean;
+  expiresAt: Date | null;
+};
+
+export async function getAdminCoupons() {
+  return db.coupon.findMany({ orderBy: { createdAt: "desc" } });
+}
+
+export async function createAdminCoupon(input: AdminCouponInput) {
+  return db.coupon.create({
+    data: {
+      code: input.code.trim().toUpperCase(),
+      type: input.type,
+      value: input.value,
+      minSpendCents: input.minSpendCents,
+      active: input.active,
+      expiresAt: input.expiresAt,
+    },
+  });
+}
+
+export async function updateAdminCoupon(id: string, input: AdminCouponInput) {
+  return db.coupon.update({
+    where: { id },
+    data: {
+      code: input.code.trim().toUpperCase(),
+      type: input.type,
+      value: input.value,
+      minSpendCents: input.minSpendCents,
+      active: input.active,
+      expiresAt: input.expiresAt,
+    },
+  });
+}
+
+export async function setCouponActive(id: string, active: boolean) {
+  return db.coupon.update({ where: { id }, data: { active } });
+}
+
+export async function deleteAdminCoupon(id: string) {
+  return db.coupon.delete({ where: { id } });
+}
+
+// ===========================================================================
+// Inventory Module (a stock-focused view over Products)
+// ===========================================================================
+
+export type AdminInventoryFilters = {
+  search?: string;
+  stockLevel?: "all" | "low" | "out";
+  page?: number;
+  limit?: number;
+};
+
+/** Products at or below this on-hand count are surfaced as "low stock". */
+export const LOW_STOCK_THRESHOLD = 10;
+
+export async function getInventory(filters: AdminInventoryFilters = {}) {
+  const page = Math.max(1, filters.page ?? 1);
+  const limit = Math.max(1, filters.limit ?? 20);
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.ProductWhereInput = {};
+  if (filters.search) {
+    const q = filters.search.trim();
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { sku: { contains: q, mode: "insensitive" } },
+    ];
+  }
+  if (filters.stockLevel === "out") where.stock = { lte: 0 };
+  else if (filters.stockLevel === "low")
+    where.stock = { gt: 0, lte: LOW_STOCK_THRESHOLD };
+
+  const [items, total, outOfStock, lowStock, unitsAgg] = await Promise.all([
+    db.product.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { stock: "asc" },
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        slug: true,
+        stock: true,
+        priceCents: true,
+        category: { select: { name: true } },
+      },
+    }),
+    db.product.count({ where }),
+    db.product.count({ where: { stock: { lte: 0 } } }),
+    db.product.count({ where: { stock: { gt: 0, lte: LOW_STOCK_THRESHOLD } } }),
+    db.product.aggregate({ _sum: { stock: true } }),
+  ]);
+
+  return {
+    items,
+    total,
+    outOfStock,
+    lowStock,
+    totalUnits: unitsAgg._sum.stock ?? 0,
+    page,
+    limit,
+    pageCount: Math.max(1, Math.ceil(total / limit)),
+  };
+}
+
+export async function updateProductStock(id: string, stock: number) {
+  return db.product.update({
+    where: { id },
+    data: { stock: Math.max(0, Math.round(stock)) },
+  });
+}
