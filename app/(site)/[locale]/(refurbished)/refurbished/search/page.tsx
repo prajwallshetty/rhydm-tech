@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { EmptyProducts, ProductGrid } from "@/components/store/product-grid";
 import { Pagination } from "@/components/store/pagination";
@@ -7,11 +8,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { getProducts } from "@/lib/repositories/store";
 import { buildPageHref, parseFilters, type RawSearchParams } from "@/lib/search-params";
 
-export const metadata: Metadata = {
-  title: "Search",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("store.pages");
   // Search result pages carry no SEO value and can generate unbounded URLs.
-  robots: { index: false, follow: true },
-};
+  return { title: t("searchMetaTitle"), robots: { index: false, follow: true } };
+}
 
 type Props = { searchParams: Promise<RawSearchParams> };
 
@@ -20,6 +21,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const filters = parseFilters(params);
   const term = filters.search?.trim() ?? "";
 
+  const t = await getTranslations("store.pages");
   const result = term
     ? await getProducts(filters)
     : { items: [], total: 0, page: 1, perPage: 12, pageCount: 1 };
@@ -27,16 +29,16 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <>
       <PageHeader
-        eyebrow="Search"
-        title={term ? `Results for “${term}”` : "Search the catalog"}
+        eyebrow={t("searchEyebrow")}
+        title={term ? t("searchTitleTerm", { term }) : t("searchTitleEmpty")}
         description={
           term
-            ? `${result.total} ${result.total === 1 ? "match" : "matches"} found.`
-            : "Enter a product, brand or specification in the search bar above."
+            ? t("searchMatches", { count: result.total })
+            : t("searchPrompt")
         }
         breadcrumbs={[
-          { label: "Store", href: "/refurbished" },
-          { label: "Search" },
+          { label: t("crumbStore"), href: "/refurbished" },
+          { label: t("crumbSearch") },
         ]}
       />
 
@@ -49,13 +51,13 @@ export default async function SearchPage({ searchParams }: Props) {
 
         {!term ? (
           <EmptyProducts
-            title="Nothing searched yet"
-            description="Use the search bar to find laptops, servers, docks and more."
+            title={t("nothingSearchedTitle")}
+            description={t("nothingSearchedDesc")}
           />
         ) : result.total === 0 ? (
           <EmptyProducts
-            title={`No results for “${term}”`}
-            description="Check the spelling, try a broader term, or browse the full catalog."
+            title={t("noResultsTitle", { term })}
+            description={t("noResultsDesc")}
           />
         ) : (
           <>

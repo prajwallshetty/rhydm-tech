@@ -142,7 +142,11 @@ export async function getProductBySlug(slug: string) {
       category: true,
       specs: { orderBy: { position: "asc" } },
       images: { orderBy: { position: "asc" } },
-      reviews: { orderBy: { createdAt: "desc" } },
+      // Only moderator-approved reviews are shown publicly.
+      reviews: {
+        where: { status: "APPROVED" },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }
@@ -318,7 +322,7 @@ export async function getStoreFaqs() {
 export async function getStoreTestimonials() {
   return db.testimonial.findMany({
     where: { division: "REFURBISHED", status: PublishStatus.PUBLISHED },
-    orderBy: { position: "asc" },
+    orderBy: [{ featured: "desc" }, { position: "asc" }],
     select: {
       id: true,
       quote: true,
@@ -326,6 +330,7 @@ export async function getStoreTestimonials() {
       role: true,
       company: true,
       rating: true,
+      avatarUrl: true,
     },
   });
 }

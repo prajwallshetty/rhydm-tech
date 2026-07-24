@@ -30,7 +30,6 @@ import {
   deleteIndustry,
   upsertCertification,
   deleteCertification,
-  upsertTestimonial,
   deleteTestimonial,
   upsertFaq,
   deleteFaq,
@@ -40,8 +39,22 @@ import {
   upsertAdminSeoMeta,
   deleteAdminSeoMeta,
   updateAdminSiteSettings,
+  setReviewVerified,
+  setReviewStatus,
+  deleteAdminReview,
+  type ReviewStatusFilter,
+  createAdminCoupon,
+  updateAdminCoupon,
+  setCouponActive,
+  deleteAdminCoupon,
+  updateProductStock,
+  getStockMovements,
+  upsertTestimonialFull,
+  setTestimonialStatus,
+  reorderTestimonials,
+  type AdminCouponInput,
 } from "@/lib/repositories/admin";
-import { OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
+import { Division, OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
 import type { Prisma as PrismaNS } from "@/lib/generated/prisma/client";
 
 // ===========================================================================
@@ -211,12 +224,16 @@ export async function saveCategoryAction(formData: FormData) {
   const slug = formData.get("slug")?.toString().trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const description = formData.get("description")?.toString() || null;
   const imageUrl = formData.get("imageUrl")?.toString() || null;
+  const bannerUrl = formData.get("bannerUrl")?.toString() || null;
+  const thumbnailUrl = formData.get("thumbnailUrl")?.toString() || null;
+  const iconUrl = formData.get("iconUrl")?.toString() || null;
   const parentId = formData.get("parentId")?.toString() || null;
 
+  const payload = { name, slug, description, imageUrl, bannerUrl, thumbnailUrl, iconUrl, parentId };
   if (id) {
-    await updateAdminCategory(id, { name, slug, description, imageUrl, parentId });
+    await updateAdminCategory(id, payload);
   } else {
-    await createAdminCategory({ name, slug, description, imageUrl, parentId });
+    await createAdminCategory(payload);
   }
 
   revalidatePath("/admin/categories");
@@ -399,26 +416,6 @@ export async function deleteCertificationAction(id: string) {
   revalidatePath("/disposal", "layout");
 }
 
-export async function saveTestimonialAction(formData: FormData) {
-  await requireAdmin();
-  const id = formData.get("id")?.toString();
-  const author = formData.get("author")?.toString() || "";
-  const role = formData.get("role")?.toString() || "";
-  const company = formData.get("company")?.toString() || "";
-  const quote = formData.get("quote")?.toString() || "";
-  const rating = parseInt(formData.get("rating")?.toString() || "5", 10);
-
-  await upsertTestimonial({ id, author, role, company, quote, rating });
-  revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
-}
-
-export async function deleteTestimonialAction(id: string) {
-  await requireAdmin();
-  await deleteTestimonial(id);
-  revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
-}
 
 export async function saveFaqAction(formData: FormData) {
   await requireAdmin();
@@ -784,4 +781,233 @@ export async function listMediaForPickerAction() {
     select: { id: true, url: true, key: true, alt: true, filename: true },
   });
   return { assets: rows };
+}
+
+// ===========================================================================
+// Review Actions
+// ===========================================================================
+
+export async function setReviewVerifiedAction(id: string, verified: boolean) {
+  await requireAdmin();
+  await setReviewVerified(id, verified);
+  revalidatePath("/admin/reviews");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+export async function setReviewStatusAction(id: string, status: ReviewStatusFilter) {
+  await requireAdmin();
+  await setReviewStatus(id, status);
+  revalidatePath("/admin/reviews");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+export async function deleteReviewAction(id: string) {
+  await requireAdmin();
+  await deleteAdminReview(id);
+  revalidatePath("/admin/reviews");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+// ===========================================================================
+// Coupon Actions
+// ===========================================================================
+
+/** Parses and validates the coupon form; shared by create and update. */
+function parseCouponForm(formData: FormData): AdminCouponInput | { error: string } {
+  const code = String(formData.get("code") ?? "").trim();
+  if (!code) return { error: "A coupon code is required." };
+
+  const type = String(formData.get("type") ?? "PERCENT") === "FIXED" ? "FIXED" : "PERCENT";
+  const rawValue = Number(formData.get("value"));
+  if (!Number.isFinite(rawValue) || rawValue <= 0) {
+    return { error: "Enter a discount value greater than zero." };
+  }
+  if (type === "PERCENT" && rawValue > 100) {
+    return { error: "A percentage discount cannot exceed 100%." };
+  }
+  // Percent is stored as a whole number; fixed is stored in cents.
+  const value = type === "FIXED" ? Math.round(rawValue * 100) : Math.round(rawValue);
+
+  const minSpendRaw = formData.get("minSpend");
+  const minSpend = minSpendRaw && String(minSpendRaw).trim() !== "" ? Number(minSpendRaw) : null;
+  const minSpendCents =
+    minSpend != null && Number.isFinite(minSpend) && minSpend > 0
+      ? Math.round(minSpend * 100)
+      : null;
+
+  const expiresRaw = String(formData.get("expiresAt") ?? "").trim();
+  const expiresAt = expiresRaw ? new Date(expiresRaw) : null;
+  if (expiresAt && Number.isNaN(expiresAt.getTime())) {
+    return { error: "The expiry date is invalid." };
+  }
+
+  const active = formData.get("active") === "on" || formData.get("active") === "true";
+  const oncePerCustomer =
+    formData.get("oncePerCustomer") === "on" || formData.get("oncePerCustomer") === "true";
+
+  const usageRaw = formData.get("usageLimit");
+  const usageNum = usageRaw && String(usageRaw).trim() !== "" ? Number(usageRaw) : null;
+  const usageLimit =
+    usageNum != null && Number.isFinite(usageNum) && usageNum > 0 ? Math.round(usageNum) : null;
+
+  // Category scope arrives as repeated checkbox values; product scope as a
+  // comma/space/newline-separated list of slugs.
+  const categoryIds = formData.getAll("categoryIds").map(String).filter(Boolean);
+  const productIds = String(formData.get("productIds") ?? "")
+    .split(/[\s,]+/)
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+
+  return {
+    code,
+    type,
+    value,
+    minSpendCents,
+    active,
+    expiresAt,
+    usageLimit,
+    oncePerCustomer,
+    categoryIds,
+    productIds,
+  };
+}
+
+export async function createCouponAction(formData: FormData) {
+  await requireAdmin();
+  const parsed = parseCouponForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+  try {
+    await createAdminCoupon(parsed);
+  } catch {
+    return { error: "That coupon code is already in use." };
+  }
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+export async function updateCouponAction(id: string, formData: FormData) {
+  await requireAdmin();
+  const parsed = parseCouponForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+  try {
+    await updateAdminCoupon(id, parsed);
+  } catch {
+    return { error: "That coupon code is already in use." };
+  }
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+export async function setCouponActiveAction(id: string, active: boolean) {
+  await requireAdmin();
+  await setCouponActive(id, active);
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+export async function deleteCouponAction(id: string) {
+  await requireAdmin();
+  await deleteAdminCoupon(id);
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+// ===========================================================================
+// Inventory Actions
+// ===========================================================================
+
+export async function updateStockAction(id: string, stock: number, note?: string) {
+  await requireAdmin();
+  if (!Number.isFinite(stock) || stock < 0) {
+    return { error: "Stock must be a non-negative number." };
+  }
+  await updateProductStock(id, stock, "Manual adjustment", note);
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin/products");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+/** Stock movement history for the inventory drawer (client fetch, admin-only). */
+export async function getStockHistoryAction(productId: string) {
+  await requireAdmin();
+  const movements = await getStockMovements(productId, 30);
+  return {
+    movements: movements.map((m) => ({
+      id: m.id,
+      delta: m.delta,
+      balance: m.balance,
+      reason: m.reason,
+      note: m.note,
+      createdAt: m.createdAt.toISOString(),
+    })),
+  };
+}
+
+// ===========================================================================
+// Testimonials CMS Actions
+// ===========================================================================
+
+function revalidateTestimonials(division: Division) {
+  revalidatePath("/admin/testimonials");
+  // Testimonials are division-scoped, so only that site needs refreshing.
+  revalidatePath(division === Division.DISPOSAL ? "/disposal" : "/refurbished", "layout");
+}
+
+export async function saveTestimonialCmsAction(formData: FormData) {
+  await requireAdmin();
+
+  const author = String(formData.get("author") ?? "").trim();
+  const quote = String(formData.get("quote") ?? "").trim();
+  if (!author || !quote) {
+    return { error: "Author and quote are required." };
+  }
+
+  const division =
+    String(formData.get("division")) === "REFURBISHED"
+      ? Division.REFURBISHED
+      : Division.DISPOSAL;
+  const ratingRaw = Number(formData.get("rating"));
+  const rating = Number.isFinite(ratingRaw) && ratingRaw >= 1 && ratingRaw <= 5 ? ratingRaw : null;
+
+  await upsertTestimonialFull({
+    id: String(formData.get("id") ?? "") || undefined,
+    division,
+    author,
+    role: String(formData.get("role") ?? "").trim() || null,
+    company: String(formData.get("company") ?? "").trim() || null,
+    quote,
+    rating,
+    avatarUrl: String(formData.get("avatarUrl") ?? "").trim() || null,
+    featured: formData.get("featured") === "on" || formData.get("featured") === "true",
+    // The checkbox only submits when checked; absent means unpublished.
+    status: formData.get("status") === "PUBLISHED" ? PublishStatus.PUBLISHED : PublishStatus.DRAFT,
+  });
+
+  revalidateTestimonials(division);
+  return { success: true };
+}
+
+export async function toggleTestimonialStatusAction(id: string, publish: boolean, division: Division) {
+  await requireAdmin();
+  await setTestimonialStatus(id, publish ? PublishStatus.PUBLISHED : PublishStatus.DRAFT);
+  revalidateTestimonials(division);
+  return { success: true };
+}
+
+export async function deleteTestimonialCmsAction(id: string, division: Division) {
+  await requireAdmin();
+  await deleteTestimonial(id);
+  revalidateTestimonials(division);
+  return { success: true };
+}
+
+export async function reorderTestimonialsAction(orderedIds: string[], division: Division) {
+  await requireAdmin();
+  await reorderTestimonials(orderedIds);
+  revalidateTestimonials(division);
+  return { success: true };
 }

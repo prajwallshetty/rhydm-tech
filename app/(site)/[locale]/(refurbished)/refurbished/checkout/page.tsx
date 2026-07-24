@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { Check, CreditCard, Loader2, Truck, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { useTranslations } from "next-intl";
 
 import { getCartProducts, type CartProduct } from "@/app/(site)/[locale]/(refurbished)/refurbished/cart/actions";
 import { placeOrder, getCheckoutUserDataAction } from "@/app/(site)/[locale]/(refurbished)/refurbished/checkout/actions";
@@ -18,7 +19,7 @@ import {
 import { checkoutSchema, type CheckoutInput } from "@/lib/validation/checkout";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Details", "Shipping", "Delivery", "Review"] as const;
+const STEP_KEYS = ["stepDetails", "stepShipping", "stepDelivery", "stepReview"] as const;
 
 const EMPTY_FORM = {
   email: "",
@@ -40,6 +41,8 @@ const EMPTY_FORM = {
 export default function CheckoutPage() {
   const cart = useStore((s) => s.cart);
   const clearCart = useStore((s) => s.clearCart);
+  const t = useTranslations("store.checkout");
+  const tv = useTranslations("store.checkout.validation");
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -99,7 +102,7 @@ export default function CheckoutPage() {
 
     if (current === 0) {
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) {
-        next.email = "Please enter a valid email address.";
+        next.email = t("emailInvalid");
       }
     }
 
@@ -107,8 +110,12 @@ export default function CheckoutPage() {
       const result = checkoutSchema.shape.shipping.safeParse(form.shipping);
       if (!result.success) {
         for (const issue of result.error.issues) {
-          // Zod paths can contain symbols; coerce for the error key.
-          next[`shipping.${String(issue.path[0])}`] = issue.message;
+          // Zod paths can contain symbols; coerce for the error key. The
+          // English zod message is a fallback; the localized copy is keyed by
+          // field name so it switches with the active locale.
+          const field = String(issue.path[0]);
+          const key = `validation.${field}`;
+          next[`shipping.${field}`] = tv.has(field) ? t(key) : t("validation.generic");
         }
       }
     }
@@ -163,7 +170,7 @@ export default function CheckoutPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-6 text-3xl font-extrabold tracking-tight text-[#0F172A]"
         >
-          Order placed
+          {t("orderPlaced")}
         </motion.h1>
 
         {/* Animated Subtitle */}
@@ -173,8 +180,12 @@ export default function CheckoutPage() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-3 text-sm text-slate-600 leading-relaxed max-w-md mx-auto"
         >
-          Thanks — we&rsquo;ve recorded your order and emailed a copy to{" "}
-          <span className="font-semibold text-slate-900">{form.email}</span>.
+          {t.rich("confirmationBody", {
+            email: form.email,
+            strong: (chunks) => (
+              <span className="font-semibold text-slate-900">{chunks}</span>
+            ),
+          })}
         </motion.p>
 
         {/* Animated Order Info Card */}
@@ -185,20 +196,19 @@ export default function CheckoutPage() {
           className="mt-8 rounded-[20px] border border-slate-200 bg-white p-6 shadow-sm text-left max-w-md mx-auto"
         >
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500 font-medium">Order number</span>
+            <span className="text-slate-500 font-medium">{t("orderNumber")}</span>
             <span className="font-mono font-bold text-slate-900">
               {confirmation.orderNumber}
             </span>
           </div>
           <div className="mt-3 flex justify-between text-sm">
-            <span className="text-slate-500 font-medium">Total</span>
+            <span className="text-slate-500 font-medium">{t("total")}</span>
             <span className="font-extrabold text-[#16A34A]">
               {formatPriceExact(confirmation.totalCents)}
             </span>
           </div>
           <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-500">
-            Online payment integration is coming soon. Our team will contact you
-            to arrange payment before dispatch.
+            {t("paymentContact")}
           </div>
         </motion.div>
 
@@ -210,10 +220,10 @@ export default function CheckoutPage() {
           className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"
         >
           <ButtonLink href="/refurbished/shop" size="lg" className="rounded-xl">
-            Continue shopping
+            {t("continueShopping")}
           </ButtonLink>
           <ButtonLink href="/refurbished/account?tab=orders" variant="outline" size="lg" className="rounded-xl">
-            View orders
+            {t("viewOrders")}
           </ButtonLink>
         </motion.div>
       </div>
@@ -232,13 +242,13 @@ export default function CheckoutPage() {
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Nothing to check out
+          {t("nothingTitle")}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Your cart is empty — add something first.
+          {t("nothingBody")}
         </p>
         <ButtonLink href="/refurbished/shop" className="mt-8">
-          Browse products
+          {t("browseProducts")}
         </ButtonLink>
       </div>
     );
@@ -247,13 +257,13 @@ export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 sm:py-16">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Checkout
+        {t("title")}
       </h1>
 
       {/* Stepper */}
       <ol className="mt-8 flex flex-wrap items-center gap-x-2 gap-y-3">
-        {STEPS.map((label, index) => (
-          <li key={label} className="flex items-center gap-2">
+        {STEP_KEYS.map((stepKey, index) => (
+          <li key={stepKey} className="flex items-center gap-2">
             <span
               className={cn(
                 "grid size-7 place-items-center rounded-full text-xs font-semibold transition-colors",
@@ -270,9 +280,9 @@ export default function CheckoutPage() {
                 index === step ? "font-medium" : "text-muted-foreground",
               )}
             >
-              {label}
+              {t(stepKey)}
             </span>
-            {index < STEPS.length - 1 && (
+            {index < STEP_KEYS.length - 1 && (
               <span aria-hidden className="mx-2 h-px w-6 bg-border sm:w-10" />
             )}
           </li>
@@ -282,9 +292,9 @@ export default function CheckoutPage() {
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_360px]">
         <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8">
           {step === 0 && (
-            <Fieldset title="Customer details">
+            <Fieldset title={t("customerDetails")}>
               <Input
-                label="Email"
+                label={t("email")}
                 id="email"
                 type="email"
                 value={form.email}
@@ -293,13 +303,13 @@ export default function CheckoutPage() {
                 required
               />
               <Input
-                label="Phone"
+                label={t("phone")}
                 id="phone"
                 value={form.phone}
                 onChange={(v) => setForm({ ...form, phone: v })}
               />
               <Input
-                label="Company"
+                label={t("company")}
                 id="company"
                 value={form.company}
                 onChange={(v) => setForm({ ...form, company: v })}
@@ -308,9 +318,9 @@ export default function CheckoutPage() {
           )}
 
           {step === 1 && (
-            <Fieldset title="Shipping address">
+            <Fieldset title={t("shippingAddress")}>
               <Input
-                label="Full name"
+                label={t("fullName")}
                 id="fullName"
                 value={form.shipping.fullName}
                 error={errors["shipping.fullName"]}
@@ -320,7 +330,7 @@ export default function CheckoutPage() {
                 required
               />
               <Input
-                label="Address line 1"
+                label={t("line1")}
                 id="line1"
                 value={form.shipping.line1}
                 error={errors["shipping.line1"]}
@@ -330,7 +340,7 @@ export default function CheckoutPage() {
                 required
               />
               <Input
-                label="Address line 2"
+                label={t("line2")}
                 id="line2"
                 value={form.shipping.line2}
                 onChange={(v) =>
@@ -339,7 +349,7 @@ export default function CheckoutPage() {
               />
               <div className="grid gap-5 sm:grid-cols-2">
                 <Input
-                  label="City"
+                  label={t("city")}
                   id="city"
                   value={form.shipping.city}
                   error={errors["shipping.city"]}
@@ -349,7 +359,7 @@ export default function CheckoutPage() {
                   required
                 />
                 <Input
-                  label="State / Region"
+                  label={t("region")}
                   id="region"
                   value={form.shipping.region}
                   error={errors["shipping.region"]}
@@ -359,7 +369,7 @@ export default function CheckoutPage() {
                   required
                 />
                 <Input
-                  label="Postal code"
+                  label={t("postalCode")}
                   id="postalCode"
                   value={form.shipping.postalCode}
                   error={errors["shipping.postalCode"]}
@@ -372,7 +382,7 @@ export default function CheckoutPage() {
                   required
                 />
                 <Input
-                  label="Country"
+                  label={t("country")}
                   id="country"
                   value={form.shipping.country}
                   onChange={(v) =>
@@ -384,21 +394,21 @@ export default function CheckoutPage() {
           )}
 
           {step === 2 && (
-            <Fieldset title="Delivery method">
+            <Fieldset title={t("deliveryMethod")}>
               <DeliveryOption
                 icon={Truck}
-                title="Standard delivery"
-                detail="3–5 business days"
+                title={t("standard")}
+                detail={t("standardTime")}
                 price={
-                  subtotalCents >= 50_000 ? "Free" : formatPriceExact(1_900)
+                  subtotalCents >= 50_000 ? t("free") : formatPriceExact(1_900)
                 }
                 selected={form.delivery === "standard"}
                 onSelect={() => setForm({ ...form, delivery: "standard" })}
               />
               <DeliveryOption
                 icon={Zap}
-                title="Express delivery"
-                detail="1–2 business days"
+                title={t("express")}
+                detail={t("expressTime")}
                 price={formatPriceExact(EXPRESS_SHIPPING_CENTS)}
                 selected={form.delivery === "express"}
                 onSelect={() => setForm({ ...form, delivery: "express" })}
@@ -406,14 +416,14 @@ export default function CheckoutPage() {
 
               <div className="space-y-2">
                 <label htmlFor="notes" className="block text-sm font-medium">
-                  Delivery notes
+                  {t("notes")}
                 </label>
                 <textarea
                   id="notes"
                   rows={3}
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="Loading dock access, delivery window, site contact…"
+                  placeholder={t("notesPlaceholder")}
                   className="w-full resize-y rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:border-brand"
                 />
               </div>
@@ -422,15 +432,15 @@ export default function CheckoutPage() {
 
           {step === 3 && (
             <div className="space-y-7">
-              <h2 className="text-lg font-medium">Review your order</h2>
+              <h2 className="text-lg font-medium">{t("review")}</h2>
 
-              <ReviewBlock title="Contact">
+              <ReviewBlock title={t("contact")}>
                 {form.email}
                 {form.phone && <> · {form.phone}</>}
                 {form.company && <> · {form.company}</>}
               </ReviewBlock>
 
-              <ReviewBlock title="Shipping to">
+              <ReviewBlock title={t("shippingTo")}>
                 {form.shipping.fullName}
                 <br />
                 {form.shipping.line1}
@@ -447,14 +457,14 @@ export default function CheckoutPage() {
                 {form.shipping.country}
               </ReviewBlock>
 
-              <ReviewBlock title="Delivery">
+              <ReviewBlock title={t("delivery")}>
                 {form.delivery === "express"
-                  ? "Express — 1–2 business days"
-                  : "Standard — 3–5 business days"}
+                  ? `${t("express")} — ${t("expressTime")}`
+                  : `${t("standard")} — ${t("standardTime")}`}
               </ReviewBlock>
 
               <div>
-                <h3 className="text-sm font-medium">Items</h3>
+                <h3 className="text-sm font-medium">{t("items")}</h3>
                 <ul className="mt-3 divide-y divide-border rounded-xl border border-border">
                   {lines.map((line) => (
                     <li
@@ -487,12 +497,10 @@ export default function CheckoutPage() {
                 />
                 <div>
                   <p className="text-sm font-medium">
-                    Online payment integration coming soon
+                    {t("paymentSoonTitle")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Placing this order records it for our team, who will contact
-                    you to arrange payment before dispatch. No card details are
-                    collected.
+                    {t("paymentSoonBody")}
                   </p>
                 </div>
               </div>
@@ -512,21 +520,21 @@ export default function CheckoutPage() {
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               disabled={step === 0 || submitting}
             >
-              Back
+              {t("back")}
             </Button>
 
-            {step < STEPS.length - 1 ? (
+            {step < STEP_KEYS.length - 1 ? (
               <Button
                 onClick={() => {
                   if (validateStep(step)) setStep((s) => s + 1);
                 }}
               >
-                Continue
+                {t("continue")}
               </Button>
             ) : (
               <Button onClick={submit} disabled={submitting} size="lg">
                 {submitting && <Loader2 className="size-4 animate-spin" />}
-                {submitting ? "Placing order…" : "Place order"}
+                {submitting ? t("placing") : t("placeOrder")}
               </Button>
             )}
           </div>
@@ -535,27 +543,27 @@ export default function CheckoutPage() {
         {/* Summary */}
         <aside className="lg:sticky lg:top-24 lg:h-fit">
           <div className="rounded-2xl border border-border/80 bg-card p-6">
-            <h2 className="text-lg font-medium">Summary</h2>
+            <h2 className="text-lg font-medium">{t("summary")}</h2>
             <div className="mt-5 space-y-3 text-sm">
               <SummaryRow
-                label={`Subtotal (${lines.length})`}
+                label={t("subtotalCount", { count: lines.length })}
                 value={formatPriceExact(totals.subtotalCents)}
               />
               <SummaryRow
-                label="Shipping"
+                label={t("shipping")}
                 value={
                   totals.shippingCents === 0
-                    ? "Free"
+                    ? t("free")
                     : formatPriceExact(totals.shippingCents)
                 }
               />
               <SummaryRow
-                label="Estimated tax"
+                label={t("tax")}
                 value={formatPriceExact(totals.taxCents)}
               />
               <div className="border-t border-border pt-3">
                 <div className="flex justify-between">
-                  <span className="font-medium">Total</span>
+                  <span className="font-medium">{t("total")}</span>
                   <span className="text-base font-semibold">
                     {formatPriceExact(totals.totalCents)}
                   </span>
@@ -566,7 +574,7 @@ export default function CheckoutPage() {
               href="/refurbished/cart"
               className="mt-5 block text-center text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              Edit cart
+              {t("editCart")}
             </Link>
           </div>
         </aside>

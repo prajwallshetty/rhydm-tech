@@ -22,6 +22,21 @@ export default async function AdminBrandsPage() {
         </Link>
       </div>
 
+      {brands.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-card px-8 py-20 text-center">
+          <Bookmark className="mx-auto h-10 w-10 text-muted-foreground/40" />
+          <h3 className="mt-4 text-sm font-bold text-foreground">No brands yet</h3>
+          <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
+            Add manufacturer brands so products can be filtered by make.
+          </p>
+          <Link
+            href="/admin/brands/new"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+          >
+            <Plus className="h-4 w-4" /> New Brand
+          </Link>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {brands.map((brand) => (
           <div
@@ -68,6 +83,7 @@ export default async function AdminBrandsPage() {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

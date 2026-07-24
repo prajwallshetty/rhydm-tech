@@ -60,8 +60,14 @@ export function conditionShort(condition: string) {
   return CONDITION_SHORT[condition as ConditionKey] ?? condition;
 }
 
+/**
+ * Stock status as a translatable descriptor. `tone` maps to messages
+ * `store.stock.<tone>`; `count` feeds the `low` message's plural. `label` is
+ * an English fallback for any non-localized call site.
+ */
 export function stockLabel(stock: number) {
-  if (stock <= 0) return { label: "Out of stock", tone: "out" as const };
-  if (stock <= 5) return { label: `Only ${stock} left`, tone: "low" as const };
-  return { label: "In stock", tone: "in" as const };
+  if (stock <= 0) return { label: "Out of stock", tone: "out" as const, count: 0 };
+  if (stock <= 5)
+    return { label: `Only ${stock} left`, tone: "low" as const, count: stock };
+  return { label: "In stock", tone: "in" as const, count: stock };
 }

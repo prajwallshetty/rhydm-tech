@@ -1,131 +1,231 @@
 "use client";
 
-import { TrendingUp, ShoppingBag, DollarSign, Users, ArrowUpRight } from "lucide-react";
+import {
+  DollarSign,
+  ShoppingBag,
+  Eye,
+  Package,
+  Boxes,
+  BarChart3,
+} from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from "recharts";
+
 import { formatMoney } from "@/lib/format";
+import {
+  ChartContainer,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { Tooltip as RTooltip } from "recharts";
 
-export function AnalyticsCharts({ data }: { data: any }) {
-  const { overview, ordersByStatus, topCategories } = data;
+type MonthPoint = {
+  label: string;
+  revenueCents: number;
+  orders: number;
+  units: number;
+  views: number;
+};
 
-  const monthlyRevenue = [
-    { month: "Jan", revenue: 14200 },
-    { month: "Feb", revenue: 18500 },
-    { month: "Mar", revenue: 22100 },
-    { month: "Apr", revenue: 19800 },
-    { month: "May", revenue: 27400 },
-    { month: "Jun", revenue: 31500 },
-    { month: "Jul", revenue: Math.max(34000, Math.round(overview.totalRevenueCents / 100)) },
-  ];
+type AnalyticsData = {
+  series: MonthPoint[];
+  snapshot: {
+    totalProducts: number;
+    totalCustomers: number;
+    totalOrders: number;
+    totalRevenueCents: number;
+    totalStockUnits: number;
+    lowStock: number;
+  };
+};
 
-  const maxRevenue = Math.max(...monthlyRevenue.map((r) => r.revenue));
+const AXIS = { fontSize: 11, className: "fill-muted-foreground" };
+
+export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
+  const { series, snapshot } = data;
+
+  // Revenue is charted in whole currency units so the axis reads naturally.
+  const revenueSeries = series.map((m) => ({ ...m, revenue: m.revenueCents / 100 }));
+
+  const revenueConfig: ChartConfig = {
+    revenue: { label: "Revenue", color: "#2E6F40", formatter: (v) => formatMoney(Math.round(v * 100)) },
+  };
+  const ordersConfig: ChartConfig = {
+    orders: { label: "Orders", color: "#2563EB" },
+  };
+  const salesConfig: ChartConfig = {
+    units: { label: "Units sold", color: "#7C3AED" },
+  };
+  const viewsConfig: ChartConfig = {
+    views: { label: "Product views", color: "#EA580C" },
+  };
 
   return (
-    <div className="space-y-8">
-      {/* Top metric row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border/80 bg-card p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase">
-            <span>Total Revenue</span>
-            <DollarSign className="h-4 w-4 text-emerald-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {formatMoney(overview.totalRevenueCents)}
-          </div>
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-            <ArrowUpRight className="h-3 w-3" /> +18.4% from last month
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border/80 bg-card p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase">
-            <span>Orders Placed</span>
-            <ShoppingBag className="h-4 w-4 text-blue-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">{overview.totalOrders}</div>
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-            <ArrowUpRight className="h-3 w-3" /> +12.1% growth
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border/80 bg-card p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase">
-            <span>Active Customers</span>
-            <Users className="h-4 w-4 text-violet-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">{overview.totalCustomers}</div>
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-            <ArrowUpRight className="h-3 w-3" /> +9.3% new users
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border/80 bg-card p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase">
-            <span>Catalog Items</span>
-            <TrendingUp className="h-4 w-4 text-amber-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">{overview.totalProducts}</div>
-          <div className="text-[11px] text-muted-foreground">In active distribution</div>
-        </div>
+    <div className="space-y-6">
+      {/* Snapshot metric row (all live) */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <Metric icon={DollarSign} label="Revenue" value={formatMoney(snapshot.totalRevenueCents)} />
+        <Metric icon={ShoppingBag} label="Orders" value={String(snapshot.totalOrders)} />
+        <Metric icon={Eye} label="Customers" value={String(snapshot.totalCustomers)} />
+        <Metric icon={Package} label="Products" value={String(snapshot.totalProducts)} />
+        <Metric icon={Boxes} label="Units in stock" value={String(snapshot.totalStockUnits)} />
+        <Metric
+          icon={BarChart3}
+          label="Low stock"
+          value={String(snapshot.lowStock)}
+          tone={snapshot.lowStock > 0 ? "amber" : undefined}
+        />
       </div>
 
-      {/* Main Charts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Revenue Trend Chart (2 cols) */}
-        <div className="lg:col-span-2 rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-6">
-          <div className="flex items-center justify-between border-b border-border/60 pb-4">
-            <div>
-              <h2 className="font-semibold text-foreground text-base">Revenue Growth Trend</h2>
-              <p className="text-xs text-muted-foreground">Monthly sales performance summary</p>
-            </div>
-            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              YTD 2026
-            </span>
-          </div>
+      {/* Charts grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Revenue — area line */}
+        <ChartCard title="Revenue" subtitle="Last 6 months" accent="#2E6F40">
+          <ChartContainer config={revenueConfig} className="h-[240px]">
+            <AreaChart data={revenueSeries} margin={{ left: 4, right: 12, top: 8, bottom: 0 }}>
+              <defs>
+                <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-revenue)" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="var(--color-revenue)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS} />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                width={52}
+                tick={AXIS}
+                tickFormatter={(v: number) => formatMoney(Math.round(v * 100))}
+              />
+              <RTooltip cursor={{ stroke: "var(--color-revenue)", strokeOpacity: 0.2 }} content={<ChartTooltipContent />} />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="var(--color-revenue)"
+                strokeWidth={2.5}
+                fill="url(#fillRevenue)"
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </AreaChart>
+          </ChartContainer>
+        </ChartCard>
 
-          {/* SVG Bar Chart */}
-          <div className="flex h-64 items-end justify-between gap-3 pt-6 border-b border-border/40 pb-4">
-            {monthlyRevenue.map((item) => {
-              const heightPercent = Math.round((item.revenue / maxRevenue) * 100);
-              return (
-                <div key={item.month} className="flex flex-1 flex-col items-center gap-2 h-full justify-end group">
-                  <div className="text-[10px] font-mono font-bold text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                    ${(item.revenue / 1000).toFixed(1)}k
-                  </div>
-                  <div
-                    style={{ height: `${heightPercent}%` }}
-                    className="w-full rounded-t-lg bg-gradient-to-t from-primary to-primary/70 group-hover:from-primary/90 group-hover:to-primary transition-all shadow-sm"
-                  />
-                  <span className="text-xs font-medium text-muted-foreground">{item.month}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Orders — line */}
+        <ChartCard title="Orders" subtitle="Last 6 months" accent="#2563EB">
+          <ChartContainer config={ordersConfig} className="h-[240px]">
+            <LineChart data={series} margin={{ left: 4, right: 12, top: 8, bottom: 0 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS} />
+              <YAxis tickLine={false} axisLine={false} width={32} tick={AXIS} allowDecimals={false} />
+              <RTooltip content={<ChartTooltipContent />} />
+              <Line
+                type="monotone"
+                dataKey="orders"
+                stroke="var(--color-orders)"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ChartContainer>
+        </ChartCard>
 
-        {/* Categories Breakdown (1 col) */}
-        <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-6">
-          <div className="border-b border-border/60 pb-4">
-            <h2 className="font-semibold text-foreground text-base">Top Categories</h2>
-            <p className="text-xs text-muted-foreground">Products by category distribution</p>
-          </div>
+        {/* Sales (units) — line */}
+        <ChartCard title="Sales" subtitle="Units sold · last 6 months" accent="#7C3AED">
+          <ChartContainer config={salesConfig} className="h-[240px]">
+            <LineChart data={series} margin={{ left: 4, right: 12, top: 8, bottom: 0 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS} />
+              <YAxis tickLine={false} axisLine={false} width={32} tick={AXIS} allowDecimals={false} />
+              <RTooltip content={<ChartTooltipContent />} />
+              <Line
+                type="monotone"
+                dataKey="units"
+                stroke="var(--color-units)"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ChartContainer>
+        </ChartCard>
 
-          <div className="space-y-4">
-            {topCategories.map((cat: any) => (
-              <div key={cat.name} className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-foreground">{cat.name}</span>
-                  <span className="text-muted-foreground">{cat.count} products</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    style={{ width: `${Math.min(100, (cat.count / Math.max(1, overview.totalProducts)) * 100)}%` }}
-                    className="h-full rounded-full bg-primary"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Visitors / product views — line */}
+        <ChartCard title="Product Views" subtitle="Storefront activity · last 6 months" accent="#EA580C">
+          <ChartContainer config={viewsConfig} className="h-[240px]">
+            <LineChart data={series} margin={{ left: 4, right: 12, top: 8, bottom: 0 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS} />
+              <YAxis tickLine={false} axisLine={false} width={32} tick={AXIS} allowDecimals={false} />
+              <RTooltip content={<ChartTooltipContent />} />
+              <Line
+                type="monotone"
+                dataKey="views"
+                stroke="var(--color-views)"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ChartContainer>
+        </ChartCard>
       </div>
+    </div>
+  );
+}
+
+function Metric({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  tone?: "amber";
+}) {
+  return (
+    <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
+      <div className="flex items-center justify-between text-[11px] font-semibold uppercase text-muted-foreground">
+        <span>{label}</span>
+        <Icon className={tone === "amber" ? "h-4 w-4 text-amber-500" : "h-4 w-4 text-primary"} />
+      </div>
+      <div className="mt-1.5 text-xl font-bold text-foreground">{value}</div>
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  accent,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  accent: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-foreground">{title}</h2>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        </div>
+        <span className="size-2.5 rounded-full" style={{ backgroundColor: accent }} />
+      </div>
+      {children}
     </div>
   );
 }

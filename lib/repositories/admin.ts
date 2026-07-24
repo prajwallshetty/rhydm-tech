@@ -30,6 +30,82 @@ export async function getDashboardStats() {
   };
 }
 
+export type AdminNotification = {
+  id: string;
+  type: "order" | "review" | "inquiry" | "stock";
+  title: string;
+  detail: string;
+  href: string;
+  tone: "info" | "warning" | "success";
+  count: number;
+};
+
+/**
+ * Live "things that need attention" for the header bell — every entry is a
+ * real, actionable count (pending orders, reviews awaiting moderation, new
+ * enquiries, low stock). No fabricated activity; an empty result means an
+ * empty bell.
+ */
+export async function getAdminNotifications(): Promise<{
+  items: AdminNotification[];
+  total: number;
+}> {
+  const [pendingOrders, pendingReviews, newInquiries, lowStock] = await Promise.all([
+    db.order.count({ where: { status: { in: [OrderStatus.PENDING, OrderStatus.CONFIRMED] } } }),
+    db.review.count({ where: { status: "PENDING" } }),
+    db.contactSubmission.count({ where: { status: SubmissionStatus.NEW } }),
+    db.product.count({ where: { stock: { lte: LOW_STOCK_THRESHOLD } } }),
+  ]);
+
+  const items: AdminNotification[] = [];
+  if (pendingOrders > 0) {
+    items.push({
+      id: "orders",
+      type: "order",
+      title: `${pendingOrders} order${pendingOrders > 1 ? "s" : ""} to process`,
+      detail: "Awaiting confirmation or fulfilment",
+      href: "/admin/orders",
+      tone: "info",
+      count: pendingOrders,
+    });
+  }
+  if (pendingReviews > 0) {
+    items.push({
+      id: "reviews",
+      type: "review",
+      title: `${pendingReviews} review${pendingReviews > 1 ? "s" : ""} to moderate`,
+      detail: "Approve or reject pending reviews",
+      href: "/admin/reviews?status=PENDING",
+      tone: "warning",
+      count: pendingReviews,
+    });
+  }
+  if (newInquiries > 0) {
+    items.push({
+      id: "inquiries",
+      type: "inquiry",
+      title: `${newInquiries} new enquir${newInquiries > 1 ? "ies" : "y"}`,
+      detail: "Unread disposal contact submissions",
+      href: "/admin/disposal",
+      tone: "success",
+      count: newInquiries,
+    });
+  }
+  if (lowStock > 0) {
+    items.push({
+      id: "stock",
+      type: "stock",
+      title: `${lowStock} product${lowStock > 1 ? "s" : ""} low on stock`,
+      detail: `At or below ${LOW_STOCK_THRESHOLD} units on hand`,
+      href: "/admin/inventory?level=low",
+      tone: "warning",
+      count: lowStock,
+    });
+  }
+
+  return { items, total: items.reduce((sum, n) => sum + n.count, 0) };
+}
+
 export async function getRecentOrders(limit = 5) {
   return db.order.findMany({
     take: limit,
@@ -411,6 +487,9 @@ export async function createAdminCategory(data: {
   slug: string;
   description?: string | null;
   imageUrl?: string | null;
+  bannerUrl?: string | null;
+  thumbnailUrl?: string | null;
+  iconUrl?: string | null;
   parentId?: string | null;
   position?: number;
 }) {
@@ -420,6 +499,9 @@ export async function createAdminCategory(data: {
       slug: data.slug,
       description: data.description || null,
       imageUrl: data.imageUrl || null,
+      bannerUrl: data.bannerUrl || null,
+      thumbnailUrl: data.thumbnailUrl || null,
+      iconUrl: data.iconUrl || null,
       parentId: data.parentId || null,
       position: data.position ?? 0,
     },
@@ -433,6 +515,9 @@ export async function updateAdminCategory(
     slug?: string;
     description?: string | null;
     imageUrl?: string | null;
+    bannerUrl?: string | null;
+    thumbnailUrl?: string | null;
+    iconUrl?: string | null;
     parentId?: string | null;
     position?: number;
   }
@@ -444,6 +529,9 @@ export async function updateAdminCategory(
       slug: data.slug,
       description: data.description,
       imageUrl: data.imageUrl,
+      bannerUrl: data.bannerUrl,
+      thumbnailUrl: data.thumbnailUrl,
+      iconUrl: data.iconUrl,
       parentId: data.parentId || null,
       position: data.position,
     },
@@ -921,34 +1009,75 @@ export async function deleteCertification(id: string) {
   return db.certification.delete({ where: { id } });
 }
 
-export async function upsertTestimonial(data: { id?: string; quote: string; author: string; role?: string; company?: string; rating?: number; division?: Division }) {
-  if (data.id) {
-    return db.testimonial.update({
-      where: { id: data.id },
-      data: {
-        quote: data.quote,
-        author: data.author,
-        role: data.role || null,
-        company: data.company || null,
-        rating: data.rating ?? 5,
-        division: data.division || Division.DISPOSAL,
-      },
-    });
-  }
-  return db.testimonial.create({
-    data: {
-      quote: data.quote,
-      author: data.author,
-      role: data.role || null,
-      company: data.company || null,
-      rating: data.rating ?? 5,
-      division: data.division || Division.DISPOSAL,
-    },
+export async function deleteTestimonial(id: string) {
+  return db.testimonial.delete({ where: { id } });
+}
+
+// ---------------------------------------------------------------------------
+// Testimonials CMS (dedicated manager — all fields, ordering, per division)
+// ---------------------------------------------------------------------------
+
+export async function getAdminTestimonials(division?: Division) {
+  return db.testimonial.findMany({
+    where: division ? { division } : undefined,
+    orderBy: [{ division: "asc" }, { position: "asc" }],
   });
 }
 
-export async function deleteTestimonial(id: string) {
-  return db.testimonial.delete({ where: { id } });
+// Storefront ordering (featured first, then admin position) is applied in the
+// store/disposal repositories; the admin list keeps pure position order so
+// drag-reordering maps 1:1 to what the admin sees.
+
+export type TestimonialInput = {
+  id?: string;
+  division: Division;
+  author: string;
+  role: string | null;
+  company: string | null;
+  quote: string;
+  rating: number | null;
+  avatarUrl: string | null;
+  featured: boolean;
+  status: PublishStatus;
+};
+
+export async function upsertTestimonialFull(data: TestimonialInput) {
+  const base = {
+    division: data.division,
+    author: data.author,
+    role: data.role,
+    company: data.company,
+    quote: data.quote,
+    rating: data.rating,
+    avatarUrl: data.avatarUrl,
+    featured: data.featured,
+    status: data.status,
+  };
+  if (data.id) {
+    return db.testimonial.update({ where: { id: data.id }, data: base });
+  }
+  // New rows append to the end of their division's list.
+  const last = await db.testimonial.findFirst({
+    where: { division: data.division },
+    orderBy: { position: "desc" },
+    select: { position: true },
+  });
+  return db.testimonial.create({
+    data: { ...base, position: (last?.position ?? -1) + 1 },
+  });
+}
+
+export async function setTestimonialStatus(id: string, status: PublishStatus) {
+  return db.testimonial.update({ where: { id }, data: { status } });
+}
+
+/** Persists a new drag order: position becomes the index in `orderedIds`. */
+export async function reorderTestimonials(orderedIds: string[]) {
+  await db.$transaction(
+    orderedIds.map((id, index) =>
+      db.testimonial.update({ where: { id }, data: { position: index } }),
+    ),
+  );
 }
 
 export async function upsertFaq(data: { id?: string; question: string; answer: string; division?: Division; category?: string }) {
@@ -1107,34 +1236,86 @@ export async function updateAdminSiteSettings(content: any) {
 // Analytics Module
 // ===========================================================================
 
-export async function getAdminAnalyticsData() {
-  const [totalProducts, totalOrders, totalCustomers, orderAggregate, ordersByStatus, topCategories] = await Promise.all([
-    db.product.count(),
-    db.order.count(),
-    db.user.count({ where: { role: Role.CUSTOMER } }),
-    db.order.aggregate({ _sum: { totalCents: true } }),
-    db.order.groupBy({
-      by: ["status"],
-      _count: { id: true },
-    }),
-    db.category.findMany({
-      take: 5,
-      select: {
-        name: true,
-        _count: { select: { products: true } },
-      },
-    }),
-  ]);
+/**
+ * Real monthly time-series for the analytics dashboard. Everything here is
+ * derived from live tables — orders, order items, recently-viewed events — and
+ * aggregated in memory (fine at this scale), so the charts never show invented
+ * numbers. Months with no activity render as zero rather than being skipped,
+ * which keeps the x-axis continuous.
+ */
+export async function getAnalyticsOverview(months = 6) {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+
+  const monthKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+  // Seed each month bucket so gaps are zeros, not holes.
+  const buckets = new Map<
+    string,
+    { label: string; revenueCents: number; orders: number; units: number; views: number }
+  >();
+  for (let i = 0; i < months; i += 1) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    buckets.set(monthKey(d), {
+      label: d.toLocaleDateString("en-US", { month: "short" }),
+      revenueCents: 0,
+      orders: 0,
+      units: 0,
+      views: 0,
+    });
+  }
+
+  const [orders, orderItems, views, totalProducts, totalCustomers, stockAgg, lowStock, revenueAgg, totalOrders] =
+    await Promise.all([
+      db.order.findMany({
+        where: { createdAt: { gte: start } },
+        select: { createdAt: true, totalCents: true },
+      }),
+      db.orderItem.findMany({
+        where: { order: { createdAt: { gte: start } } },
+        select: { quantity: true, order: { select: { createdAt: true } } },
+      }),
+      db.recentlyViewed.findMany({
+        where: { viewedAt: { gte: start } },
+        select: { viewedAt: true },
+      }),
+      db.product.count(),
+      db.user.count({ where: { role: Role.CUSTOMER } }),
+      db.product.aggregate({ _sum: { stock: true } }),
+      db.product.count({ where: { stock: { gt: 0, lte: LOW_STOCK_THRESHOLD } } }),
+      db.order.aggregate({ _sum: { totalCents: true } }),
+      db.order.count(),
+    ]);
+
+  for (const o of orders) {
+    const b = buckets.get(monthKey(o.createdAt));
+    if (b) {
+      b.revenueCents += o.totalCents;
+      b.orders += 1;
+    }
+  }
+  for (const it of orderItems) {
+    const b = it.order ? buckets.get(monthKey(it.order.createdAt)) : undefined;
+    if (b) b.units += it.quantity;
+  }
+  for (const v of views) {
+    const b = buckets.get(monthKey(v.viewedAt));
+    if (b) b.views += 1;
+  }
+
+  const series = Array.from(buckets.values());
 
   return {
-    overview: {
+    series,
+    snapshot: {
       totalProducts,
-      totalOrders,
       totalCustomers,
-      totalRevenueCents: orderAggregate._sum.totalCents ?? 0,
+      totalOrders,
+      totalRevenueCents: revenueAgg._sum.totalCents ?? 0,
+      totalStockUnits: stockAgg._sum.stock ?? 0,
+      lowStock,
     },
-    ordersByStatus: ordersByStatus.map((o) => ({ status: o.status, count: o._count.id })),
-    topCategories: topCategories.map((c) => ({ name: c.name, count: c._count.products })),
   };
 }
 
@@ -1260,5 +1441,243 @@ export async function getMediaLibrary(filters: {
         },
       },
     },
+  });
+}
+
+// ===========================================================================
+// Reviews Module
+// ===========================================================================
+
+export type ReviewStatusFilter = "PENDING" | "APPROVED" | "REJECTED";
+
+export type AdminReviewFilters = {
+  search?: string;
+  rating?: number;
+  verified?: "verified" | "unverified";
+  status?: ReviewStatusFilter;
+  productId?: string;
+  page?: number;
+  limit?: number;
+};
+
+export async function getAdminReviews(filters: AdminReviewFilters = {}) {
+  const page = Math.max(1, filters.page ?? 1);
+  const limit = Math.max(1, filters.limit ?? 20);
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.ReviewWhereInput = {};
+  if (filters.search) {
+    const q = filters.search.trim();
+    where.OR = [
+      { author: { contains: q, mode: "insensitive" } },
+      { title: { contains: q, mode: "insensitive" } },
+      { body: { contains: q, mode: "insensitive" } },
+      { product: { name: { contains: q, mode: "insensitive" } } },
+    ];
+  }
+  if (filters.rating) where.rating = filters.rating;
+  if (filters.verified === "verified") where.verified = true;
+  if (filters.verified === "unverified") where.verified = false;
+  if (filters.status) where.status = filters.status;
+  if (filters.productId) where.productId = filters.productId;
+
+  const [items, total, verifiedCount, pendingCount, avg] = await Promise.all([
+    db.review.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        product: { select: { name: true, slug: true } },
+      },
+    }),
+    db.review.count({ where }),
+    db.review.count({ where: { ...where, verified: true } }),
+    db.review.count({ where: { status: "PENDING" } }),
+    db.review.aggregate({ where, _avg: { rating: true } }),
+  ]);
+
+  return {
+    items,
+    total,
+    verifiedCount,
+    pendingCount,
+    averageRating: avg._avg.rating ?? 0,
+    page,
+    limit,
+    pageCount: Math.max(1, Math.ceil(total / limit)),
+  };
+}
+
+export async function setReviewVerified(id: string, verified: boolean) {
+  return db.review.update({ where: { id }, data: { verified } });
+}
+
+export async function setReviewStatus(id: string, status: ReviewStatusFilter) {
+  return db.review.update({ where: { id }, data: { status } });
+}
+
+export async function deleteAdminReview(id: string) {
+  return db.review.delete({ where: { id } });
+}
+
+// ===========================================================================
+// Coupons Module
+// ===========================================================================
+
+export type AdminCouponInput = {
+  code: string;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  minSpendCents: number | null;
+  active: boolean;
+  expiresAt: Date | null;
+  usageLimit: number | null;
+  oncePerCustomer: boolean;
+  // Stored as slugs (category slugs / product slugs) so the storefront cart —
+  // which knows slugs, not ids — can match without an extra lookup.
+  categoryIds: string[];
+  productIds: string[];
+};
+
+export async function getAdminCoupons() {
+  return db.coupon.findMany({ orderBy: { createdAt: "desc" } });
+}
+
+function couponData(input: AdminCouponInput) {
+  return {
+    code: input.code.trim().toUpperCase(),
+    type: input.type,
+    value: input.value,
+    minSpendCents: input.minSpendCents,
+    active: input.active,
+    expiresAt: input.expiresAt,
+    usageLimit: input.usageLimit,
+    oncePerCustomer: input.oncePerCustomer,
+    categoryIds: input.categoryIds,
+    productIds: input.productIds,
+  };
+}
+
+export async function createAdminCoupon(input: AdminCouponInput) {
+  return db.coupon.create({ data: couponData(input) });
+}
+
+export async function updateAdminCoupon(id: string, input: AdminCouponInput) {
+  return db.coupon.update({ where: { id }, data: couponData(input) });
+}
+
+export async function setCouponActive(id: string, active: boolean) {
+  return db.coupon.update({ where: { id }, data: { active } });
+}
+
+export async function deleteAdminCoupon(id: string) {
+  return db.coupon.delete({ where: { id } });
+}
+
+// ===========================================================================
+// Inventory Module (a stock-focused view over Products)
+// ===========================================================================
+
+export type AdminInventoryFilters = {
+  search?: string;
+  stockLevel?: "all" | "low" | "out";
+  page?: number;
+  limit?: number;
+};
+
+/** Products at or below this on-hand count are surfaced as "low stock". */
+export const LOW_STOCK_THRESHOLD = 10;
+
+export async function getInventory(filters: AdminInventoryFilters = {}) {
+  const page = Math.max(1, filters.page ?? 1);
+  const limit = Math.max(1, filters.limit ?? 20);
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.ProductWhereInput = {};
+  if (filters.search) {
+    const q = filters.search.trim();
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { sku: { contains: q, mode: "insensitive" } },
+    ];
+  }
+  if (filters.stockLevel === "out") where.stock = { lte: 0 };
+  else if (filters.stockLevel === "low")
+    where.stock = { gt: 0, lte: LOW_STOCK_THRESHOLD };
+
+  const [items, total, outOfStock, lowStock, unitsAgg] = await Promise.all([
+    db.product.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { stock: "asc" },
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        slug: true,
+        stock: true,
+        priceCents: true,
+        category: { select: { name: true } },
+      },
+    }),
+    db.product.count({ where }),
+    db.product.count({ where: { stock: { lte: 0 } } }),
+    db.product.count({ where: { stock: { gt: 0, lte: LOW_STOCK_THRESHOLD } } }),
+    db.product.aggregate({ _sum: { stock: true } }),
+  ]);
+
+  return {
+    items,
+    total,
+    outOfStock,
+    lowStock,
+    totalUnits: unitsAgg._sum.stock ?? 0,
+    page,
+    limit,
+    pageCount: Math.max(1, Math.ceil(total / limit)),
+  };
+}
+
+/**
+ * Sets absolute on-hand stock and records the change in the movement ledger
+ * atomically, so the inventory history always reconciles with the balance.
+ */
+export async function updateProductStock(
+  id: string,
+  stock: number,
+  reason = "Manual adjustment",
+  note?: string,
+) {
+  const next = Math.max(0, Math.round(stock));
+  return db.$transaction(async (tx) => {
+    const current = await tx.product.findUnique({
+      where: { id },
+      select: { stock: true },
+    });
+    if (!current) throw new Error("Product not found");
+
+    const delta = next - current.stock;
+    const product = await tx.product.update({
+      where: { id },
+      data: { stock: next },
+    });
+
+    // Only ledger an actual change.
+    if (delta !== 0) {
+      await tx.stockMovement.create({
+        data: { productId: id, delta, balance: next, reason, note: note || null },
+      });
+    }
+    return product;
+  });
+}
+
+export async function getStockMovements(productId: string, limit = 30) {
+  return db.stockMovement.findMany({
+    where: { productId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
   });
 }

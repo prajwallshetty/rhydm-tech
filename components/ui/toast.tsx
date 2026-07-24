@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Heart, X } from "lucide-react";
 import { create } from "zustand";
+import { useTranslations } from "next-intl";
 
 type Toast = {
   id: number;
@@ -36,6 +37,7 @@ export const useToast = create<ToastState>((set) => ({
 export function Toaster() {
   const toasts = useToast((s) => s.toasts);
   const dismiss = useToast((s) => s.dismiss);
+  const t = useTranslations("common");
 
   return (
     <div
@@ -65,7 +67,7 @@ export function Toaster() {
             <button
               type="button"
               onClick={() => dismiss(toast.id)}
-              aria-label="Dismiss notification"
+              aria-label={t("dismiss")}
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
               <X className="size-4" />

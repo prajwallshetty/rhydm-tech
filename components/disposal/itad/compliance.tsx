@@ -2,11 +2,13 @@
 
 import { motion } from "motion/react";
 import { ShieldCheck, Lock, FileCheck, Award, ArrowUpRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
 import { SpotlightCard } from "@/components/ui/accentry/spotlight-card";
 
 export function ItadCompliance() {
+  const t = useTranslations("disposal.compliance");
   return (
     <section
       className="bg-white py-24 sm:py-32"
@@ -16,7 +18,7 @@ export function ItadCompliance() {
         <div className="mx-auto max-w-3xl text-center">
           <BlurReveal>
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-              BUILT FOR THE FRAMEWORKS YOU ANSWER TO
+              {t("eyebrow")}
             </p>
           </BlurReveal>
 
@@ -25,13 +27,13 @@ export function ItadCompliance() {
               id="itad-compliance-heading"
               className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
             >
-              Certified Compliance for Global Auditors
+              {t("title")}
             </h2>
           </BlurReveal>
 
           <BlurReveal delay={0.2}>
             <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
-              Certifications govern how we operate. The documentation you receive is what proves it — years after the pickup.
+              {t("subtitle")}
             </p>
           </BlurReveal>
         </div>
@@ -57,13 +59,13 @@ export function ItadCompliance() {
                 <div className="md:col-span-5 flex flex-col items-center md:items-start">
                   <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-extrabold text-emerald-800 mb-6">
                     <ShieldCheck className="size-4 text-[#16A34A]" />
-                    <span>OFFICIAL REGISTRATION</span>
+                    <span>{t("officialRegistration")}</span>
                   </div>
 
                   <div className="relative w-full max-w-[280px] aspect-square flex items-center justify-center bg-white p-2">
                     <img
                       src="/isocer.png"
-                      alt="ISO 27001 Certified Penetration Test Reporting Compliance Badge"
+                      alt={t("badgeAlt")}
                       className="w-full h-full object-contain"
                     />
                   </div>
@@ -72,19 +74,19 @@ export function ItadCompliance() {
                 {/* Right Column: Title and Checklist */}
                 <div className="md:col-span-7 flex flex-col items-start">
                   <span className="rounded bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold uppercase text-emerald-800 tracking-wider mb-3">
-                    ISO STANDARD
+                    {t("isoStandard")}
                   </span>
 
                   <h3 className="text-3xl font-extrabold tracking-tight text-[#0F172A]">
-                    ISO 27001 Certification
+                    {t("isoTitle")}
                   </h3>
 
                   <span className="text-[11px] font-black uppercase text-[#16A34A] tracking-wider mt-1.5 mb-5 block">
-                    INFORMATION SECURITY MANAGEMENT
+                    {t("isoSubtitle")}
                   </span>
 
                   <p className="text-sm leading-relaxed text-slate-600 mb-8">
-                    Certified information security management systems governing secure data sanitization, physical drive shredding, and global IT asset disposition workflows.
+                    {t("isoBody")}
                   </p>
 
                   {/* Bullet Highlights */}
@@ -96,10 +98,10 @@ export function ItadCompliance() {
                       </span>
                       <div>
                         <h4 className="text-sm font-bold text-[#0F172A]">
-                          Internationally Recognized
+                          {t("bullet1Title")}
                         </h4>
                         <p className="text-xs text-slate-500">
-                          Aligned with global security standards
+                          {t("bullet1Body")}
                         </p>
                       </div>
                     </div>
@@ -111,10 +113,10 @@ export function ItadCompliance() {
                       </span>
                       <div>
                         <h4 className="text-sm font-bold text-[#0F172A]">
-                          Secure by Design
+                          {t("bullet2Title")}
                         </h4>
                         <p className="text-xs text-slate-500">
-                          Controls built into every process
+                          {t("bullet2Body")}
                         </p>
                       </div>
                     </div>
@@ -126,10 +128,10 @@ export function ItadCompliance() {
                       </span>
                       <div>
                         <h4 className="text-sm font-bold text-[#0F172A]">
-                          Audited & Verified
+                          {t("bullet3Title")}
                         </h4>
                         <p className="text-xs text-slate-500">
-                          Independent audits and continuous compliance
+                          {t("bullet3Body")}
                         </p>
                       </div>
                     </div>
@@ -141,7 +143,7 @@ export function ItadCompliance() {
               <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-8 py-5 md:px-12">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
                   <ShieldCheck className="size-4 text-[#16A34A]" />
-                  <span>AUDITED & REGISTERED VERIFICATION</span>
+                  <span>{t("footerVerification")}</span>
                 </div>
 
                 <a
@@ -150,7 +152,7 @@ export function ItadCompliance() {
                   rel="noreferrer"
                   className="flex min-h-11 items-center gap-1 py-2 -my-2 text-xs font-bold text-[#16A34A] hover:underline"
                 >
-                  <span>VIEW CERTIFICATE</span>
+                  <span>{t("viewCertificate")}</span>
                   <ArrowUpRight className="size-4.5" />
                 </a>
               </div>

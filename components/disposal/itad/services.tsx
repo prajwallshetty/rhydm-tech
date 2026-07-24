@@ -3,6 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Icon } from "@/components/icon";
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
@@ -17,6 +18,7 @@ export type ItadService = {
 };
 
 export function ItadServices({ services }: { services: ItadService[] }) {
+  const t = useTranslations("disposal.servicesSec");
   return (
     <section
       className="relative overflow-hidden bg-white py-24 sm:py-32"
@@ -27,7 +29,7 @@ export function ItadServices({ services }: { services: ItadService[] }) {
           <div className="max-w-2xl">
             <BlurReveal>
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-                END-TO-END CAPABILITIES
+                {t("eyebrow")}
               </p>
             </BlurReveal>
             <BlurReveal delay={0.1}>
@@ -35,7 +37,7 @@ export function ItadServices({ services }: { services: ItadService[] }) {
                 id="itad-services-heading"
                 className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
               >
-                Every Stage of Disposition, One Unified Platform
+                {t("title")}
               </h2>
             </BlurReveal>
           </div>
@@ -45,7 +47,7 @@ export function ItadServices({ services }: { services: ItadService[] }) {
               href="/disposal/services"
               className="group inline-flex min-h-11 items-center gap-1.5 py-2 -my-2 text-sm font-bold text-[#16A34A] hover:underline"
             >
-              <span>Explore All Services</span>
+              <span>{t("exploreAll")}</span>
               <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </BlurReveal>
@@ -74,7 +76,7 @@ export function ItadServices({ services }: { services: ItadService[] }) {
                         <Icon name={service.icon} className="size-5" strokeWidth={1.8} />
                       </span>
                       <span className="rounded-full bg-slate-200/60 px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-slate-700">
-                        ACTIVE SERVICE
+                        {t("activeService")}
                       </span>
                     </div>
 
@@ -88,7 +90,7 @@ export function ItadServices({ services }: { services: ItadService[] }) {
                   </div>
 
                   <div className="mt-6 flex items-center justify-between border-t border-slate-200/60 pt-4 text-xs font-bold text-[#16A34A]">
-                    <span>Technical Overview</span>
+                    <span>{t("technicalOverview")}</span>
                     <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1.5" />
                   </div>
                 </SpotlightCard>

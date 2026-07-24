@@ -17,10 +17,13 @@ import {
   Truck,
 } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 import type { StoreHeroContent } from "@/lib/cms/registry";
 
 export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tc = useTranslations("common");
 
   // Scroll animations for subtle scale/fade as user scrolls down
   const { scrollYProgress } = useScroll({
@@ -194,7 +197,7 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
           >
             <Image
               src="/hero.png"
-              alt="Premium Refurbished Laptop"
+              alt={tc("laptopAlt")}
               width={1280}
               height={853}
               priority

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { Pagination } from "@/components/store/pagination";
 import { ProductFilters } from "@/components/store/product-filters";
@@ -13,11 +14,10 @@ import {
 } from "@/lib/repositories/store";
 import { buildPageHref, parseFilters, type RawSearchParams } from "@/lib/search-params";
 
-export const metadata: Metadata = {
-  title: "Shop All Refurbished IT Equipment",
-  description:
-    "Browse certified refurbished laptops, desktops, servers, networking, monitors, storage and components — all tested, graded and warranty-backed.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("store.pages");
+  return { title: t("shopMetaTitle"), description: t("shopMetaDescription") };
+}
 
 // Next 16: searchParams is a Promise.
 type Props = { searchParams: Promise<RawSearchParams> };
@@ -26,6 +26,7 @@ export default async function ShopPage({ searchParams }: Props) {
   const params = await searchParams;
   const filters = parseFilters(params);
 
+  const t = await getTranslations("store.pages");
   const [result, brands, categories, priceBounds] = await Promise.all([
     getProducts(filters),
     getBrands(),
@@ -36,12 +37,12 @@ export default async function ShopPage({ searchParams }: Props) {
   return (
     <>
       <PageHeader
-        eyebrow="Shop"
-        title="All refurbished equipment"
-        description="Every unit is functionally tested, data-sanitised and graded on a published scale before it reaches this page."
+        eyebrow={t("shopEyebrow")}
+        title={t("shopTitle")}
+        description={t("shopDescription")}
         breadcrumbs={[
-          { label: "Store", href: "/refurbished" },
-          { label: "Shop" },
+          { label: t("crumbStore"), href: "/refurbished" },
+          { label: t("crumbShop") },
         ]}
       />
 
@@ -64,9 +65,9 @@ export default async function ShopPage({ searchParams }: Props) {
           <div>
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/70 pb-5">
               <p className="text-sm text-muted-foreground">
-                {result.total} {result.total === 1 ? "product" : "products"}
+                {t("productCount", { count: result.total })}
                 {result.pageCount > 1 &&
-                  ` · page ${result.page} of ${result.pageCount}`}
+                  ` · ${t("pageOf", { page: result.page, pageCount: result.pageCount })}`}
               </p>
               <SortSelect />
             </div>

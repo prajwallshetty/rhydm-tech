@@ -5,11 +5,14 @@ import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, CheckCircle2, Play } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
 import { WordReveal } from "@/components/ui/accentry/word-reveal";
 import type { DisposalHeroContent } from "@/lib/cms/registry";
 
 export function ItadHero({ content }: { content: DisposalHeroContent }) {
+  const t = useTranslations("disposal.hero");
   const reduceMotion = useReducedMotion();
 
   return (
@@ -129,7 +132,7 @@ export function ItadHero({ content }: { content: DisposalHeroContent }) {
               <div className="relative overflow-hidden rounded-2xl">
                 <Image
                   src="/disposalhero.png"
-                  alt="Global IT Asset Disposition Hardware & Storage Infrastructure"
+                  alt={t("heroAlt")}
                   width={1200}
                   height={1000}
                   priority

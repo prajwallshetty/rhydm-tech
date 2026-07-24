@@ -1,11 +1,13 @@
 import { Link } from "@/i18n/navigation";
 import { ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export type Crumb = { label: string; href?: string };
 
 export function Breadcrumbs({ items }: { items: Crumb[] }) {
+  const t = useTranslations("common");
   return (
-    <nav aria-label="Breadcrumb">
+    <nav aria-label={t("breadcrumb")}>
       <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

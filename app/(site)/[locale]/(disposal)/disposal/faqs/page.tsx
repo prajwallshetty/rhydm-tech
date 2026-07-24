@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Accordion } from "@/components/ui/accordion";
 import { ButtonLink } from "@/components/ui/button";
@@ -8,11 +8,15 @@ import { Section } from "@/components/ui/section";
 import { SITE_URL } from "@/lib/business";
 import { getFaqs } from "@/lib/repositories/disposal";
 
-export const metadata: Metadata = {
-  title: "FAQs",
-  description:
-    "Common questions about collection times, documentation, on-site destruction and multi-site engagements.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "disposal.faqs" });
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
 
 export default async function FaqsPage({
   params,
@@ -22,6 +26,8 @@ export default async function FaqsPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("disposal.faqs");
+  const tc = await getTranslations("disposal");
   const faqs = await getFaqs();
 
   // FAQPage structured data makes these eligible for rich results.
@@ -45,11 +51,11 @@ export default async function FaqsPage({
       />
 
       <PageHeader
-        eyebrow="FAQs"
-        title="Questions we're asked most"
+        eyebrow={t("eyebrow")}
+        title={t("title")}
         breadcrumbs={[
-          { label: "Disposal", href: "/disposal" },
-          { label: "FAQs" },
+          { label: tc("crumb"), href: "/disposal" },
+          { label: t("crumb") },
         ]}
       />
 
@@ -64,12 +70,12 @@ export default async function FaqsPage({
           />
 
           <div className="mt-12 rounded-2xl border border-border/80 bg-muted/40 p-8 text-center">
-            <h2 className="text-lg font-medium">Still have a question?</h2>
+            <h2 className="text-lg font-medium">{t("stillTitle")}</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Speak to a specialist about your estate and compliance needs.
+              {t("stillBody")}
             </p>
             <ButtonLink href="/disposal/contact" className="mt-6">
-              Contact Us
+              {t("contactCta")}
             </ButtonLink>
           </div>
         </div>

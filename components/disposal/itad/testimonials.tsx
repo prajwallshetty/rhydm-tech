@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Star, Quote, Building2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
 import { SpotlightCard } from "@/components/ui/accentry/spotlight-card";
@@ -23,6 +24,7 @@ export function ItadTestimonials({
 }) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
+  const tr = useTranslations("disposal.testimonialsSec");
 
   if (!testimonials || testimonials.length === 0) return null;
   const current = testimonials[index];
@@ -41,7 +43,7 @@ export function ItadTestimonials({
         <div className="text-center">
           <BlurReveal>
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-              ENTERPRISE REVIEWS
+              {tr("eyebrow")}
             </p>
           </BlurReveal>
 
@@ -50,7 +52,7 @@ export function ItadTestimonials({
               id="itad-testimonials-heading"
               className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
             >
-              Trusted by CISOs & IT Leaders Globally
+              {tr("title")}
             </h2>
           </BlurReveal>
         </div>
@@ -121,7 +123,7 @@ export function ItadTestimonials({
 
                   <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-700">
                     <Building2 className="size-4 text-[#16A34A]" />
-                    <span>Enterprise Audit Case Study</span>
+                    <span>{tr("caseStudy")}</span>
                   </div>
                 </figcaption>
               </SpotlightCard>
@@ -140,7 +142,7 @@ export function ItadTestimonials({
                   }}
                   // 44px hit area; the visual dot is the inner span.
                   className="grid h-11 min-w-11 place-items-center"
-                  aria-label={`Go to slide ${i + 1}`}
+                  aria-label={tr("goToSlide", { n: i + 1 })}
                 >
                   <span
                     aria-hidden
@@ -156,7 +158,7 @@ export function ItadTestimonials({
               <button
                 type="button"
                 onClick={() => go(-1)}
-                aria-label="Previous testimonial"
+                aria-label={tr("prev")}
                 className="grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95"
               >
                 <ChevronLeft className="size-5" />
@@ -165,7 +167,7 @@ export function ItadTestimonials({
               <button
                 type="button"
                 onClick={() => go(1)}
-                aria-label="Next testimonial"
+                aria-label={tr("next")}
                 className="grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95"
               >
                 <ChevronRight className="size-5" />

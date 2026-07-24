@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
 import { FadeIn } from "@/components/motion/fade-in";
@@ -7,11 +7,15 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { getBrands } from "@/lib/repositories/store";
 
-export const metadata: Metadata = {
-  title: "Shop by Brand",
-  description:
-    "Refurbished hardware from Dell, HP, Lenovo, Apple, ASUS, Acer, Cisco and Intel.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "store.pages" });
+  return { title: t("brandsMetaTitle"), description: t("brandsMetaDescription") };
+}
 
 export default async function BrandsPage({
   params,
@@ -21,17 +25,18 @@ export default async function BrandsPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("store.pages");
   const brands = await getBrands();
 
   return (
     <>
       <PageHeader
-        eyebrow="Brands"
-        title="Shop by brand"
-        description="The manufacturers we see most often in corporate refresh cycles."
+        eyebrow={t("brandsEyebrow")}
+        title={t("brandsTitle")}
+        description={t("brandsDescription")}
         breadcrumbs={[
-          { label: "Store", href: "/refurbished" },
-          { label: "Brands" },
+          { label: t("crumbStore"), href: "/refurbished" },
+          { label: t("crumbBrands") },
         ]}
       />
 
@@ -48,8 +53,7 @@ export default async function BrandsPage({
                   {brand.name}
                 </span>
                 <span className="mt-2 text-sm text-muted-foreground">
-                  {brand._count.products}{" "}
-                  {brand._count.products === 1 ? "product" : "products"}
+                  {t("productCount", { count: brand._count.products })}
                 </span>
               </Link>
             </FadeIn>

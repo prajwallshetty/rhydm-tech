@@ -1,10 +1,116 @@
 # Build Progress
 
+> **2026-07-24 — admin notification center + audit pass.** The header bell is
+> now a real feed: `getAdminNotifications()` aggregates live actionable counts
+> (orders to process, reviews to moderate, new enquiries, low stock) into a
+> dropdown with a true badge, re-fetched with the 15s layout refresh; empty =
+> "all caught up" (no fabricated items). Audit fixes: relabelled the misleading
+> "Banners" sidebar item to "Disposal CMS" (it opens the whole disposal CMS);
+> added the missing empty state to `/admin/brands`. Every sidebar route now
+> resolves (no broken nav). Still open (no migration, lower priority): a full
+> CMS-split *reorg* of site-content-manager, and a broader perf pass.
+
+
 Living record of what exists, what is verified, and what is next. **Update this
 as work lands** — it is the handover document between sessions, so it should be
 accurate even when nobody remembers the conversation that produced it.
 
-Last updated: 2026-07-22
+Last updated: 2026-07-24
+
+> **2026-07-24 — admin panel audit + module build-out (phase 1 of a larger
+> program).** Audit corrected several stale premises: the sidebar already
+> rendered `/logo.png` (not a "Renewed" wordmark); "Inventory", "Reviews",
+> "Coupons" and "Roles & Permissions" were **placeholder links pointing at
+> existing pages**, not real modules; toasts already worked (the header bell
+> was a static fake showing "8"); `Review` and `Coupon` models existed in the
+> schema with **zero application code**; `Role` is a `User` enum (no RBAC
+> tables). So this was largely a build-out, not a bug-fix pass.
+>
+> **Shipped this pass:**
+> - **Admin shell:** shared `useAdminUi` store (`lib/store/admin-ui.ts`, zustand
+>   + persist) drives a real desktop **collapse-to-icon-rail** (smooth width
+>   transition, tooltips via `title`, persisted, mobile drawer unaffected). The
+>   header menu button now toggles it (previously it had no handler wired). Chat
+>   (`MessageSquare`) button removed; fabricated bell "8" removed; footer shows
+>   the real admin email/name; "Renewed" strings replaced with `COMPANY.name`.
+>   "Roles & Permissions" sidebar item removed (auth `Role` enum kept).
+> - **Reviews** (`/admin/reviews`): list with per-review moderation (verify
+>   toggle, delete), search (author/title/body/product), rating + verified
+>   filters, stat row, pagination, empty state. Revalidates the storefront.
+> - **Coupons** (`/admin/coupons`): full CRUD over the `Coupon` model
+>   (PERCENT/FIXED, value, min-spend, expiry, active), enable/disable, delete,
+>   dialog form with validation. **Checkout validation is live:** cart calls
+>   `validateCoupon()` (server-side: existence/active/expiry/min-spend, discount
+>   computed on the server so a tampered client can't fake it); `calculateTotals`
+>   gained an optional `discountCents` and the cart shows a Discount row.
+> - **Inventory** (`/admin/inventory`): stock-focused view over `Product`
+>   (SKUs, units on hand, low/out-of-stock stats + filters, inline stock edit,
+>   search, pagination). Syncs to storefront on save.
+>
+> All typecheck + full production build clean; sidebar hrefs now resolve (no
+> broken nav). **Deferred (need a Prisma migration against shared Neon — kept
+> out of this turn deliberately):** review approve/reject *status* (only
+> `verified` exists today), coupon product/category scoping + usage-limit +
+> one-time, inventory movement history / warehouse / reserved stock, category
+> image/banner/thumbnail/icon fields, testimonial `featured`/`order` for DnD.
+> **Still to build (no migration):** testimonials CMS, CMS split
+> consolidation, cross-admin consistency sweep. Carrying an applied coupon into
+> the *placed order* is a follow-up (schema already notes coupons are "UI-only
+> until payments integrated").
+>
+> **Follow-up landed same day — dashboard charts.** `/admin/analytics` was the
+> only surface still on placeholder data (the main `/admin` dashboard was
+> already live). Replaced its hardcoded `monthlyRevenue` + hand-rolled bars
+> with **Recharts (3.10) + a small shadcn-style `components/ui/chart.tsx`**
+> primitive (theme-aware via `--color-*` CSS vars, responsive). Four responsive
+> line/area charts — Revenue, Orders, Sales (units), Product Views — plus a
+> six-metric live snapshot row (revenue/orders/customers/products/units-in-
+> stock/low-stock). All fed by a new `getAnalyticsOverview(months)` that
+> aggregates real orders / order-items / `RecentlyViewed` events by month in
+> memory (zero-filled buckets, no invented numbers); "Views" is honestly the
+> `RecentlyViewed` signal, not fabricated visitor analytics. Removed the now
+> orphaned `getAdminAnalyticsData`.
+>
+> **Follow-up landed same day — migration-gated feature set (applied).**
+> Migration `20260724000000_admin_enhancements` **applied to Neon via
+> `prisma migrate deploy`** (the migrate CLI had a transient P1001 cold-start
+> first; the app's pg-adapter path was reachable throughout). Built on it:
+> - **Review moderation (#2):** `ReviewStatus` (PENDING/APPROVED/REJECTED);
+>   `/admin/reviews` gains approve/reject + a status filter + a Pending stat;
+>   storefront `getProductBySlug` now shows only APPROVED reviews. Existing
+>   reviews were backfilled to APPROVED; new ones default to PENDING.
+> - **Inventory movement history (#1):** `StockMovement` ledger; stock edits
+>   now write a signed delta + running balance atomically (`updateProductStock`
+>   in a tx); a per-product history drawer on `/admin/inventory`.
+> - **Coupon scoping/usage (#7):** `usageLimit`/`usageCount`/`oncePerCustomer`/
+>   `redeemedBy[]`/`productIds[]`/`categoryIds[]` (slugs). Admin form gains
+>   usage cap, once-per-customer, category multi-select + product-slug scope;
+>   `validateCoupon` enforces scope + usage cap server-side (cart passes its
+>   item slugs). Note: `usageCount`/`oncePerCustomer` fully bite only once an
+>   order records redemption (still "UI-only until payments").
+> - **Category images (#10):** `bannerUrl`/`thumbnailUrl`/`iconUrl` (imageUrl
+>   pre-existed) editable on new/edit category forms; storefront category cards
+>   + home collection circles prefer the CMS image, falling back to the
+>   generated placeholder. Banner/icon are stored and ready to surface.
+> - **Testimonial featured (#9):** `featured` flag in the CMS form + a badge;
+>   both storefronts order featured-first.
+> Typecheck + full production build clean against the migrated DB.
+>
+> **Earlier same day — Testimonials CMS.** Dedicated `/admin/
+> testimonials` managing both divisions (Refurbished / Disposal tabs): create/
+> edit dialog (author, role/title, company, rating, photo URL, quote, publish
+> toggle), delete, and **drag-to-reorder** (native HTML5 DnD + up/down button
+> fallback for a11y) persisting the existing `Testimonial.position` — no
+> migration needed. Uses new `getAdminTestimonials`/`upsertTestimonialFull`/
+> `setTestimonialStatus`/`reorderTestimonials`. **De-duplicated:** removed the
+> testimonials editor tab from `disposal-cms` (it wrote incomplete rows and
+> duplicated this) — the tab now links to the dedicated CMS; deleted the
+> orphaned `saveTestimonialAction`/`deleteTestimonialAction`/`upsertTestimonial`.
+> Both storefronts consume it: disposal already filtered PUBLISHED + ordered by
+> position; wired the **refurbished home** to `getStoreTestimonials()` (added
+> `avatarUrl`) so CMS entries render there, falling back to the existing
+> hardcoded cards when none are published. "Featured toggle" maps to publish/
+> hide (no `featured` column — a distinct flag would need a migration).
 
 > **2026-07-22 — repo reorganised by collaborator (prajwallshetty):** routes
 > moved into groups (`app/(disposal)/disposal/…`, `app/(refurbished)/…`,
@@ -130,6 +236,27 @@ Last updated: 2026-07-22
 > Remaining to reach 90+ perf on the two 89s: ~100KB unused JS
 > (motion/next-intl chunks) — bundle surgery, diminishing returns.
 
+> **2026-07-23 — i18n translation completeness pass.** Second i18n pass:
+> drove the static-string audit from a 1,245-string baseline (custom scanner,
+> `scripts/i18n-audit.mjs`) to 0 real hardcoded strings (4 remaining are brand
+> names + a TS type — legit). Every visible UI string on public routes now
+> switches en↔de. New message namespaces (`messages/{en,de}.json`, 577 keys,
+> exact parity): `store` (condition/stock/sort/filters/search/product/cart/
+> checkout/wishlist/pagination/detail/home/deals/pages), `disposal` (all
+> subpage chrome + itad homepage sections: compliance/services/industries/
+> testimonials/process/hero + contactForm with localized zod messages),
+> `account` (full customer panel incl. order statuses), `errors` (404), and an
+> expanded shared `common`. `lib/format.ts` stock/condition helpers now expose
+> tone/count/enum-key so callers translate (no English baked in); `lib/store/
+> sort.ts` carries message keys. Locale-aware order dates via `getLocale()`.
+> Deleted 11 dead components found during the sweep (7 legacy `disposal-*`, 4
+> unused `itad/*`). Verified live against a production build: German renders on
+> cart/shop/disposal-faqs/disposal-home, English control unaffected, build
+> clean. **Still English (deferred, by design):** DB content (products,
+> services, FAQs, testimonials, categories — needs translation tables), the
+> admin panel (`app/(backend)`, intentionally English), and transactional
+> emails.
+>
 > **2026-07-23 — i18n (en/de) via next-intl.** Public routes moved to
 > `app/(site)/[locale]/…`; admin/auth moved to `app/(backend)/…` — two root
 > layouts via route groups (public gets `<html lang={locale}>` + intl

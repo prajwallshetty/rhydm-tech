@@ -80,7 +80,7 @@ export async function getFaqs() {
 export async function getTestimonials() {
   return db.testimonial.findMany({
     where: { division: "DISPOSAL", status: PublishStatus.PUBLISHED },
-    orderBy: { position: "asc" },
+    orderBy: [{ featured: "desc" }, { position: "asc" }],
     select: {
       id: true,
       quote: true,

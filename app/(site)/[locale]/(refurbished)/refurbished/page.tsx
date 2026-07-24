@@ -9,6 +9,7 @@ import {
   getBrands,
   getCategories,
   getFeaturedProducts,
+  getStoreTestimonials,
 } from "@/lib/repositories/store";
 
 export default async function RefurbishedHomePage({
@@ -19,12 +20,13 @@ export default async function RefurbishedHomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [featured, bestSellers, categories, brands, heroContent] =
+  const [featured, bestSellers, categories, brands, testimonials, heroContent] =
     await Promise.all([
       getFeaturedProducts(8),
       getBestSellers(8),
       getCategories(),
       getBrands(),
+      getStoreTestimonials(),
       getSectionContent<StoreHeroContent>("section.refurbished.hero", locale),
     ]);
 
@@ -43,6 +45,7 @@ export default async function RefurbishedHomePage({
         featuredProducts={featured}
         bestSellers={bestSellers}
         brands={brands}
+        testimonials={testimonials}
       />
     </div>
   );

@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { usePathname } from "@/i18n/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function BackToTop() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
+  const t = useTranslations("common");
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -45,7 +47,7 @@ export function BackToTop() {
           whileTap={{ scale: 0.95 }}
           onClick={scrollToTop}
           className="fixed bottom-6 right-6 z-50 flex size-12 items-center justify-center rounded-full bg-[#16A34A] text-white shadow-lg shadow-[#16A34A]/20 transition-all hover:bg-[#15803D] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#16A34A] focus:ring-offset-2"
-          aria-label="Return to top of page"
+          aria-label={t("returnToTop")}
         >
           <ArrowUp className="size-5" strokeWidth={2.5} />
         </motion.button>

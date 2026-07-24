@@ -25,13 +25,12 @@ import {
   deleteIndustryAction,
   saveCertificationAction,
   deleteCertificationAction,
-  saveTestimonialAction,
-  deleteTestimonialAction,
   saveFaqAction,
   deleteFaqAction,
   updateSubmissionStatusAction,
 } from "@/app/(backend)/(admin)/admin/actions";
 import { SubmissionStatus } from "@/lib/generated/prisma/enums";
+import Link from "next/link";
 
 export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
   const [activeTab, setActiveTab] = useState<
@@ -312,62 +311,23 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
         </div>
       )}
 
-      {/* Tab 6: Testimonials */}
+      {/* Tab 6: Testimonials — now managed in the dedicated Testimonials CMS. */}
       {activeTab === "testimonials" && (
-        <div className="space-y-6">
-          <form action={saveTestimonialAction} className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4 max-w-2xl">
-            <h3 className="text-sm font-bold text-foreground">Add Client Testimonial</h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <input
-                type="text"
-                name="author"
-                required
-                placeholder="Author Name"
-                className="rounded-lg border border-input bg-background/50 px-3 py-2 text-xs outline-none focus:border-primary"
-              />
-              <input
-                type="text"
-                name="role"
-                placeholder="Role (e.g. Head of IT)"
-                className="rounded-lg border border-input bg-background/50 px-3 py-2 text-xs outline-none focus:border-primary"
-              />
-              <input
-                type="text"
-                name="company"
-                placeholder="Company"
-                className="rounded-lg border border-input bg-background/50 px-3 py-2 text-xs outline-none focus:border-primary"
-              />
-            </div>
-            <textarea
-              name="quote"
-              required
-              rows={3}
-              placeholder="Testimonial quote..."
-              className="w-full rounded-lg border border-input bg-background/50 p-3 text-xs outline-none focus:border-primary"
-            />
-            <button type="submit" className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground cursor-pointer">
-              <Plus className="h-4 w-4" /> Add Testimonial
-            </button>
-          </form>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {cmsData.testimonials.map((t: any) => (
-              <div key={t.id} className="flex flex-col justify-between rounded-xl border border-border/80 bg-card p-4 shadow-sm">
-                <p className="text-xs italic text-muted-foreground">"{t.quote}"</p>
-                <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2">
-                  <div>
-                    <div className="font-semibold text-xs text-foreground">{t.author}</div>
-                    <div className="text-[10px] text-muted-foreground">{t.role} · {t.company}</div>
-                  </div>
-                  <form action={deleteTestimonialAction.bind(null, t.id)}>
-                    <button type="submit" className="text-muted-foreground hover:text-destructive p-1">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="rounded-xl border border-border/80 bg-card p-8 text-center shadow-sm max-w-2xl">
+          <MessageSquare className="mx-auto size-8 text-muted-foreground/50" />
+          <h3 className="mt-3 text-sm font-bold text-foreground">
+            Testimonials moved to their own manager
+          </h3>
+          <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground">
+            Manage disposal and refurbished testimonials — with photos, ratings,
+            publish state and drag-to-reorder — in one place.
+          </p>
+          <Link
+            href="/admin/testimonials"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+          >
+            Open Testimonials CMS
+          </Link>
         </div>
       )}
 

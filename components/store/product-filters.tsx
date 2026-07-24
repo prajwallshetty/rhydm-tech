@@ -4,23 +4,15 @@ import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export type FilterOption = { value: string; label: string; count?: number };
 
-const CONDITIONS: FilterOption[] = [
-  { value: "GRADE_A", label: "Grade A — Excellent" },
-  { value: "GRADE_B", label: "Grade B — Good" },
-  { value: "GRADE_C", label: "Grade C — Fair" },
-  { value: "OPEN_BOX", label: "Open Box" },
-];
-
-const WARRANTIES: FilterOption[] = [
-  { value: "12", label: "12 months or more" },
-  { value: "24", label: "24 months or more" },
-];
+const CONDITION_VALUES = ["GRADE_A", "GRADE_B", "GRADE_C", "OPEN_BOX"] as const;
+const WARRANTY_VALUES = ["12", "24"] as const;
 
 /**
  * Filters are held in the URL rather than component state: results stay
@@ -42,6 +34,8 @@ export function ProductFilters({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const t = useTranslations("store.filters");
+  const tc = useTranslations("store.condition");
 
   const selected = (key: string) => searchParams.getAll(key);
 
@@ -90,12 +84,12 @@ export function ProductFilters({
           className="inline-flex items-center gap-1.5 text-sm font-medium text-brand"
         >
           <X className="size-3.5" />
-          Clear all filters ({activeCount})
+          {t("clearAll", { count: activeCount })}
         </button>
       )}
 
       {showCategories && categories.length > 0 && (
-        <Group title="Category">
+        <Group title={t("category")}>
           {categories.map((option) => (
             <Check
               key={option.value}
@@ -108,7 +102,7 @@ export function ProductFilters({
         </Group>
       )}
 
-      <Group title="Brand">
+      <Group title={t("brand")}>
         {brands.map((option) => (
           <Check
             key={option.value}
@@ -120,18 +114,18 @@ export function ProductFilters({
         ))}
       </Group>
 
-      <Group title="Condition">
-        {CONDITIONS.map((option) => (
+      <Group title={t("condition")}>
+        {CONDITION_VALUES.map((value) => (
           <Check
-            key={option.value}
-            label={option.label}
-            checked={selected("condition").includes(option.value)}
-            onChange={() => toggle("condition", option.value)}
+            key={value}
+            label={tc(value)}
+            checked={selected("condition").includes(value)}
+            onChange={() => toggle("condition", value)}
           />
         ))}
       </Group>
 
-      <Group title="Max price">
+      <Group title={t("maxPrice")}>
         <input
           type="range"
           min={priceBounds.minCents}
@@ -139,38 +133,36 @@ export function ProductFilters({
           step={1000}
           value={maxPrice ?? priceBounds.maxCents}
           onChange={(e) => setSingle("maxPrice", e.target.value)}
-          aria-label="Maximum price"
+          aria-label={t("maxPriceAria")}
           className="w-full accent-[var(--brand)]"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{formatPrice(priceBounds.minCents)}</span>
           <span className="font-medium text-foreground">
-            up to {formatPrice(Number(maxPrice ?? priceBounds.maxCents))}
+            {t("upTo", { price: formatPrice(Number(maxPrice ?? priceBounds.maxCents)) })}
           </span>
         </div>
       </Group>
 
-      <Group title="Warranty">
-        {WARRANTIES.map((option) => (
+      <Group title={t("warranty")}>
+        {WARRANTY_VALUES.map((value) => (
           <Check
-            key={option.value}
-            label={option.label}
-            checked={searchParams.get("warranty") === option.value}
+            key={value}
+            label={value === "12" ? t("months12") : t("months24")}
+            checked={searchParams.get("warranty") === value}
             onChange={() =>
               setSingle(
                 "warranty",
-                searchParams.get("warranty") === option.value
-                  ? null
-                  : option.value,
+                searchParams.get("warranty") === value ? null : value,
               )
             }
           />
         ))}
       </Group>
 
-      <Group title="Availability">
+      <Group title={t("availability")}>
         <Check
-          label="In stock only"
+          label={t("inStockOnly")}
           checked={searchParams.get("inStock") === "1"}
           onChange={() =>
             setSingle("inStock", searchParams.get("inStock") === "1" ? null : "1")
@@ -189,7 +181,7 @@ export function ProductFilters({
         className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium lg:hidden"
       >
         <SlidersHorizontal className="size-4" />
-        Filters
+        {t("title")}
         {activeCount > 0 && (
           <span className="rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
             {activeCount}
@@ -207,15 +199,15 @@ export function ProductFilters({
           />
           <div
             role="dialog"
-            aria-label="Filters"
+            aria-label={t("title")}
             className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto bg-background p-6"
           >
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-medium">Filters</h2>
+              <h2 className="text-lg font-medium">{t("title")}</h2>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                aria-label="Close filters"
+                aria-label={t("close")}
                 className="grid size-9 place-items-center rounded-lg border border-border/70"
               >
                 <X className="size-4" />

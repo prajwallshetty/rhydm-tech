@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Award, FileCheck, ShieldCheck } from "lucide-react";
 
 import { FadeIn } from "@/components/motion/fade-in";
@@ -8,32 +8,15 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { getCertifications } from "@/lib/repositories/disposal";
 
-export const metadata: Metadata = {
-  title: "Certificates & Compliance",
-  description:
-    "ISO 27001, ISO 14001, R2v3 and NIST 800-88 aligned processes, with serial-level certificates of destruction for every asset.",
-};
-
-const DOCUMENTS = [
-  {
-    icon: FileCheck,
-    title: "Certificate of Destruction",
-    description:
-      "Issued per asset with serial number, method of destruction and date. The document auditors ask for by name.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Data Sanitisation Report",
-    description:
-      "Per-device erasure verification, including any media quarantined for physical destruction after a failed wipe.",
-  },
-  {
-    icon: Award,
-    title: "Environmental Impact Summary",
-    description:
-      "Weight recovered, diversion rate and downstream partners — formatted to drop into ESG disclosures.",
-  },
-];
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "disposal.certificates" });
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
 
 export default async function CertificatesPage({
   params,
@@ -43,24 +26,33 @@ export default async function CertificatesPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("disposal.certificates");
+  const tc = await getTranslations("disposal");
+
+  const DOCUMENTS = [
+    { icon: FileCheck, title: t("doc1Title"), description: t("doc1Desc") },
+    { icon: ShieldCheck, title: t("doc2Title"), description: t("doc2Desc") },
+    { icon: Award, title: t("doc3Title"), description: t("doc3Desc") },
+  ];
+
   const certifications = await getCertifications();
 
   return (
     <>
       <PageHeader
-        eyebrow="Certificates"
-        title="Evidence, not assurances"
-        description="Accreditation governs how we operate. The paperwork you receive is what proves it, years after the collection."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
         breadcrumbs={[
-          { label: "Disposal", href: "/disposal" },
-          { label: "Certificates" },
+          { label: tc("crumb"), href: "/disposal" },
+          { label: t("crumb") },
         ]}
       />
 
       <Section>
         <SectionHeading
-          eyebrow="Accreditation"
-          title="Standards we operate to"
+          eyebrow={t("accreditationEyebrow")}
+          title={t("accreditationTitle")}
           align="left"
         />
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -89,9 +81,9 @@ export default async function CertificatesPage({
 
       <Section className="border-t border-border/70 bg-muted/30">
         <SectionHeading
-          eyebrow="Documentation"
-          title="What you receive"
-          description="Issued after every engagement, at the serial-number level."
+          eyebrow={t("docsEyebrow")}
+          title={t("docsTitle")}
+          description={t("docsDescription")}
         />
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {DOCUMENTS.map((doc, i) => (
@@ -111,7 +103,7 @@ export default async function CertificatesPage({
 
         <FadeIn onScroll className="mt-12 text-center">
           <ButtonLink href="/disposal/contact" size="lg">
-            Request Sample Documentation
+            {t("requestDocs")}
           </ButtonLink>
         </FadeIn>
       </Section>

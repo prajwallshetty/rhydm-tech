@@ -2,15 +2,17 @@
 
 import { Maximize2, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { ProductThumb } from "@/components/store/product-thumb";
 import { cn } from "@/lib/utils";
 
 /**
  * Gallery with zoom-on-hover. Views are placeholder renders until real
- * photography exists — see ProductThumb.
+ * photography exists — see ProductThumb. Each entry maps to a `common.view*`
+ * label.
  */
-const VIEWS = ["Front", "Angle", "Ports", "Detail"] as const;
+const VIEW_KEYS = ["viewFront", "viewAngle", "viewPorts", "viewDetail"] as const;
 
 export function ProductGallery({
   slug,
@@ -26,6 +28,7 @@ export function ProductGallery({
   const [active, setActive] = useState(0);
   const [zoomed, setZoomed] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
+  const t = useTranslations("common");
 
   return (
     <div className="space-y-4">
@@ -43,7 +46,7 @@ export function ProductGallery({
         <ProductThumb
           slug={`${slug}-${active}`}
           category={category}
-          name={`${name}, ${VIEWS[active]} view`}
+          name={t("viewSuffix", { name, view: t(VIEW_KEYS[active]) })}
           variant={active % 2 === 0 ? "primary" : "hover"}
           className={cn(
             "absolute inset-6 transition-transform duration-300",
@@ -58,7 +61,7 @@ export function ProductGallery({
 
         <span className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-xs text-muted-foreground opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
           <Maximize2 className="size-3" />
-          Hover to zoom
+          {t("hoverToZoom")}
         </span>
 
         {/* 360° placeholder, per the brief — not yet wired to a spin sequence. */}
@@ -73,12 +76,12 @@ export function ProductGallery({
       </div>
 
       <div className="grid grid-cols-4 gap-3">
-        {VIEWS.map((view, index) => (
+        {VIEW_KEYS.map((viewKey, index) => (
           <button
-            key={view}
+            key={viewKey}
             type="button"
             onClick={() => setActive(index)}
-            aria-label={`Show ${view} view`}
+            aria-label={t("showView", { view: t(viewKey) })}
             aria-pressed={active === index}
             className={cn(
               "relative aspect-square overflow-hidden rounded-xl border p-2 transition-colors",
@@ -90,7 +93,7 @@ export function ProductGallery({
             <ProductThumb
               slug={`${slug}-${index}`}
               category={category}
-              name={`${name} thumbnail ${view}`}
+              name={`${name} — ${t(viewKey)}`}
               variant={index % 2 === 0 ? "primary" : "hover"}
               className="absolute inset-2"
             />

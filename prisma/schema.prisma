@@ -299,6 +299,7 @@ model Testimonial {
   company   String?
   rating    Int?
   avatarUrl String?
+  featured  Boolean       @default(false)
   status    PublishStatus @default(PUBLISHED)
   position  Int           @default(0)
 
@@ -366,6 +367,9 @@ model Category {
   name        String
   description String? @db.Text
   imageUrl    String?
+  bannerUrl   String?
+  thumbnailUrl String?
+  iconUrl     String?
   parentId    String?
   position    Int     @default(0)
 
@@ -421,12 +425,19 @@ model Product {
   recentlyViewed RecentlyViewed[]
   options        ProductOption[]
   variants       ProductVariant[]
+  stockMovements StockMovement[]
 
   @@index([categoryId, status])
   @@index([brandId])
   @@index([featured, status])
   @@index([bestSeller, status])
   @@index([priceCents])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Review {
@@ -439,6 +450,28 @@ model Review {
   body      String   @db.Text
   /// Set when the reviewer's order for this product is confirmed.
   verified  Boolean  @default(false)
+  /// Moderation state. New submissions default to PENDING; only APPROVED
+  /// reviews are shown on the storefront. (Rows that predate this column are
+  /// backfilled to APPROVED by the migration so nothing disappears.)
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, createdAt])
+  @@index([status])
+}
+
+/// Append-only audit trail of on-hand stock changes, so an admin can see who
+/// adjusted what and when. `delta` is signed (positive = restock).
+model StockMovement {
+  id        String   @id @default(cuid())
+  productId String
+  delta     Int
+  /// Resulting on-hand quantity after this movement, for a running ledger.
+  balance   Int
+  reason    String
+  note      String?
   createdAt DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -604,6 +637,18 @@ model Coupon {
   minSpendCents Int?
   active        Boolean      @default(true)
   expiresAt     DateTime?
+  /// Redemption cap across all customers (null = unlimited) and the running
+  /// count. `oncePerCustomer` limits a code to one use per customer email.
+  usageLimit      Int?
+  usageCount      Int      @default(0)
+  oncePerCustomer Boolean  @default(false)
+  /// One-time redemption ledger (customer emails). Kept as a scalar list
+  /// rather than a join table since it is only ever read/appended wholesale.
+  redeemedBy      String[] @default([])
+  /// Optional scoping: when non-empty, the coupon only applies to carts that
+  /// contain at least one matching product / category. Empty = whole cart.
+  productIds    String[] @default([])
+  categoryIds   String[] @default([])
   createdAt     DateTime     @default(now())
 }
 

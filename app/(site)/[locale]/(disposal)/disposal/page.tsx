@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ItadComparison } from "@/components/disposal/itad/comparison";
 import { ItadCompliance } from "@/components/disposal/itad/compliance";
@@ -8,10 +8,7 @@ import { ItadHero } from "@/components/disposal/itad/hero";
 import { ItadIndustries } from "@/components/disposal/itad/industries";
 import { ItadProcess } from "@/components/disposal/itad/process";
 import { ItadServices } from "@/components/disposal/itad/services";
-import { ItadShowcase } from "@/components/disposal/itad/showcase";
 import { ItadTestimonials } from "@/components/disposal/itad/testimonials";
-import { ItadTrustMarquee } from "@/components/disposal/itad/trust-marquee";
-import { ItadValueRecovery } from "@/components/disposal/itad/value-recovery";
 import { ItadWhyBento } from "@/components/disposal/itad/why-bento";
 import { Accordion } from "@/components/ui/accordion";
 import { SITE_URL } from "@/lib/business";
@@ -30,30 +27,35 @@ import {
   getTestimonials,
 } from "@/lib/repositories/disposal";
 
-export const metadata: Metadata = {
-  title:
-    "Global IT Asset Disposition (ITAD) Services | Secure Data Destruction & Asset Recovery",
-  description:
-    "Secure IT Asset Disposition (ITAD) with certified data destruction, global recycling, refurbishment, resale, and audit-ready compliance across 120+ countries.",
-  keywords: [
-    "IT Asset Disposition",
-    "ITAD",
-    "IT Asset Disposal",
-    "Data Destruction",
-    "Secure Data Wiping",
-    "Enterprise ITAD",
-    "Global ITAD",
-    "IT Lifecycle Management",
-    "Asset Recovery",
-    "E-Waste Recycling",
-  ],
-  openGraph: {
-    title: "Global IT Asset Disposition (ITAD), Simplified",
-    description:
-      "Securely retire, wipe, refurbish, recycle, redeploy, and recover value from IT assets across 120+ countries.",
-    url: "/disposal",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "disposal.home" });
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    keywords: [
+      "IT Asset Disposition",
+      "ITAD",
+      "IT Asset Disposal",
+      "Data Destruction",
+      "Secure Data Wiping",
+      "Enterprise ITAD",
+      "Global ITAD",
+      "IT Lifecycle Management",
+      "Asset Recovery",
+      "E-Waste Recycling",
+    ],
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+      url: "/disposal",
+    },
+  };
+}
 
 export default async function DisposalHomePage({
   params,
@@ -62,6 +64,8 @@ export default async function DisposalHomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+
+  const t = await getTranslations("disposal.home");
 
   // Structured content (services, steps, …) and free-form section copy are
   // both CMS-driven — fetched in one parallel round.
@@ -123,13 +127,13 @@ export default async function DisposalHomePage({
         <div className="mx-auto max-w-3xl px-6 lg:px-8">
           <div className="text-center">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
-              FAQ
+              {t("faqEyebrow")}
             </p>
             <h2
               id="itad-faq-heading"
               className="mt-3 text-3xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl"
             >
-              Frequently Asked Questions
+              {t("faqTitle")}
             </h2>
           </div>
           <div className="mt-14">

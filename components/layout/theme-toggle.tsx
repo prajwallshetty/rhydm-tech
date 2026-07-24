@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 /**
  * Both icons are rendered and CSS picks one via the `dark` variant. This
@@ -11,12 +12,13 @@ import { useTheme } from "next-themes";
  */
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const t = useTranslations("common");
 
   return (
     <button
       type="button"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      aria-label="Toggle light and dark theme"
+      aria-label={t("toggleTheme")}
       className="grid size-9 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
     >
       <Moon className="size-4 dark:hidden" strokeWidth={1.8} />

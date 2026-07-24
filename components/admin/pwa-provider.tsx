@@ -144,7 +144,7 @@ export function PwaProvider() {
             />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-extrabold text-foreground">
-                Install Renewed Admin
+                Install Admin App
               </p>
               <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                 Access your dashboard faster with the installed app.

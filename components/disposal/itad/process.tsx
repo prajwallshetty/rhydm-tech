@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { BlurReveal } from "@/components/ui/accentry/blur-reveal";
 
 export type ItadProcessStep = {
@@ -16,6 +17,7 @@ export type ItadProcessStep = {
  * ProcessStep table, managed in the admin CMS.
  */
 export function ItadProcess({ steps }: { steps: ItadProcessStep[] }) {
+  const t = useTranslations("disposal.processSec");
   return (
     <section
       id="itad-process"
@@ -26,16 +28,16 @@ export function ItadProcess({ steps }: { steps: ItadProcessStep[] }) {
         <div className="mx-auto max-w-3xl text-center">
           <BlurReveal>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#16A34A]">
-              7-Step Certified Chain of Custody
+              {t("chainEyebrow")}
             </p>
           </BlurReveal>
-          
+
           <BlurReveal delay={0.1}>
             <h2
               id="itad-process-heading"
               className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 text-balance sm:text-5xl"
             >
-              From pickup to certificate, fully documented
+              {t("eyebrow")}
             </h2>
           </BlurReveal>
         </div>
