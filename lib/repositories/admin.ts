@@ -921,34 +921,69 @@ export async function deleteCertification(id: string) {
   return db.certification.delete({ where: { id } });
 }
 
-export async function upsertTestimonial(data: { id?: string; quote: string; author: string; role?: string; company?: string; rating?: number; division?: Division }) {
-  if (data.id) {
-    return db.testimonial.update({
-      where: { id: data.id },
-      data: {
-        quote: data.quote,
-        author: data.author,
-        role: data.role || null,
-        company: data.company || null,
-        rating: data.rating ?? 5,
-        division: data.division || Division.DISPOSAL,
-      },
-    });
-  }
-  return db.testimonial.create({
-    data: {
-      quote: data.quote,
-      author: data.author,
-      role: data.role || null,
-      company: data.company || null,
-      rating: data.rating ?? 5,
-      division: data.division || Division.DISPOSAL,
-    },
+export async function deleteTestimonial(id: string) {
+  return db.testimonial.delete({ where: { id } });
+}
+
+// ---------------------------------------------------------------------------
+// Testimonials CMS (dedicated manager — all fields, ordering, per division)
+// ---------------------------------------------------------------------------
+
+export async function getAdminTestimonials(division?: Division) {
+  return db.testimonial.findMany({
+    where: division ? { division } : undefined,
+    orderBy: [{ division: "asc" }, { position: "asc" }],
   });
 }
 
-export async function deleteTestimonial(id: string) {
-  return db.testimonial.delete({ where: { id } });
+export type TestimonialInput = {
+  id?: string;
+  division: Division;
+  author: string;
+  role: string | null;
+  company: string | null;
+  quote: string;
+  rating: number | null;
+  avatarUrl: string | null;
+  status: PublishStatus;
+};
+
+export async function upsertTestimonialFull(data: TestimonialInput) {
+  const base = {
+    division: data.division,
+    author: data.author,
+    role: data.role,
+    company: data.company,
+    quote: data.quote,
+    rating: data.rating,
+    avatarUrl: data.avatarUrl,
+    status: data.status,
+  };
+  if (data.id) {
+    return db.testimonial.update({ where: { id: data.id }, data: base });
+  }
+  // New rows append to the end of their division's list.
+  const last = await db.testimonial.findFirst({
+    where: { division: data.division },
+    orderBy: { position: "desc" },
+    select: { position: true },
+  });
+  return db.testimonial.create({
+    data: { ...base, position: (last?.position ?? -1) + 1 },
+  });
+}
+
+export async function setTestimonialStatus(id: string, status: PublishStatus) {
+  return db.testimonial.update({ where: { id }, data: { status } });
+}
+
+/** Persists a new drag order: position becomes the index in `orderedIds`. */
+export async function reorderTestimonials(orderedIds: string[]) {
+  await db.$transaction(
+    orderedIds.map((id, index) =>
+      db.testimonial.update({ where: { id }, data: { position: index } }),
+    ),
+  );
 }
 
 export async function upsertFaq(data: { id?: string; question: string; answer: string; division?: Division; category?: string }) {

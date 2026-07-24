@@ -59,6 +59,22 @@ Last updated: 2026-07-24
 > memory (zero-filled buckets, no invented numbers); "Views" is honestly the
 > `RecentlyViewed` signal, not fabricated visitor analytics. Removed the now
 > orphaned `getAdminAnalyticsData`.
+>
+> **Follow-up landed same day — Testimonials CMS.** Dedicated `/admin/
+> testimonials` managing both divisions (Refurbished / Disposal tabs): create/
+> edit dialog (author, role/title, company, rating, photo URL, quote, publish
+> toggle), delete, and **drag-to-reorder** (native HTML5 DnD + up/down button
+> fallback for a11y) persisting the existing `Testimonial.position` — no
+> migration needed. Uses new `getAdminTestimonials`/`upsertTestimonialFull`/
+> `setTestimonialStatus`/`reorderTestimonials`. **De-duplicated:** removed the
+> testimonials editor tab from `disposal-cms` (it wrote incomplete rows and
+> duplicated this) — the tab now links to the dedicated CMS; deleted the
+> orphaned `saveTestimonialAction`/`deleteTestimonialAction`/`upsertTestimonial`.
+> Both storefronts consume it: disposal already filtered PUBLISHED + ordered by
+> position; wired the **refurbished home** to `getStoreTestimonials()` (added
+> `avatarUrl`) so CMS entries render there, falling back to the existing
+> hardcoded cards when none are published. "Featured toggle" maps to publish/
+> hide (no `featured` column — a distinct flag would need a migration).
 
 > **2026-07-22 — repo reorganised by collaborator (prajwallshetty):** routes
 > moved into groups (`app/(disposal)/disposal/…`, `app/(refurbished)/…`,

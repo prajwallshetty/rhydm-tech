@@ -326,6 +326,7 @@ export async function getStoreTestimonials() {
       role: true,
       company: true,
       rating: true,
+      avatarUrl: true,
     },
   });
 }

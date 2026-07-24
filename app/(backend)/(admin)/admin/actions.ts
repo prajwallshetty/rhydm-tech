@@ -30,7 +30,6 @@ import {
   deleteIndustry,
   upsertCertification,
   deleteCertification,
-  upsertTestimonial,
   deleteTestimonial,
   upsertFaq,
   deleteFaq,
@@ -47,9 +46,12 @@ import {
   setCouponActive,
   deleteAdminCoupon,
   updateProductStock,
+  upsertTestimonialFull,
+  setTestimonialStatus,
+  reorderTestimonials,
   type AdminCouponInput,
 } from "@/lib/repositories/admin";
-import { OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
+import { Division, OrderStatus, ProductCondition, PublishStatus, Role, SubmissionStatus } from "@/lib/generated/prisma/enums";
 import type { Prisma as PrismaNS } from "@/lib/generated/prisma/client";
 
 // ===========================================================================
@@ -407,26 +409,6 @@ export async function deleteCertificationAction(id: string) {
   revalidatePath("/disposal", "layout");
 }
 
-export async function saveTestimonialAction(formData: FormData) {
-  await requireAdmin();
-  const id = formData.get("id")?.toString();
-  const author = formData.get("author")?.toString() || "";
-  const role = formData.get("role")?.toString() || "";
-  const company = formData.get("company")?.toString() || "";
-  const quote = formData.get("quote")?.toString() || "";
-  const rating = parseInt(formData.get("rating")?.toString() || "5", 10);
-
-  await upsertTestimonial({ id, author, role, company, quote, rating });
-  revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
-}
-
-export async function deleteTestimonialAction(id: string) {
-  await requireAdmin();
-  await deleteTestimonial(id);
-  revalidatePath("/admin/disposal");
-  revalidatePath("/disposal", "layout");
-}
 
 export async function saveFaqAction(formData: FormData) {
   await requireAdmin();
@@ -905,5 +887,69 @@ export async function updateStockAction(id: string, stock: number) {
   revalidatePath("/admin/inventory");
   revalidatePath("/admin/products");
   revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
+// ===========================================================================
+// Testimonials CMS Actions
+// ===========================================================================
+
+function revalidateTestimonials(division: Division) {
+  revalidatePath("/admin/testimonials");
+  // Testimonials are division-scoped, so only that site needs refreshing.
+  revalidatePath(division === Division.DISPOSAL ? "/disposal" : "/refurbished", "layout");
+}
+
+export async function saveTestimonialCmsAction(formData: FormData) {
+  await requireAdmin();
+
+  const author = String(formData.get("author") ?? "").trim();
+  const quote = String(formData.get("quote") ?? "").trim();
+  if (!author || !quote) {
+    return { error: "Author and quote are required." };
+  }
+
+  const division =
+    String(formData.get("division")) === "REFURBISHED"
+      ? Division.REFURBISHED
+      : Division.DISPOSAL;
+  const ratingRaw = Number(formData.get("rating"));
+  const rating = Number.isFinite(ratingRaw) && ratingRaw >= 1 && ratingRaw <= 5 ? ratingRaw : null;
+
+  await upsertTestimonialFull({
+    id: String(formData.get("id") ?? "") || undefined,
+    division,
+    author,
+    role: String(formData.get("role") ?? "").trim() || null,
+    company: String(formData.get("company") ?? "").trim() || null,
+    quote,
+    rating,
+    avatarUrl: String(formData.get("avatarUrl") ?? "").trim() || null,
+    // The checkbox only submits when checked; absent means unpublished.
+    status: formData.get("status") === "PUBLISHED" ? PublishStatus.PUBLISHED : PublishStatus.DRAFT,
+  });
+
+  revalidateTestimonials(division);
+  return { success: true };
+}
+
+export async function toggleTestimonialStatusAction(id: string, publish: boolean, division: Division) {
+  await requireAdmin();
+  await setTestimonialStatus(id, publish ? PublishStatus.PUBLISHED : PublishStatus.DRAFT);
+  revalidateTestimonials(division);
+  return { success: true };
+}
+
+export async function deleteTestimonialCmsAction(id: string, division: Division) {
+  await requireAdmin();
+  await deleteTestimonial(id);
+  revalidateTestimonials(division);
+  return { success: true };
+}
+
+export async function reorderTestimonialsAction(orderedIds: string[], division: Division) {
+  await requireAdmin();
+  await reorderTestimonials(orderedIds);
+  revalidateTestimonials(division);
   return { success: true };
 }

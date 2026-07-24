@@ -11,11 +11,21 @@ export function HomeRefurbishedSections({
   featuredProducts,
   bestSellers,
   brands,
+  testimonials = [],
 }: {
   categories: any[];
   featuredProducts: any[];
   bestSellers: any[];
   brands: any[];
+  testimonials?: Array<{
+    id: string;
+    quote: string;
+    author: string;
+    role: string | null;
+    company: string | null;
+    rating: number | null;
+    avatarUrl: string | null;
+  }>;
 }) {
   const t = useTranslations("store.home");
 
@@ -136,6 +146,49 @@ export function HomeRefurbishedSections({
           </p>
         </div>
 
+        {testimonials.length > 0 ? (
+          /* CMS-driven testimonials (Testimonials CMS, division = Refurbished) */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {testimonials.map((tm, i) => (
+              <motion.div
+                key={tm.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: (i % 2) * 0.1 }}
+                className="flex flex-col rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-xs transition-all duration-300 hover:border-[#2E6F40]/30 hover:shadow-xl hover:shadow-slate-200/40"
+              >
+                <div className="mb-3 flex gap-0.5 text-amber-500">
+                  {"★".repeat(tm.rating ?? 5)}
+                </div>
+                <p className="flex-1 text-sm font-medium italic leading-relaxed text-slate-600">
+                  “{tm.quote}”
+                </p>
+                <div className="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
+                  {tm.avatarUrl ? (
+                    <img
+                      src={tm.avatarUrl}
+                      alt={tm.author}
+                      className="size-10 shrink-0 rounded-full border border-slate-200 object-cover"
+                    />
+                  ) : (
+                    <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#2E6F40]/10 text-xs font-bold text-[#2E6F40]">
+                      {tm.author.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-slate-900">{tm.author}</div>
+                    {(tm.role || tm.company) && (
+                      <div className="text-[11px] font-semibold text-slate-500">
+                        {[tm.role, tm.company].filter(Boolean).join(", ")}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Testimonial Card 1 */}
           <motion.div
@@ -235,6 +288,7 @@ export function HomeRefurbishedSections({
             </div>
           </motion.div>
         </div>
+        )}
       </section>
 
       {/* 5. Newsletter Section */}
