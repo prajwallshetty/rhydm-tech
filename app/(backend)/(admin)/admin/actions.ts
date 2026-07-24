@@ -40,12 +40,15 @@ import {
   deleteAdminSeoMeta,
   updateAdminSiteSettings,
   setReviewVerified,
+  setReviewStatus,
   deleteAdminReview,
+  type ReviewStatusFilter,
   createAdminCoupon,
   updateAdminCoupon,
   setCouponActive,
   deleteAdminCoupon,
   updateProductStock,
+  getStockMovements,
   upsertTestimonialFull,
   setTestimonialStatus,
   reorderTestimonials,
@@ -221,12 +224,16 @@ export async function saveCategoryAction(formData: FormData) {
   const slug = formData.get("slug")?.toString().trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const description = formData.get("description")?.toString() || null;
   const imageUrl = formData.get("imageUrl")?.toString() || null;
+  const bannerUrl = formData.get("bannerUrl")?.toString() || null;
+  const thumbnailUrl = formData.get("thumbnailUrl")?.toString() || null;
+  const iconUrl = formData.get("iconUrl")?.toString() || null;
   const parentId = formData.get("parentId")?.toString() || null;
 
+  const payload = { name, slug, description, imageUrl, bannerUrl, thumbnailUrl, iconUrl, parentId };
   if (id) {
-    await updateAdminCategory(id, { name, slug, description, imageUrl, parentId });
+    await updateAdminCategory(id, payload);
   } else {
-    await createAdminCategory({ name, slug, description, imageUrl, parentId });
+    await createAdminCategory(payload);
   }
 
   revalidatePath("/admin/categories");
@@ -788,6 +795,14 @@ export async function setReviewVerifiedAction(id: string, verified: boolean) {
   return { success: true };
 }
 
+export async function setReviewStatusAction(id: string, status: ReviewStatusFilter) {
+  await requireAdmin();
+  await setReviewStatus(id, status);
+  revalidatePath("/admin/reviews");
+  revalidatePath("/refurbished", "layout");
+  return { success: true };
+}
+
 export async function deleteReviewAction(id: string) {
   await requireAdmin();
   await deleteAdminReview(id);
@@ -830,8 +845,34 @@ function parseCouponForm(formData: FormData): AdminCouponInput | { error: string
   }
 
   const active = formData.get("active") === "on" || formData.get("active") === "true";
+  const oncePerCustomer =
+    formData.get("oncePerCustomer") === "on" || formData.get("oncePerCustomer") === "true";
 
-  return { code, type, value, minSpendCents, active, expiresAt };
+  const usageRaw = formData.get("usageLimit");
+  const usageNum = usageRaw && String(usageRaw).trim() !== "" ? Number(usageRaw) : null;
+  const usageLimit =
+    usageNum != null && Number.isFinite(usageNum) && usageNum > 0 ? Math.round(usageNum) : null;
+
+  // Category scope arrives as repeated checkbox values; product scope as a
+  // comma/space/newline-separated list of slugs.
+  const categoryIds = formData.getAll("categoryIds").map(String).filter(Boolean);
+  const productIds = String(formData.get("productIds") ?? "")
+    .split(/[\s,]+/)
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+
+  return {
+    code,
+    type,
+    value,
+    minSpendCents,
+    active,
+    expiresAt,
+    usageLimit,
+    oncePerCustomer,
+    categoryIds,
+    productIds,
+  };
 }
 
 export async function createCouponAction(formData: FormData) {
@@ -878,16 +919,32 @@ export async function deleteCouponAction(id: string) {
 // Inventory Actions
 // ===========================================================================
 
-export async function updateStockAction(id: string, stock: number) {
+export async function updateStockAction(id: string, stock: number, note?: string) {
   await requireAdmin();
   if (!Number.isFinite(stock) || stock < 0) {
     return { error: "Stock must be a non-negative number." };
   }
-  await updateProductStock(id, stock);
+  await updateProductStock(id, stock, "Manual adjustment", note);
   revalidatePath("/admin/inventory");
   revalidatePath("/admin/products");
   revalidatePath("/refurbished", "layout");
   return { success: true };
+}
+
+/** Stock movement history for the inventory drawer (client fetch, admin-only). */
+export async function getStockHistoryAction(productId: string) {
+  await requireAdmin();
+  const movements = await getStockMovements(productId, 30);
+  return {
+    movements: movements.map((m) => ({
+      id: m.id,
+      delta: m.delta,
+      balance: m.balance,
+      reason: m.reason,
+      note: m.note,
+      createdAt: m.createdAt.toISOString(),
+    })),
+  };
 }
 
 // ===========================================================================
@@ -925,6 +982,7 @@ export async function saveTestimonialCmsAction(formData: FormData) {
     quote,
     rating,
     avatarUrl: String(formData.get("avatarUrl") ?? "").trim() || null,
+    featured: formData.get("featured") === "on" || formData.get("featured") === "true",
     // The checkbox only submits when checked; absent means unpublished.
     status: formData.get("status") === "PUBLISHED" ? PublishStatus.PUBLISHED : PublishStatus.DRAFT,
   });

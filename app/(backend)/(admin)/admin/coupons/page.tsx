@@ -1,8 +1,11 @@
-import { getAdminCoupons } from "@/lib/repositories/admin";
+import { getAdminCoupons, getAdminCategories } from "@/lib/repositories/admin";
 import { CouponsManager } from "@/components/admin/coupons-manager";
 
 export default async function AdminCouponsPage() {
-  const coupons = await getAdminCoupons();
+  const [coupons, categories] = await Promise.all([
+    getAdminCoupons(),
+    getAdminCategories(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -11,11 +14,13 @@ export default async function AdminCouponsPage() {
           Coupons
         </h1>
         <p className="text-sm text-muted-foreground">
-          Create percentage or fixed discounts with minimum spend and expiry rules.
+          Percentage or fixed discounts with minimum spend, expiry, usage caps
+          and product / category scoping.
         </p>
       </div>
 
       <CouponsManager
+        categories={categories.map((c) => ({ slug: c.slug, name: c.name }))}
         coupons={coupons.map((c) => ({
           id: c.id,
           code: c.code,
@@ -24,6 +29,11 @@ export default async function AdminCouponsPage() {
           minSpendCents: c.minSpendCents,
           active: c.active,
           expiresAt: c.expiresAt ? c.expiresAt.toISOString() : null,
+          usageLimit: c.usageLimit,
+          usageCount: c.usageCount,
+          oncePerCustomer: c.oncePerCustomer,
+          categoryIds: c.categoryIds,
+          productIds: c.productIds,
         }))}
       />
     </div>

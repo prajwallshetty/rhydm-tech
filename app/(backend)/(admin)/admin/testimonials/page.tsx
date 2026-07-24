@@ -26,6 +26,7 @@ export default async function AdminTestimonialsPage() {
           quote: t.quote,
           rating: t.rating,
           avatarUrl: t.avatarUrl,
+          featured: t.featured,
           // The manager only distinguishes visible vs hidden; ARCHIVED reads as hidden.
           status: t.status === "PUBLISHED" ? ("PUBLISHED" as const) : ("DRAFT" as const),
           position: t.position,

@@ -60,7 +60,32 @@ Last updated: 2026-07-24
 > `RecentlyViewed` signal, not fabricated visitor analytics. Removed the now
 > orphaned `getAdminAnalyticsData`.
 >
-> **Follow-up landed same day — Testimonials CMS.** Dedicated `/admin/
+> **Follow-up landed same day — migration-gated feature set (applied).**
+> Migration `20260724000000_admin_enhancements` **applied to Neon via
+> `prisma migrate deploy`** (the migrate CLI had a transient P1001 cold-start
+> first; the app's pg-adapter path was reachable throughout). Built on it:
+> - **Review moderation (#2):** `ReviewStatus` (PENDING/APPROVED/REJECTED);
+>   `/admin/reviews` gains approve/reject + a status filter + a Pending stat;
+>   storefront `getProductBySlug` now shows only APPROVED reviews. Existing
+>   reviews were backfilled to APPROVED; new ones default to PENDING.
+> - **Inventory movement history (#1):** `StockMovement` ledger; stock edits
+>   now write a signed delta + running balance atomically (`updateProductStock`
+>   in a tx); a per-product history drawer on `/admin/inventory`.
+> - **Coupon scoping/usage (#7):** `usageLimit`/`usageCount`/`oncePerCustomer`/
+>   `redeemedBy[]`/`productIds[]`/`categoryIds[]` (slugs). Admin form gains
+>   usage cap, once-per-customer, category multi-select + product-slug scope;
+>   `validateCoupon` enforces scope + usage cap server-side (cart passes its
+>   item slugs). Note: `usageCount`/`oncePerCustomer` fully bite only once an
+>   order records redemption (still "UI-only until payments").
+> - **Category images (#10):** `bannerUrl`/`thumbnailUrl`/`iconUrl` (imageUrl
+>   pre-existed) editable on new/edit category forms; storefront category cards
+>   + home collection circles prefer the CMS image, falling back to the
+>   generated placeholder. Banner/icon are stored and ready to surface.
+> - **Testimonial featured (#9):** `featured` flag in the CMS form + a badge;
+>   both storefronts order featured-first.
+> Typecheck + full production build clean against the migrated DB.
+>
+> **Earlier same day — Testimonials CMS.** Dedicated `/admin/
 > testimonials` managing both divisions (Refurbished / Disposal tabs): create/
 > edit dialog (author, role/title, company, rating, photo URL, quote, publish
 > toggle), delete, and **drag-to-reorder** (native HTML5 DnD + up/down button

@@ -82,7 +82,7 @@ export function HomeRefurbishedSections({
                 {/* Perfect Circular Crop Container */}
                 <div className="relative size-28 sm:size-32 lg:size-36 rounded-full overflow-hidden border border-slate-100 bg-slate-50 shadow-md transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg group-hover:border-[#2E6F40]/30">
                   <img
-                    src={getCategoryImage(cat.slug)}
+                    src={cat.thumbnailUrl || cat.imageUrl || getCategoryImage(cat.slug)}
                     alt=""
                     className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />

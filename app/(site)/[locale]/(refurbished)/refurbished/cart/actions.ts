@@ -45,6 +45,8 @@ export async function getCartProducts(
   }));
 }
 
+export type CartScopeItem = { slug: string; categorySlug: string };
+
 export type CouponResult =
   | {
       ok: true;
@@ -53,17 +55,22 @@ export type CouponResult =
       type: "PERCENT" | "FIXED";
       value: number;
     }
-  | { ok: false; reason: "invalid" | "inactive" | "expired" | "minspend"; minSpendCents?: number };
+  | {
+      ok: false;
+      reason: "invalid" | "inactive" | "expired" | "minspend" | "scope" | "limit";
+      minSpendCents?: number;
+    };
 
 /**
- * Server-side coupon validation. The subtotal is passed by the client but the
- * coupon's rules — existence, active flag, expiry, minimum spend — are all
- * checked against the database here, so a tampered client can never conjure a
- * discount. The computed `discountCents` is what the summary should apply.
+ * Server-side coupon validation. Every rule — existence, active flag, expiry,
+ * minimum spend, product/category scope, and the redemption cap — is checked
+ * against the database here, so a tampered client can never conjure a discount.
+ * Scope is matched on slugs (the cart knows slugs, the coupon stores them).
  */
 export async function validateCoupon(
   rawCode: string,
   subtotalCents: number,
+  items: CartScopeItem[] = [],
 ): Promise<CouponResult> {
   const code = rawCode.trim().toUpperCase();
   if (!code) return { ok: false, reason: "invalid" };
@@ -74,8 +81,23 @@ export async function validateCoupon(
   if (coupon.expiresAt && coupon.expiresAt < new Date()) {
     return { ok: false, reason: "expired" };
   }
+  if (coupon.usageLimit != null && coupon.usageCount >= coupon.usageLimit) {
+    return { ok: false, reason: "limit" };
+  }
   if (coupon.minSpendCents && subtotalCents < coupon.minSpendCents) {
     return { ok: false, reason: "minspend", minSpendCents: coupon.minSpendCents };
+  }
+
+  // Scope: when a coupon is limited to certain products or categories, the cart
+  // must contain at least one qualifying item.
+  const hasScope = coupon.productIds.length > 0 || coupon.categoryIds.length > 0;
+  if (hasScope) {
+    const qualifies = items.some(
+      (it) =>
+        coupon.productIds.includes(it.slug) ||
+        coupon.categoryIds.includes(it.categorySlug),
+    );
+    if (!qualifies) return { ok: false, reason: "scope" };
   }
 
   const discountCents =

@@ -2,12 +2,24 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, Loader2, Check, Boxes } from "lucide-react";
+import { Search, Loader2, Check, Boxes, History, X, ArrowUp, ArrowDown } from "lucide-react";
 
-import { updateStockAction } from "@/app/(backend)/(admin)/admin/actions";
+import {
+  updateStockAction,
+  getStockHistoryAction,
+} from "@/app/(backend)/(admin)/admin/actions";
 import { useToast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+type Movement = {
+  id: string;
+  delta: number;
+  balance: number;
+  reason: string;
+  note: string | null;
+  createdAt: string;
+};
 
 const LOW_STOCK = 10;
 
@@ -44,6 +56,16 @@ export function InventoryTable({
   const [editId, setEditId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  const [historyFor, setHistoryFor] = useState<Item | null>(null);
+  const [movements, setMovements] = useState<Movement[] | null>(null);
+
+  async function openHistory(item: Item) {
+    setHistoryFor(item);
+    setMovements(null);
+    const res = await getStockHistoryAction(item.id);
+    setMovements(res.movements);
+  }
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -193,13 +215,24 @@ export function InventoryTable({
                             </button>
                           </>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => startEdit(item)}
-                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted"
-                          >
-                            Edit stock
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openHistory(item)}
+                              className="grid size-8 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-muted"
+                              aria-label="Stock history"
+                              title="Stock history"
+                            >
+                              <History className="size-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => startEdit(item)}
+                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted"
+                            >
+                              Edit stock
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -233,6 +266,82 @@ export function InventoryTable({
             >
               Next
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Stock history drawer */}
+      {historyFor && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setHistoryFor(null)}
+          />
+          <div className="relative z-10 h-full w-full max-w-md overflow-y-auto border-l border-border bg-card p-6 shadow-2xl">
+            <div className="mb-1 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-bold text-foreground">Stock history</h2>
+                <p className="text-xs text-muted-foreground">{historyFor.name}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHistoryFor(null)}
+                className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
+                aria-label="Close"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="mt-5">
+              {movements === null ? (
+                <div className="grid place-items-center py-16">
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : movements.length === 0 ? (
+                <p className="py-16 text-center text-xs text-muted-foreground">
+                  No adjustments recorded yet. Stock changes will appear here.
+                </p>
+              ) : (
+                <ol className="space-y-2.5">
+                  {movements.map((m) => (
+                    <li
+                      key={m.id}
+                      className="flex items-center gap-3 rounded-xl border border-border/70 bg-background p-3"
+                    >
+                      <span
+                        className={cn(
+                          "grid size-8 shrink-0 place-items-center rounded-lg",
+                          m.delta >= 0
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                            : "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+                        )}
+                      >
+                        {m.delta >= 0 ? (
+                          <ArrowUp className="size-4" />
+                        ) : (
+                          <ArrowDown className="size-4" />
+                        )}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-foreground">
+                            {m.delta >= 0 ? `+${m.delta}` : m.delta}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            → {m.balance} on hand
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                          <span>{m.note || m.reason}</span>
+                          <span>{new Date(m.createdAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
           </div>
         </div>
       )}

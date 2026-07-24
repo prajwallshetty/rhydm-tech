@@ -79,7 +79,14 @@ export default function CartPage() {
       return;
     }
     setCouponBusy(true);
-    const res = await validateCoupon(code, subtotalCents);
+    const res = await validateCoupon(
+      code,
+      subtotalCents,
+      lines.map((line) => ({
+        slug: line.slug,
+        categorySlug: line.product.categorySlug,
+      })),
+    );
     setCouponBusy(false);
 
     if (res.ok) {

@@ -1,4 +1,4 @@
-import { Star, ShieldCheck, MessageSquareText } from "lucide-react";
+import { Star, ShieldCheck, MessageSquareText, Clock } from "lucide-react";
 
 import { getAdminReviews } from "@/lib/repositories/admin";
 import { ReviewsTable } from "@/components/admin/reviews-table";
@@ -7,6 +7,7 @@ type SearchParams = Promise<{
   q?: string;
   rating?: string;
   verified?: string;
+  status?: string;
   page?: string;
 }>;
 
@@ -21,11 +22,16 @@ export default async function AdminReviewsPage({
     sp.verified === "verified" || sp.verified === "unverified"
       ? sp.verified
       : undefined;
+  const status =
+    sp.status === "PENDING" || sp.status === "APPROVED" || sp.status === "REJECTED"
+      ? sp.status
+      : undefined;
 
   const data = await getAdminReviews({
     search: sp.q,
     rating: rating && rating >= 1 && rating <= 5 ? rating : undefined,
     verified,
+    status,
     page: sp.page ? Number(sp.page) : 1,
   });
 
@@ -43,11 +49,17 @@ export default async function AdminReviewsPage({
       </div>
 
       {/* Stat row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           icon={MessageSquareText}
           label="Total reviews"
           value={String(data.total)}
+        />
+        <StatCard
+          icon={Clock}
+          label="Pending"
+          value={String(data.pendingCount)}
+          tone={data.pendingCount > 0 ? "amber" : undefined}
         />
         <StatCard
           icon={Star}
@@ -62,7 +74,7 @@ export default async function AdminReviewsPage({
       </div>
 
       <ReviewsTable
-        reviews={data.items}
+        reviews={data.items.map((r) => ({ ...r, status: r.status }))}
         page={data.page}
         pageCount={data.pageCount}
         total={data.total}
@@ -75,16 +87,18 @@ function StatCard({
   icon: Icon,
   label,
   value,
+  tone,
 }: {
   icon: React.ElementType;
   label: string;
   value: string;
+  tone?: "amber";
 }) {
   return (
     <div className="rounded-xl border border-border/80 bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between text-xs font-semibold uppercase text-muted-foreground">
         <span>{label}</span>
-        <Icon className="h-4 w-4 text-primary" />
+        <Icon className={tone === "amber" ? "h-4 w-4 text-amber-500" : "h-4 w-4 text-primary"} />
       </div>
       <div className="mt-2 text-2xl font-bold text-foreground">{value}</div>
     </div>

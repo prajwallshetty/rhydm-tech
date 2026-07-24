@@ -212,7 +212,9 @@
       "couponMinSpend": "Mindestbestellwert {amount}, um diesen Code zu nutzen.",
       "coupon_invalid": "Dieser Code ist ungültig.",
       "coupon_inactive": "Dieser Code ist nicht mehr aktiv.",
-      "coupon_expired": "Dieser Code ist abgelaufen."
+      "coupon_expired": "Dieser Code ist abgelaufen.",
+      "coupon_scope": "Dieser Code gilt nicht für die Artikel in Ihrem Warenkorb.",
+      "coupon_limit": "Dieser Code hat sein Nutzungslimit erreicht."
     },
     "wishlist": {
       "title": "Merkliste",

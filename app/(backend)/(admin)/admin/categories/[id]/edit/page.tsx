@@ -78,15 +78,47 @@ export default async function EditCategoryPage({
           </select>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground">Image URL</label>
-          <input
-            type="text"
-            name="imageUrl"
-            defaultValue={category.imageUrl || ""}
-            placeholder="https://images.unsplash.com/photo-..."
-            className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
-          />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Image URL</label>
+            <input
+              type="text"
+              name="imageUrl"
+              defaultValue={category.imageUrl || ""}
+              placeholder="Primary image"
+              className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Banner URL</label>
+            <input
+              type="text"
+              name="bannerUrl"
+              defaultValue={category.bannerUrl || ""}
+              placeholder="Wide category banner"
+              className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Thumbnail URL</label>
+            <input
+              type="text"
+              name="thumbnailUrl"
+              defaultValue={category.thumbnailUrl || ""}
+              placeholder="Small thumbnail"
+              className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Icon URL</label>
+            <input
+              type="text"
+              name="iconUrl"
+              defaultValue={category.iconUrl || ""}
+              placeholder="Nav / chip icon"
+              className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
+            />
+          </div>
         </div>
 
         <div className="space-y-1.5">

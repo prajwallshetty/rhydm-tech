@@ -39,6 +39,7 @@ type Testimonial = {
   quote: string;
   rating: number | null;
   avatarUrl: string | null;
+  featured: boolean;
   status: Status;
   position: number;
 };
@@ -261,6 +262,11 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                       ))}
                     </span>
                   )}
+                  {t.featured && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                      <Star className="size-2.5 fill-amber-500 text-amber-500" /> Featured
+                    </span>
+                  )}
                   {t.status === "DRAFT" && (
                     <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
                       Hidden
@@ -418,16 +424,27 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
                 />
               </Field>
 
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  name="status"
-                  value="PUBLISHED"
-                  defaultChecked={editing ? editing.status === "PUBLISHED" : true}
-                  className="size-4 rounded accent-[var(--primary)]"
-                />
-                Published (visible on the storefront)
-              </label>
+              <div className="space-y-2.5">
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    name="status"
+                    value="PUBLISHED"
+                    defaultChecked={editing ? editing.status === "PUBLISHED" : true}
+                    className="size-4 rounded accent-[var(--primary)]"
+                  />
+                  Published (visible on the storefront)
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    name="featured"
+                    defaultChecked={editing ? editing.featured : false}
+                    className="size-4 rounded accent-[var(--primary)]"
+                  />
+                  Featured (shown first on the storefront)
+                </label>
+              </div>
 
               <div className="flex items-center gap-3 pt-2">
                 <button

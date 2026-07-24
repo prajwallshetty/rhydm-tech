@@ -10,14 +10,19 @@ import {
   Search,
   Loader2,
   MessageSquareText,
+  Check,
+  X,
 } from "lucide-react";
 
 import {
   setReviewVerifiedAction,
+  setReviewStatusAction,
   deleteReviewAction,
 } from "@/app/(backend)/(admin)/admin/actions";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+
+type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 type Review = {
   id: string;
@@ -26,8 +31,15 @@ type Review = {
   title: string | null;
   body: string;
   verified: boolean;
+  status: ReviewStatus;
   createdAt: Date;
   product: { name: string; slug: string };
+};
+
+const STATUS_BADGE: Record<ReviewStatus, string> = {
+  APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+  PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400",
+  REJECTED: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400",
 };
 
 export function ReviewsTable({
@@ -52,6 +64,7 @@ export function ReviewsTable({
   const [term, setTerm] = useState(searchParams.get("q") ?? "");
   const rating = searchParams.get("rating") ?? "";
   const verified = searchParams.get("verified") ?? "";
+  const status = searchParams.get("status") ?? "";
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -72,6 +85,16 @@ export function ReviewsTable({
     setBusyId(null);
     if (res?.success) {
       push(review.verified ? "Marked as unverified" : "Marked as verified purchase", "check");
+      router.refresh();
+    }
+  }
+
+  async function moderate(review: Review, next: ReviewStatus) {
+    setBusyId(review.id);
+    const res = await setReviewStatusAction(review.id, next);
+    setBusyId(null);
+    if (res?.success) {
+      push(next === "APPROVED" ? "Review approved" : "Review rejected", next === "APPROVED" ? "check" : undefined);
       router.refresh();
     }
   }
@@ -104,6 +127,17 @@ export function ReviewsTable({
             className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary"
           />
         </form>
+
+        <select
+          value={status}
+          onChange={(e) => setParam("status", e.target.value)}
+          className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+        >
+          <option value="">All statuses</option>
+          <option value="PENDING">Pending</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
 
         <select
           value={rating}
@@ -148,9 +182,17 @@ export function ReviewsTable({
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-bold text-foreground">
                       {review.author}
+                    </span>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        STATUS_BADGE[review.status],
+                      )}
+                    >
+                      {review.status.toLowerCase()}
                     </span>
                     {review.verified && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
@@ -191,7 +233,27 @@ export function ReviewsTable({
                 {review.body}
               </p>
 
-              <div className="mt-4 flex items-center gap-2 border-t border-border/60 pt-3">
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+                {review.status !== "APPROVED" && (
+                  <button
+                    type="button"
+                    onClick={() => moderate(review, "APPROVED")}
+                    disabled={busyId === review.id}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    <Check className="size-3.5" /> Approve
+                  </button>
+                )}
+                {review.status !== "REJECTED" && (
+                  <button
+                    type="button"
+                    onClick={() => moderate(review, "REJECTED")}
+                    disabled={busyId === review.id}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50"
+                  >
+                    <X className="size-3.5" /> Reject
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => toggleVerified(review)}

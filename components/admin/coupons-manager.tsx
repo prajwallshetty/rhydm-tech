@@ -22,11 +22,20 @@ type Coupon = {
   minSpendCents: number | null;
   active: boolean;
   expiresAt: string | null;
+  usageLimit: number | null;
+  usageCount: number;
+  oncePerCustomer: boolean;
+  categoryIds: string[];
+  productIds: string[];
 };
 
-const empty = { code: "", type: "PERCENT" as const, value: "", minSpend: "", expiresAt: "", active: true };
-
-export function CouponsManager({ coupons }: { coupons: Coupon[] }) {
+export function CouponsManager({
+  coupons,
+  categories,
+}: {
+  coupons: Coupon[];
+  categories: { slug: string; name: string }[];
+}) {
   const router = useRouter();
   const push = useToast((s) => s.push);
   const [showForm, setShowForm] = useState(false);
@@ -131,8 +140,25 @@ export function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                 const expired = c.expiresAt && new Date(c.expiresAt) < new Date();
                 return (
                   <tr key={c.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 font-mono font-bold text-foreground">
-                      {c.code}
+                    <td className="px-4 py-3">
+                      <div className="font-mono font-bold text-foreground">{c.code}</div>
+                      <div className="mt-0.5 flex flex-wrap gap-1">
+                        {(c.categoryIds.length > 0 || c.productIds.length > 0) && (
+                          <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">
+                            Scoped
+                          </span>
+                        )}
+                        {c.oncePerCustomer && (
+                          <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">
+                            1/customer
+                          </span>
+                        )}
+                        {c.usageLimit != null && (
+                          <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">
+                            {c.usageCount}/{c.usageLimit} used
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-foreground">{discountLabel(c)}</td>
                     <td className="px-4 py-3 text-muted-foreground">
@@ -298,6 +324,65 @@ export function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                   />
                 </Field>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Usage limit" htmlFor="usageLimit" hint="Optional">
+                  <input
+                    id="usageLimit"
+                    name="usageLimit"
+                    type="number"
+                    min="1"
+                    step="1"
+                    defaultValue={editing?.usageLimit ?? ""}
+                    placeholder="Unlimited"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </Field>
+                <label className="flex cursor-pointer items-end gap-2.5 pb-2.5 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    name="oncePerCustomer"
+                    defaultChecked={editing ? editing.oncePerCustomer : false}
+                    className="size-4 rounded accent-[var(--primary)]"
+                  />
+                  One use per customer
+                </label>
+              </div>
+
+              {/* Category scope */}
+              {categories.length > 0 && (
+                <Field label="Limit to categories" htmlFor="categoryIds" hint="Optional · none = all">
+                  <div className="max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-border bg-background p-2.5">
+                    {categories.map((c) => (
+                      <label
+                        key={c.slug}
+                        className="flex cursor-pointer items-center gap-2 text-xs text-foreground"
+                      >
+                        <input
+                          type="checkbox"
+                          name="categoryIds"
+                          value={c.slug}
+                          defaultChecked={editing?.categoryIds.includes(c.slug)}
+                          className="size-3.5 rounded accent-[var(--primary)]"
+                        />
+                        {c.name}
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+              )}
+
+              {/* Product scope */}
+              <Field label="Limit to product slugs" htmlFor="productIds" hint="Optional · comma-separated">
+                <textarea
+                  id="productIds"
+                  name="productIds"
+                  rows={2}
+                  defaultValue={editing?.productIds.join(", ") ?? ""}
+                  placeholder="thinkpad-x1-carbon, dell-latitude-7440"
+                  className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono outline-none focus:border-primary"
+                />
+              </Field>
 
               <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
                 <input

@@ -411,6 +411,9 @@ export async function createAdminCategory(data: {
   slug: string;
   description?: string | null;
   imageUrl?: string | null;
+  bannerUrl?: string | null;
+  thumbnailUrl?: string | null;
+  iconUrl?: string | null;
   parentId?: string | null;
   position?: number;
 }) {
@@ -420,6 +423,9 @@ export async function createAdminCategory(data: {
       slug: data.slug,
       description: data.description || null,
       imageUrl: data.imageUrl || null,
+      bannerUrl: data.bannerUrl || null,
+      thumbnailUrl: data.thumbnailUrl || null,
+      iconUrl: data.iconUrl || null,
       parentId: data.parentId || null,
       position: data.position ?? 0,
     },
@@ -433,6 +439,9 @@ export async function updateAdminCategory(
     slug?: string;
     description?: string | null;
     imageUrl?: string | null;
+    bannerUrl?: string | null;
+    thumbnailUrl?: string | null;
+    iconUrl?: string | null;
     parentId?: string | null;
     position?: number;
   }
@@ -444,6 +453,9 @@ export async function updateAdminCategory(
       slug: data.slug,
       description: data.description,
       imageUrl: data.imageUrl,
+      bannerUrl: data.bannerUrl,
+      thumbnailUrl: data.thumbnailUrl,
+      iconUrl: data.iconUrl,
       parentId: data.parentId || null,
       position: data.position,
     },
@@ -936,6 +948,10 @@ export async function getAdminTestimonials(division?: Division) {
   });
 }
 
+// Storefront ordering (featured first, then admin position) is applied in the
+// store/disposal repositories; the admin list keeps pure position order so
+// drag-reordering maps 1:1 to what the admin sees.
+
 export type TestimonialInput = {
   id?: string;
   division: Division;
@@ -945,6 +961,7 @@ export type TestimonialInput = {
   quote: string;
   rating: number | null;
   avatarUrl: string | null;
+  featured: boolean;
   status: PublishStatus;
 };
 
@@ -957,6 +974,7 @@ export async function upsertTestimonialFull(data: TestimonialInput) {
     quote: data.quote,
     rating: data.rating,
     avatarUrl: data.avatarUrl,
+    featured: data.featured,
     status: data.status,
   };
   if (data.id) {
@@ -1354,10 +1372,13 @@ export async function getMediaLibrary(filters: {
 // Reviews Module
 // ===========================================================================
 
+export type ReviewStatusFilter = "PENDING" | "APPROVED" | "REJECTED";
+
 export type AdminReviewFilters = {
   search?: string;
   rating?: number;
   verified?: "verified" | "unverified";
+  status?: ReviewStatusFilter;
   productId?: string;
   page?: number;
   limit?: number;
@@ -1381,9 +1402,10 @@ export async function getAdminReviews(filters: AdminReviewFilters = {}) {
   if (filters.rating) where.rating = filters.rating;
   if (filters.verified === "verified") where.verified = true;
   if (filters.verified === "unverified") where.verified = false;
+  if (filters.status) where.status = filters.status;
   if (filters.productId) where.productId = filters.productId;
 
-  const [items, total, verifiedCount, avg] = await Promise.all([
+  const [items, total, verifiedCount, pendingCount, avg] = await Promise.all([
     db.review.findMany({
       where,
       skip,
@@ -1395,6 +1417,7 @@ export async function getAdminReviews(filters: AdminReviewFilters = {}) {
     }),
     db.review.count({ where }),
     db.review.count({ where: { ...where, verified: true } }),
+    db.review.count({ where: { status: "PENDING" } }),
     db.review.aggregate({ where, _avg: { rating: true } }),
   ]);
 
@@ -1402,6 +1425,7 @@ export async function getAdminReviews(filters: AdminReviewFilters = {}) {
     items,
     total,
     verifiedCount,
+    pendingCount,
     averageRating: avg._avg.rating ?? 0,
     page,
     limit,
@@ -1411,6 +1435,10 @@ export async function getAdminReviews(filters: AdminReviewFilters = {}) {
 
 export async function setReviewVerified(id: string, verified: boolean) {
   return db.review.update({ where: { id }, data: { verified } });
+}
+
+export async function setReviewStatus(id: string, status: ReviewStatusFilter) {
+  return db.review.update({ where: { id }, data: { status } });
 }
 
 export async function deleteAdminReview(id: string) {
@@ -1428,37 +1456,39 @@ export type AdminCouponInput = {
   minSpendCents: number | null;
   active: boolean;
   expiresAt: Date | null;
+  usageLimit: number | null;
+  oncePerCustomer: boolean;
+  // Stored as slugs (category slugs / product slugs) so the storefront cart —
+  // which knows slugs, not ids — can match without an extra lookup.
+  categoryIds: string[];
+  productIds: string[];
 };
 
 export async function getAdminCoupons() {
   return db.coupon.findMany({ orderBy: { createdAt: "desc" } });
 }
 
+function couponData(input: AdminCouponInput) {
+  return {
+    code: input.code.trim().toUpperCase(),
+    type: input.type,
+    value: input.value,
+    minSpendCents: input.minSpendCents,
+    active: input.active,
+    expiresAt: input.expiresAt,
+    usageLimit: input.usageLimit,
+    oncePerCustomer: input.oncePerCustomer,
+    categoryIds: input.categoryIds,
+    productIds: input.productIds,
+  };
+}
+
 export async function createAdminCoupon(input: AdminCouponInput) {
-  return db.coupon.create({
-    data: {
-      code: input.code.trim().toUpperCase(),
-      type: input.type,
-      value: input.value,
-      minSpendCents: input.minSpendCents,
-      active: input.active,
-      expiresAt: input.expiresAt,
-    },
-  });
+  return db.coupon.create({ data: couponData(input) });
 }
 
 export async function updateAdminCoupon(id: string, input: AdminCouponInput) {
-  return db.coupon.update({
-    where: { id },
-    data: {
-      code: input.code.trim().toUpperCase(),
-      type: input.type,
-      value: input.value,
-      minSpendCents: input.minSpendCents,
-      active: input.active,
-      expiresAt: input.expiresAt,
-    },
-  });
+  return db.coupon.update({ where: { id }, data: couponData(input) });
 }
 
 export async function setCouponActive(id: string, active: boolean) {
@@ -1534,9 +1564,44 @@ export async function getInventory(filters: AdminInventoryFilters = {}) {
   };
 }
 
-export async function updateProductStock(id: string, stock: number) {
-  return db.product.update({
-    where: { id },
-    data: { stock: Math.max(0, Math.round(stock)) },
+/**
+ * Sets absolute on-hand stock and records the change in the movement ledger
+ * atomically, so the inventory history always reconciles with the balance.
+ */
+export async function updateProductStock(
+  id: string,
+  stock: number,
+  reason = "Manual adjustment",
+  note?: string,
+) {
+  const next = Math.max(0, Math.round(stock));
+  return db.$transaction(async (tx) => {
+    const current = await tx.product.findUnique({
+      where: { id },
+      select: { stock: true },
+    });
+    if (!current) throw new Error("Product not found");
+
+    const delta = next - current.stock;
+    const product = await tx.product.update({
+      where: { id },
+      data: { stock: next },
+    });
+
+    // Only ledger an actual change.
+    if (delta !== 0) {
+      await tx.stockMovement.create({
+        data: { productId: id, delta, balance: next, reason, note: note || null },
+      });
+    }
+    return product;
+  });
+}
+
+export async function getStockMovements(productId: string, limit = 30) {
+  return db.stockMovement.findMany({
+    where: { productId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
   });
 }

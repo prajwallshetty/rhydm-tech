@@ -69,12 +69,21 @@ export function CategoryListCard({ category }: { category: any }) {
           }}
         />
 
-        <ProductThumb
-          slug={category.slug}
-          category={category.slug}
-          name={category.name}
-          className="absolute inset-6 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
-        />
+        {/* Prefer a CMS-managed image; fall back to the generated placeholder. */}
+        {category.thumbnailUrl || category.imageUrl ? (
+          <img
+            src={category.thumbnailUrl || category.imageUrl}
+            alt={category.name}
+            className="absolute inset-6 size-[calc(100%-3rem)] rounded-2xl object-cover transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
+          />
+        ) : (
+          <ProductThumb
+            slug={category.slug}
+            category={category.slug}
+            name={category.name}
+            className="absolute inset-6 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
+          />
+        )}
       </div>
 
       <div className="relative z-10 flex flex-1 flex-col p-6">
