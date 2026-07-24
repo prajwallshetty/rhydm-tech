@@ -92,8 +92,9 @@ export default async function SiteLocaleLayout({
         <NextIntlClientProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false}
+            forcedTheme="light"
             disableTransitionOnChange
           >
             {children}
