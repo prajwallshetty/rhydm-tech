@@ -48,11 +48,9 @@ export default async function GatewayPage({
       </div>
 
       <div className="relative w-full max-w-4xl flex-1 flex flex-col justify-between my-auto py-2">
-        {/* Top Header Logo & Language Switcher */}
-        <FadeIn className="flex justify-between items-center w-full">
-          <div className="w-14" /> {/* Spacer to balance LanguageSwitcher width */}
+        {/* Top Header Logo */}
+        <FadeIn className="flex justify-center">
           <Logo />
-          <LanguageSwitcher className="text-slate-900 dark:text-white" />
         </FadeIn>
 
         {/* Title & Subtitle */}
