@@ -7,7 +7,19 @@ import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProductThumb } from "@/components/store/product-thumb";
 
-export function CategoryListCard({ category }: { category: any }) {
+export interface CategoryWithCount {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  imageUrl: string | null;
+  thumbnailUrl: string | null;
+  _count?: {
+    products: number;
+  };
+}
+
+export function CategoryListCard({ category }: { category: CategoryWithCount }) {
   const t = useTranslations("common");
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotateX, setRotateX] = useState(0);
@@ -72,7 +84,7 @@ export function CategoryListCard({ category }: { category: any }) {
         {/* Prefer a CMS-managed image; fall back to the generated placeholder. */}
         {category.thumbnailUrl || category.imageUrl ? (
           <img
-            src={category.thumbnailUrl || category.imageUrl}
+            src={category.thumbnailUrl || category.imageUrl || undefined}
             alt={category.name}
             className="absolute inset-6 size-[calc(100%-3rem)] rounded-2xl object-cover transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1"
           />

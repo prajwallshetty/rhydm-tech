@@ -42,7 +42,7 @@ export function FloatingNav() {
     { label: t("categories"), href: "/refurbished/categories" },
     { label: t("brands"), href: "/refurbished/brands" },
     { label: t("deals"), href: "/refurbished/deals" },
-    { label: t("support"), href: "/disposal/faqs" },
+    { label: t("support"), href: "/refurbished/support" },
   ];
 
   return (
