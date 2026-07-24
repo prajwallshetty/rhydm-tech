@@ -42,10 +42,23 @@ Last updated: 2026-07-24
 > `verified` exists today), coupon product/category scoping + usage-limit +
 > one-time, inventory movement history / warehouse / reserved stock, category
 > image/banner/thumbnail/icon fields, testimonial `featured`/`order` for DnD.
-> **Still to build (no migration):** shadcn/recharts dashboard charts on real
-> data, testimonials CMS, CMS split consolidation, cross-admin consistency
-> sweep. Carrying an applied coupon into the *placed order* is a follow-up
-> (schema already notes coupons are "UI-only until payments integrated").
+> **Still to build (no migration):** testimonials CMS, CMS split
+> consolidation, cross-admin consistency sweep. Carrying an applied coupon into
+> the *placed order* is a follow-up (schema already notes coupons are "UI-only
+> until payments integrated").
+>
+> **Follow-up landed same day — dashboard charts.** `/admin/analytics` was the
+> only surface still on placeholder data (the main `/admin` dashboard was
+> already live). Replaced its hardcoded `monthlyRevenue` + hand-rolled bars
+> with **Recharts (3.10) + a small shadcn-style `components/ui/chart.tsx`**
+> primitive (theme-aware via `--color-*` CSS vars, responsive). Four responsive
+> line/area charts — Revenue, Orders, Sales (units), Product Views — plus a
+> six-metric live snapshot row (revenue/orders/customers/products/units-in-
+> stock/low-stock). All fed by a new `getAnalyticsOverview(months)` that
+> aggregates real orders / order-items / `RecentlyViewed` events by month in
+> memory (zero-filled buckets, no invented numbers); "Views" is honestly the
+> `RecentlyViewed` signal, not fabricated visitor analytics. Removed the now
+> orphaned `getAdminAnalyticsData`.
 
 > **2026-07-22 — repo reorganised by collaborator (prajwallshetty):** routes
 > moved into groups (`app/(disposal)/disposal/…`, `app/(refurbished)/…`,

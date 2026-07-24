@@ -1107,34 +1107,86 @@ export async function updateAdminSiteSettings(content: any) {
 // Analytics Module
 // ===========================================================================
 
-export async function getAdminAnalyticsData() {
-  const [totalProducts, totalOrders, totalCustomers, orderAggregate, ordersByStatus, topCategories] = await Promise.all([
-    db.product.count(),
-    db.order.count(),
-    db.user.count({ where: { role: Role.CUSTOMER } }),
-    db.order.aggregate({ _sum: { totalCents: true } }),
-    db.order.groupBy({
-      by: ["status"],
-      _count: { id: true },
-    }),
-    db.category.findMany({
-      take: 5,
-      select: {
-        name: true,
-        _count: { select: { products: true } },
-      },
-    }),
-  ]);
+/**
+ * Real monthly time-series for the analytics dashboard. Everything here is
+ * derived from live tables — orders, order items, recently-viewed events — and
+ * aggregated in memory (fine at this scale), so the charts never show invented
+ * numbers. Months with no activity render as zero rather than being skipped,
+ * which keeps the x-axis continuous.
+ */
+export async function getAnalyticsOverview(months = 6) {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+
+  const monthKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+  // Seed each month bucket so gaps are zeros, not holes.
+  const buckets = new Map<
+    string,
+    { label: string; revenueCents: number; orders: number; units: number; views: number }
+  >();
+  for (let i = 0; i < months; i += 1) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    buckets.set(monthKey(d), {
+      label: d.toLocaleDateString("en-US", { month: "short" }),
+      revenueCents: 0,
+      orders: 0,
+      units: 0,
+      views: 0,
+    });
+  }
+
+  const [orders, orderItems, views, totalProducts, totalCustomers, stockAgg, lowStock, revenueAgg, totalOrders] =
+    await Promise.all([
+      db.order.findMany({
+        where: { createdAt: { gte: start } },
+        select: { createdAt: true, totalCents: true },
+      }),
+      db.orderItem.findMany({
+        where: { order: { createdAt: { gte: start } } },
+        select: { quantity: true, order: { select: { createdAt: true } } },
+      }),
+      db.recentlyViewed.findMany({
+        where: { viewedAt: { gte: start } },
+        select: { viewedAt: true },
+      }),
+      db.product.count(),
+      db.user.count({ where: { role: Role.CUSTOMER } }),
+      db.product.aggregate({ _sum: { stock: true } }),
+      db.product.count({ where: { stock: { gt: 0, lte: LOW_STOCK_THRESHOLD } } }),
+      db.order.aggregate({ _sum: { totalCents: true } }),
+      db.order.count(),
+    ]);
+
+  for (const o of orders) {
+    const b = buckets.get(monthKey(o.createdAt));
+    if (b) {
+      b.revenueCents += o.totalCents;
+      b.orders += 1;
+    }
+  }
+  for (const it of orderItems) {
+    const b = it.order ? buckets.get(monthKey(it.order.createdAt)) : undefined;
+    if (b) b.units += it.quantity;
+  }
+  for (const v of views) {
+    const b = buckets.get(monthKey(v.viewedAt));
+    if (b) b.views += 1;
+  }
+
+  const series = Array.from(buckets.values());
 
   return {
-    overview: {
+    series,
+    snapshot: {
       totalProducts,
-      totalOrders,
       totalCustomers,
-      totalRevenueCents: orderAggregate._sum.totalCents ?? 0,
+      totalOrders,
+      totalRevenueCents: revenueAgg._sum.totalCents ?? 0,
+      totalStockUnits: stockAgg._sum.stock ?? 0,
+      lowStock,
     },
-    ordersByStatus: ordersByStatus.map((o) => ({ status: o.status, count: o._count.id })),
-    topCategories: topCategories.map((c) => ({ name: c.name, count: c._count.products })),
   };
 }
 
