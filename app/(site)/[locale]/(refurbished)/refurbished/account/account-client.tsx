@@ -117,13 +117,21 @@ export function AccountClient({
 }: AccountClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const rawTab = searchParams.get("tab");
+  const parsedTab = (rawTab === "address" ? "addresses" : (rawTab as Tab)) || "overview";
+  const initialTab: Tab = ["overview", "orders", "addresses", "profile", "security"].includes(parsedTab)
+    ? parsedTab
+    : "overview";
+
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const pushToast = useToast((s) => s.push);
   const t = useTranslations("account");
 
   useEffect(() => {
-    const tabParam = searchParams.get("tab") as Tab;
-    if (tabParam && ["overview", "orders", "addresses", "profile", "security"].includes(tabParam)) {
+    const currentRaw = searchParams.get("tab");
+    if (!currentRaw) return;
+    const tabParam = (currentRaw === "address" ? "addresses" : currentRaw) as Tab;
+    if (["overview", "orders", "addresses", "profile", "security"].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);

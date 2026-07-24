@@ -266,7 +266,7 @@ export function HomeRefurbishedSections({
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">Apple MacBook Pro 14 M3</h4>
-                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">$1,499.00</p>
+                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">1.499,00 €</p>
                   </div>
                 </div>
               </div>
@@ -315,7 +315,7 @@ export function HomeRefurbishedSections({
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">Dell Latitude 7440 Workstation</h4>
-                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">$749.00</p>
+                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">749,00 €</p>
                   </div>
                 </div>
               </div>

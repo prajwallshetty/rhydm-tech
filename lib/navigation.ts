@@ -18,7 +18,6 @@ export const NAV: Record<Division, NavItem[]> = {
     { label: "Industries", href: "/disposal/industries" },
     { label: "Certificates", href: "/disposal/certificates" },
     { label: "FAQs", href: "/disposal/faqs" },
-    { label: "Contact", href: "/disposal/contact" },
   ],
   refurbished: [
     { label: "Shop", href: "/refurbished/shop" },

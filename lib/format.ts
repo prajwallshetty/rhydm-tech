@@ -10,6 +10,7 @@ const currencyFormatter = new Intl.NumberFormat("en-IE", {
   maximumFractionDigits: 0,
 });
 
+const preciseCurrencyFormatter = new Intl.NumberFormat("de-DE", {
 const preciseCurrencyFormatter = new Intl.NumberFormat("en-IE", {
   style: "currency",
   currency: "EUR",

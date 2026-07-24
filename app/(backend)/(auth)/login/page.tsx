@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Lock, Mail, ArrowRight, ShieldCheck, Loader2, AlertCircle } from "lucide-react";
+import { Lock, Mail, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { loginAction } from "@/app/(backend)/(auth)/actions";
 
-export default function LoginPage() {
+function LoginFormInner() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +27,7 @@ export default function LoginPage() {
         setError(res.error);
         setLoading(false);
       } else if (res?.redirectUrl) {
-        window.location.href = res.redirectUrl;
+        window.location.replace(res.redirectUrl);
       } else {
         setError("Sign in failed. Please check your credentials.");
         setLoading(false);
@@ -36,6 +39,94 @@ export default function LoginPage() {
     }
   };
 
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2.5 rounded-2xl bg-red-50 dark:bg-red-950/40 p-3.5 border border-red-200 dark:border-red-900 text-xs font-bold text-red-600 dark:text-red-400 mb-4"
+        >
+          <AlertCircle className="size-4 shrink-0 text-red-500" />
+          <span>{error}</span>
+        </motion.div>
+      )}
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
+          Email Address
+        </label>
+        <div className="relative">
+          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="name@company.com"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 dark:border-border dark:bg-muted/40 pl-10 pr-4 py-2.5 text-xs font-medium outline-none focus:border-[#2E6F40] focus:bg-white dark:focus:bg-card transition-colors"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
+            Password
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-xs font-bold text-[#2E6F40] hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <div className="relative">
+          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <input
+            type="password"
+            name="password"
+            required
+            placeholder="••••••••"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 dark:border-border dark:bg-muted/40 pl-10 pr-4 py-2.5 text-xs font-medium outline-none focus:border-[#2E6F40] focus:bg-white dark:focus:bg-card transition-colors"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 pt-1">
+        <input
+          type="checkbox"
+          id="rememberMe"
+          name="rememberMe"
+          className="size-4 rounded border-slate-300 text-[#2E6F40] focus:ring-[#2E6F40]"
+        />
+        <label htmlFor="rememberMe" className="text-xs font-bold text-slate-600 dark:text-muted-foreground select-none cursor-pointer">
+          Remember me for 30 days
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2E6F40] hover:bg-[#255833] py-3 text-xs font-extrabold text-white shadow-lg shadow-[#2E6F40]/25 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="size-4 animate-spin" />
+            <span>Authenticating...</span>
+          </>
+        ) : (
+          <>
+            <span>Sign In</span>
+            <ArrowRight className="size-4" />
+          </>
+        )}
+      </button>
+    </form>
+  );
+}
+
+export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-background px-4 py-12 relative overflow-hidden">
       {/* Ambient background glow */}
@@ -83,89 +174,9 @@ export default function LoginPage() {
             </span>
           </div>
 
-          {/* Error Banner */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2.5 rounded-2xl bg-red-50 dark:bg-red-950/40 p-3.5 border border-red-200 dark:border-red-900 text-xs font-bold text-red-600 dark:text-red-400"
-            >
-              <AlertCircle className="size-4 shrink-0 text-red-500" />
-              <span>{error}</span>
-            </motion.div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  placeholder="name@company.com"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 dark:border-border dark:bg-muted/40 pl-10 pr-4 py-2.5 text-xs font-medium outline-none focus:border-[#2E6F40] focus:bg-white dark:focus:bg-card transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-bold text-[#2E6F40] hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  placeholder="••••••••"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 dark:border-border dark:bg-muted/40 pl-10 pr-4 py-2.5 text-xs font-medium outline-none focus:border-[#2E6F40] focus:bg-white dark:focus:bg-card transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                name="rememberMe"
-                className="size-4 rounded border-slate-300 text-[#2E6F40] focus:ring-[#2E6F40]"
-              />
-              <label htmlFor="rememberMe" className="text-xs font-bold text-slate-600 dark:text-muted-foreground select-none cursor-pointer">
-                Remember me for 30 days
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2E6F40] hover:bg-[#255833] py-3 text-xs font-extrabold text-white shadow-lg shadow-[#2E6F40]/25 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  <span>Authenticating...</span>
-                </>
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <ArrowRight className="size-4" />
-                </>
-              )}
-            </button>
-          </form>
+          <Suspense fallback={<div className="text-center py-4 text-xs font-semibold text-muted-foreground">Loading form...</div>}>
+            <LoginFormInner />
+          </Suspense>
 
           <div className="text-center pt-2 text-xs font-semibold text-muted-foreground">
             Don&rsquo;t have an account?{" "}

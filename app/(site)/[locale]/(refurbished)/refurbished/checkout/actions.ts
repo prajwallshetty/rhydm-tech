@@ -54,7 +54,7 @@ export async function getCheckoutUserDataAction() {
           city: defaultAddr.city,
           region: defaultAddr.region,
           postalCode: defaultAddr.postalCode,
-          country: defaultAddr.country || "US",
+          country: defaultAddr.country || "Germany",
         }
       : {
           fullName: user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim(),
@@ -63,7 +63,7 @@ export async function getCheckoutUserDataAction() {
           city: "",
           region: "",
           postalCode: "",
-          country: "US",
+          country: "Germany",
         },
   };
 }

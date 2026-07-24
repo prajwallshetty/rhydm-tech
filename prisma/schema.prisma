@@ -528,7 +528,7 @@ model Address {
   city       String
   region     String
   postalCode String
-  country    String      @default("US")
+  country    String      @default("Germany")
   isDefault  Boolean     @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

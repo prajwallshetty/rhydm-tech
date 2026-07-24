@@ -9,6 +9,12 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
+function setLocaleCookie(locale: AppLocale) {
+  if (typeof document !== "undefined") {
+    document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;SameSite=Lax`;
+  }
+}
+
 /**
  * Locale selector. Switching replaces only the locale segment of the current
  * URL (client navigation, no full reload) and next-intl persists the choice
@@ -42,6 +48,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   function select(next: AppLocale) {
     setOpen(false);
     if (next === locale) return;
+    setLocaleCookie(next);
     startTransition(() => {
       // Same pathname, different locale — dynamic params pass through.
       router.replace(

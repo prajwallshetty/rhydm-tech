@@ -32,7 +32,7 @@ const EMPTY_FORM = {
     city: "",
     region: "",
     postalCode: "",
-    country: "US",
+    country: "Germany",
   },
   delivery: "standard" as DeliveryMethod,
   notes: "",

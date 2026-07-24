@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getMessages } from "next-intl/server";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { BackToTop } from "@/components/layout/back-to-top";
@@ -79,6 +79,7 @@ export default async function SiteLocaleLayout({
 
   // Enables static rendering under next-intl.
   setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     // `suppressHydrationWarning` is required by next-themes, which writes the
@@ -89,7 +90,7 @@ export default async function SiteLocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"

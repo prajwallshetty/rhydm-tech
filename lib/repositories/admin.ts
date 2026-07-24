@@ -909,6 +909,12 @@ export async function deleteAdminPost(id: string) {
 // Disposal CMS Module
 // ===========================================================================
 
+export type DisposalHeroContent = {
+  eyebrow: string;
+  heading: string;
+  subheading: string;
+};
+
 export async function getDisposalCmsData() {
   const [hero, services, steps, industries, certifications, testimonials, faqs, submissions] = await Promise.all([
     db.pageSection.findUnique({ where: { key: "disposal.hero" } }),
@@ -922,11 +928,11 @@ export async function getDisposalCmsData() {
   ]);
 
   return {
-    hero: hero?.content as any || {
+    hero: ((hero?.content as unknown as DisposalHeroContent) || {
       eyebrow: "ISO 27001 · R2 Certified",
       heading: "Retire IT assets without inheriting the risk",
       subheading: "Secure data wiping, certified destruction and zero-landfill recycling.",
-    },
+    }) as DisposalHeroContent,
     services,
     steps,
     industries,
@@ -937,11 +943,11 @@ export async function getDisposalCmsData() {
   };
 }
 
-export async function updateDisposalHero(content: any) {
+export async function updateDisposalHero(content: Prisma.InputJsonValue) {
   return db.pageSection.upsert({
     where: { key: "disposal.hero" },
-    update: { content, division: Division.DISPOSAL },
-    create: { key: "disposal.hero", division: Division.DISPOSAL, content },
+    update: { content: content as Prisma.InputJsonValue, division: Division.DISPOSAL },
+    create: { key: "disposal.hero", division: Division.DISPOSAL, content: content as Prisma.InputJsonValue },
   });
 }
 
@@ -1205,30 +1211,43 @@ export async function deleteAdminSeoMeta(id: string) {
 // Settings Module
 // ===========================================================================
 
-export async function getAdminSiteSettings() {
+export type SiteSettings = {
+  companyName: string;
+  tagline: string;
+  email: string;
+  phone: string;
+  address: string;
+  twitterUrl: string;
+  linkedinUrl: string;
+  githubUrl: string;
+  logoUrl: string;
+  faviconUrl: string;
+};
+
+export async function getAdminSiteSettings(): Promise<SiteSettings> {
   const section = await db.pageSection.findUnique({
     where: { key: "site.settings" },
   });
 
-  return (section?.content as any) || {
+  return ((section?.content as unknown as SiteSettings) || {
     companyName: "Rhydm Technologies",
     tagline: "Enterprise IT Asset Disposal & Refurbished Electronics",
     email: "support@rhydm.tech",
-    phone: "+1 (800) 555-0199",
-    address: "100 Technology Plaza, San Francisco, CA 94107",
+    phone: "+49 15560 765557",
+    address: "Gartenfelder Str. 29, 13599 Berlin, Germany",
     twitterUrl: "https://twitter.com/rhydmtech",
     linkedinUrl: "https://linkedin.com/company/rhydmtech",
     githubUrl: "https://github.com/rhydmtech",
     logoUrl: "/logo.svg",
     faviconUrl: "/favicon.ico",
-  };
+  }) as SiteSettings;
 }
 
-export async function updateAdminSiteSettings(content: any) {
+export async function updateAdminSiteSettings(content: Prisma.InputJsonValue) {
   return db.pageSection.upsert({
     where: { key: "site.settings" },
-    update: { content, division: Division.REFURBISHED },
-    create: { key: "site.settings", division: Division.REFURBISHED, content },
+    update: { content: content as Prisma.InputJsonValue, division: Division.REFURBISHED },
+    create: { key: "site.settings", division: Division.REFURBISHED, content: content as Prisma.InputJsonValue },
   });
 }
 
@@ -1353,19 +1372,23 @@ export async function getAdminDeals() {
   });
 }
 
-/** Published products not currently on a deal — the add-to-deal picker. */
+/** Products not currently on an active deal — the add-to-deal picker. */
 export async function getDealCandidates() {
-  return db.product.findMany({
-    where: { compareAtCents: null, status: PublishStatus.PUBLISHED },
+  const products = await db.product.findMany({
     orderBy: { name: "asc" },
     select: {
       id: true,
       name: true,
       sku: true,
       priceCents: true,
+      compareAtCents: true,
       category: { select: { name: true } },
     },
   });
+
+  return products.filter(
+    (p) => !p.compareAtCents || p.compareAtCents <= p.priceCents,
+  );
 }
 
 // ===========================================================================

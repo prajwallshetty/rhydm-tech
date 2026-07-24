@@ -7,7 +7,7 @@ export const addressSchema = z.object({
   city: z.string().trim().min(2, "Please enter a city."),
   region: z.string().trim().min(2, "Please enter a state or region."),
   postalCode: z.string().trim().min(3, "Please enter a postal code."),
-  country: z.string().trim().min(2).default("US"),
+  country: z.string().trim().min(2).default("Germany"),
 });
 
 export const checkoutSchema = z.object({
