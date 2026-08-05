@@ -2,7 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 
 import { routing } from "@/i18n/routing";
-import { DIVISION_COOKIE, SWITCH_PARAM, isDivision } from "@/lib/business";
 
 const SESSION_COOKIE_NAME = "rhydm_session";
 const ADMIN_COOKIE_NAME = "rhydm_admin_session";

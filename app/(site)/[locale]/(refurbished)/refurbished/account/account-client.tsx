@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter, usePathname } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "@/i18n/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import {
@@ -56,6 +55,7 @@ export interface SerializedOrder {
     categorySlug: string;
     /** From the product; null when the product no longer exists. */
     warrantyMonths: number | null;
+    imageUrl: string | null;
   }>;
 }
 
@@ -117,6 +117,7 @@ export function AccountClient({
 }: AccountClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const rawTab = searchParams.get("tab");
   const parsedTab = (rawTab === "address" ? "addresses" : (rawTab as Tab)) || "overview";
   const initialTab: Tab = ["overview", "orders", "addresses", "profile", "security"].includes(parsedTab)
@@ -140,7 +141,7 @@ export function AccountClient({
     setActiveTab(tabId);
     const params = new URLSearchParams(window.location.search);
     params.set("tab", tabId);
-    router.replace(`${window.location.pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   const [profile, setProfile] = useState({
@@ -543,6 +544,7 @@ export function AccountClient({
                                   slug={item.slug}
                                   category={item.categorySlug}
                                   name={item.name}
+                                  imageUrl={item.imageUrl}
                                   className="size-full object-contain"
                                 />
                               </div>

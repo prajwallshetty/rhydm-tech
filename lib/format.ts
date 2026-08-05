@@ -3,7 +3,7 @@
  * These helpers are the only place that conversion should happen.
  */
 
-const currencyFormatter = new Intl.NumberFormat("en-IE", {
+const currencyFormatter = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   minimumFractionDigits: 0,
@@ -11,7 +11,6 @@ const currencyFormatter = new Intl.NumberFormat("en-IE", {
 });
 
 const preciseCurrencyFormatter = new Intl.NumberFormat("de-DE", {
-const preciseCurrencyFormatter = new Intl.NumberFormat("en-IE", {
   style: "currency",
   currency: "EUR",
 });

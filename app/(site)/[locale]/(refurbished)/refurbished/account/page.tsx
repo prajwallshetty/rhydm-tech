@@ -47,6 +47,11 @@ export default async function AccountPage() {
               slug: true,
               warrantyMonths: true,
               category: { select: { slug: true } },
+              images: {
+                orderBy: { position: "asc" },
+                take: 1,
+                select: { url: true },
+              },
             },
           },
         },
@@ -80,6 +85,7 @@ export default async function AccountPage() {
       // Real warranty term from the product; null when the product was
       // deleted — the UI must not invent a warranty claim in that case.
       warrantyMonths: item.product?.warrantyMonths ?? null,
+      imageUrl: item.product?.images?.[0]?.url || null,
     })),
   }));
 
