@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, User, MapPin, Package, Clock, Save, FileText, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, MapPin, Package, Clock, Save, FileText, CheckCircle, CreditCard } from "lucide-react";
 import { getAdminOrderById } from "@/lib/repositories/admin";
 import { updateOrderStatusAction, updateOrderNotesAction } from "@/app/(backend)/(admin)/admin/actions";
 import { formatMoney } from "@/lib/format";
@@ -238,6 +238,50 @@ export default async function AdminOrderDetailPage({
                   </Link>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Payment Information */}
+          <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
+            <h2 className="text-base font-semibold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-indigo-500" />
+              <span>Payment Details</span>
+            </h2>
+            <div className="space-y-2 text-xs">
+              <div>
+                <span className="text-muted-foreground block text-[11px]">Payment Method</span>
+                <span className="font-semibold text-foreground">{order.paymentMethod || "Not Paid"}</span>
+              </div>
+              {order.paypalTransactionId && (
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">PayPal Transaction ID</span>
+                  <span className="font-mono text-foreground break-all">{order.paypalTransactionId}</span>
+                </div>
+              )}
+              {order.paypalOrderId && (
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">PayPal Order ID</span>
+                  <span className="font-mono text-foreground break-all">{order.paypalOrderId}</span>
+                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground block text-[11px]">Payment Status</span>
+                <span className={`font-bold inline-flex items-center rounded-full px-2 py-0.5 text-[10px] ${
+                  order.paymentStatus === "COMPLETED"
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                }`}>{order.paymentStatus || "UNPAID"}</span>
+              </div>
+              {order.paidAt && (
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Paid Date</span>
+                  <span className="text-foreground">{new Date(order.paidAt).toLocaleString()}</span>
+                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground block text-[11px]">Currency</span>
+                <span className="font-medium text-foreground">{order.currency || "EUR"}</span>
+              </div>
             </div>
           </div>
 

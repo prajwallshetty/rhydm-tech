@@ -2,9 +2,10 @@
 
 import { Link } from "@/i18n/navigation";
 import { Check, CreditCard, Loader2, Truck, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/ui/toast";
 
 import { getCartProducts, type CartProduct } from "@/app/(site)/[locale]/(refurbished)/refurbished/cart/actions";
 import { placeOrder, getCheckoutUserDataAction } from "@/app/(site)/[locale]/(refurbished)/refurbished/checkout/actions";
@@ -56,6 +57,11 @@ export default function CheckoutPage() {
     totalCents: number;
   } | null>(null);
 
+  const pushToast = useToast((s) => s.push);
+  const [paypalLoaded, setPaypalLoaded] = useState(false);
+  const paypalButtonRef = useRef<HTMLDivElement>(null);
+  const buttonsInstanceRef = useRef<any>(null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -82,6 +88,176 @@ export default function CheckoutPage() {
       cancelled = true;
     };
   }, [cart]);
+
+  useEffect(() => {
+    if (step !== 3 || paypalLoaded) return;
+
+    let cancelled = false;
+
+    // Fetch PayPal client ID from backend
+    fetch("/api/payments/paypal/client-id")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load PayPal Client ID");
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        if (!data.clientId) {
+          throw new Error("Client ID is missing in response");
+        }
+
+        const scriptId = "paypal-sdk-script";
+        let script = document.getElementById(scriptId) as HTMLScriptElement;
+
+        if (!script) {
+          script = document.createElement("script");
+          script.id = scriptId;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${data.clientId}&currency=EUR`;
+          script.async = true;
+          script.onload = () => {
+            if (!cancelled) setPaypalLoaded(true);
+          };
+          script.onerror = () => {
+            console.error("PayPal SDK script load failed.");
+            if (!cancelled) {
+              setFormError("Failed to load the PayPal payment gateway.");
+              pushToast("Could not load PayPal SDK script.");
+            }
+          };
+          document.body.appendChild(script);
+        } else {
+          setPaypalLoaded(true);
+        }
+      })
+      .catch((err) => {
+        console.error("PayPal init error:", err);
+        if (!cancelled) {
+          setFormError("PayPal configuration error. Please contact support.");
+          pushToast("PayPal configuration is missing.");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [step, paypalLoaded, pushToast]);
+
+  useEffect(() => {
+    const paypalObj = (window as any).paypal;
+    if (!paypalLoaded || step !== 3 || !paypalObj) return;
+
+    if (buttonsInstanceRef.current) {
+      try {
+        buttonsInstanceRef.current.close();
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (paypalButtonRef.current) {
+      paypalButtonRef.current.innerHTML = "";
+
+      const buttons = paypalObj.Buttons({
+        style: {
+          layout: "vertical",
+          color: "gold",
+          shape: "rect",
+          label: "paypal",
+        },
+        createOrder: async () => {
+          setSubmitting(true);
+          setFormError(null);
+          try {
+            const res = await fetch("/api/payments/paypal/create-order", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                delivery: form.delivery,
+                lines: cart.map((line) => ({ slug: line.slug, quantity: line.quantity })),
+              }),
+            });
+
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.error || "Failed to create order");
+            }
+
+            const data = await res.json();
+            return data.orderID;
+          } catch (err: any) {
+            console.error(err);
+            setFormError(err.message || "Failed to initiate PayPal checkout.");
+            pushToast(err.message || "PayPal checkout initiation failed.");
+            setSubmitting(false);
+            throw err;
+          }
+        },
+        onApprove: async (data: any, actions: any) => {
+          setSubmitting(true);
+          try {
+            const res = await fetch("/api/payments/paypal/capture-order", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderID: data.orderID,
+                checkoutDetails: {
+                  email: form.email,
+                  phone: form.phone,
+                  company: form.company,
+                  shipping: form.shipping,
+                  delivery: form.delivery,
+                  notes: form.notes,
+                  lines: cart.map((line) => ({ slug: line.slug, quantity: line.quantity })),
+                },
+              }),
+            });
+
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.error || "Failed to capture payment");
+            }
+
+            const result = await res.json();
+            setSubmitting(false);
+            clearCart();
+            pushToast("Payment Successful!", "check");
+            
+            // Redirect to success page
+            window.location.href = `/refurbished/order-success?orderNumber=${result.orderNumber}&totalCents=${result.totalCents}&transactionId=${result.transactionId}&token=${result.token}`;
+          } catch (err: any) {
+            console.error(err);
+            setFormError(err.message || "Payment capture failed. Please check with your bank.");
+            pushToast(err.message || "Payment capture failed.");
+            setSubmitting(false);
+          }
+        },
+        onCancel: () => {
+          setSubmitting(false);
+          setFormError("Payment was cancelled.");
+          pushToast("PayPal payment was cancelled.");
+        },
+        onError: (err: any) => {
+          console.error("PayPal error:", err);
+          setSubmitting(false);
+          setFormError("A PayPal gateway error occurred.");
+          pushToast("A PayPal error occurred.");
+        },
+      });
+
+      buttonsInstanceRef.current = buttons;
+      buttons.render(paypalButtonRef.current);
+    }
+
+    return () => {
+      if (buttonsInstanceRef.current) {
+        try {
+          buttonsInstanceRef.current.close();
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, [paypalLoaded, step, form, cart, clearCart, pushToast]);
 
 
   const lines = cart
@@ -488,20 +664,39 @@ export default function CheckoutPage() {
                 </ul>
               </div>
 
-              {/* Payment placeholder, per the brief. */}
-              <div className="flex gap-3 rounded-xl border border-border bg-muted/50 p-5">
-                <CreditCard
-                  aria-hidden
-                  className="mt-0.5 size-5 shrink-0 text-muted-foreground"
-                  strokeWidth={1.6}
-                />
-                <div>
-                  <p className="text-sm font-medium">
-                    {t("paymentSoonTitle")}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {t("paymentSoonBody")}
-                  </p>
+              {/* PayPal Button Container */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 space-y-4 dark:border-border dark:bg-card/50">
+                <div className="flex gap-3">
+                  <CreditCard
+                    aria-hidden
+                    className="mt-0.5 size-5 shrink-0 text-[#2E6F40]"
+                    strokeWidth={1.6}
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Pay Securely with PayPal
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                      Complete your purchase instantly. You will be redirected to PayPal's secure portal to authorize payment.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative mt-4">
+                  {submitting && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60 backdrop-blur-[1px] text-xs font-semibold text-[#2E6F40] animate-pulse">
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      Processing payment...
+                    </div>
+                  )}
+                  <div 
+                    ref={paypalButtonRef}
+                    id="paypal-button-container"
+                    className={cn(
+                      "w-full transition-opacity duration-200", 
+                      submitting ? "opacity-50 pointer-events-none" : "opacity-100"
+                    )}
+                  />
                 </div>
               </div>
 
@@ -523,18 +718,13 @@ export default function CheckoutPage() {
               {t("back")}
             </Button>
 
-            {step < STEP_KEYS.length - 1 ? (
+            {step < STEP_KEYS.length - 1 && (
               <Button
                 onClick={() => {
                   if (validateStep(step)) setStep((s) => s + 1);
                 }}
               >
                 {t("continue")}
-              </Button>
-            ) : (
-              <Button onClick={submit} disabled={submitting} size="lg">
-                {submitting && <Loader2 className="size-4 animate-spin" />}
-                {submitting ? t("placing") : t("placeOrder")}
               </Button>
             )}
           </div>

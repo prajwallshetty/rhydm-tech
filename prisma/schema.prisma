@@ -563,6 +563,14 @@ model Order {
   billingAddress  Json?
   notes           String? @db.Text
 
+  paymentMethod       String?
+  paymentStatus       String?      @default("UNPAID")
+  paypalOrderId       String?      @unique
+  paypalTransactionId String?      @unique
+  paidAt              DateTime?
+  currency            String       @default("EUR")
+  payment             Payment?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -571,6 +579,23 @@ model Order {
 
   @@index([userId])
   @@index([status, createdAt])
+}
+
+model Payment {
+  id                  String   @id @default(cuid())
+  orderId             String   @unique
+  paypalOrderId       String   @unique
+  paypalCaptureId     String?  @unique
+  paypalTransactionId String?  @unique
+  payerEmail          String?
+  payerName           String?
+  amountCents         Int
+  currency            String   @default("EUR")
+  paymentMethod       String   @default("PayPal")
+  status              String   // e.g. "COMPLETED"
+  createdAt           DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model OrderItem {

@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Building2,
   Check,
+  FileText,
   Loader2,
   Lock,
   LogOut,
@@ -45,6 +46,11 @@ export interface SerializedOrder {
   createdAtStr: string;
   status: string;
   totalCents: number;
+  paymentStatus?: string | null;
+  paypalTransactionId?: string | null;
+  paymentMethod?: string | null;
+  currency?: string | null;
+  paidAt?: string | null;
   items: Array<{
     id: string;
     name: string;
@@ -578,6 +584,35 @@ export function AccountClient({
                             </li>
                           ))}
                         </ul>
+
+                        {/* Payment Details & Invoice */}
+                        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                          <div className="space-y-1">
+                            {order.paymentStatus && (
+                              <p className="text-slate-600">
+                                <span className="font-semibold text-slate-700">Payment:</span>{" "}
+                                <span className={order.paymentStatus === "COMPLETED" ? "text-emerald-600 font-bold" : "text-amber-600 font-bold"}>
+                                  {order.paymentStatus}
+                                </span>
+                                {order.paymentMethod && <span className="text-slate-500 font-normal"> via {order.paymentMethod}</span>}
+                              </p>
+                            )}
+                            {order.paypalTransactionId && (
+                              <p className="text-slate-500 font-mono">
+                                <span className="font-semibold font-sans text-slate-600">Transaction ID:</span> {order.paypalTransactionId}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <a
+                            href={`/api/orders/${order.orderNumber}/invoice`}
+                            download
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:border-slate-300"
+                          >
+                            <FileText className="size-3.5 text-slate-500" />
+                            Download Invoice
+                          </a>
+                        </div>
                       </article>
                     ))
                   )}

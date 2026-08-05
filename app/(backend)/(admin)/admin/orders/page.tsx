@@ -93,6 +93,7 @@ export default async function AdminOrdersPage({
                 <th className="p-3.5">Items</th>
                 <th className="p-3.5">Total Amount</th>
                 <th className="p-3.5">Status</th>
+                <th className="p-3.5">Payment</th>
                 <th className="p-3.5">Date</th>
                 <th className="p-3.5 text-right">Action</th>
               </tr>
@@ -100,7 +101,7 @@ export default async function AdminOrdersPage({
             <tbody className="divide-y divide-border/40">
               {ordersData.items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground text-sm">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground text-sm">
                     No orders found.
                   </td>
                 </tr>
@@ -130,6 +131,20 @@ export default async function AdminOrdersPage({
                       >
                         {order.status}
                       </span>
+                    </td>
+                    <td className="p-3.5">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
+                          order.paymentStatus === "COMPLETED"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        }`}
+                      >
+                        {order.paymentStatus || "UNPAID"}
+                      </span>
+                      {order.paymentMethod && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">via {order.paymentMethod}</div>
+                      )}
                     </td>
                     <td className="p-3.5 text-muted-foreground font-medium">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="p-3.5 text-right">

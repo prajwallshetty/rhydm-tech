@@ -74,6 +74,11 @@ export default async function AccountPage() {
     }),
     status: o.status,
     totalCents: o.totalCents,
+    paymentStatus: o.paymentStatus,
+    paypalTransactionId: o.paypalTransactionId,
+    paymentMethod: o.paymentMethod,
+    currency: o.currency,
+    paidAt: o.paidAt ? o.paidAt.toISOString() : null,
     items: o.items.map((item) => ({
       id: item.id,
       name: item.name,

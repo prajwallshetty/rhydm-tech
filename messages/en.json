@@ -292,6 +292,18 @@
         "generic": "Please check this field."
       }
     },
+    "orderSuccess": {
+      "title": "Order Successful",
+      "subtitle": "Thank you for your purchase!",
+      "paymentSuccessful": "Payment Successful",
+      "orderNumber": "Order number",
+      "transactionId": "Transaction ID",
+      "totalPaid": "Total Paid",
+      "downloadInvoice": "Download Invoice",
+      "continueShopping": "Continue Shopping",
+      "errorTitle": "Payment Error",
+      "errorDescription": "There was an error processing your payment."
+    },
     "pagination": {
       "prev": "Previous page",
       "next": "Next page",

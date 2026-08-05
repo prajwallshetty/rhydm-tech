@@ -292,6 +292,18 @@
         "generic": "Bitte überprüfen Sie dieses Feld."
       }
     },
+    "orderSuccess": {
+      "title": "Bestellung erfolgreich",
+      "subtitle": "Vielen Dank für Ihren Einkauf!",
+      "paymentSuccessful": "Zahlung erfolgreich",
+      "orderNumber": "Bestellnummer",
+      "transactionId": "Transaktions-ID",
+      "totalPaid": "Gesamtbetrag",
+      "downloadInvoice": "Rechnung herunterladen",
+      "continueShopping": "Weiter einkaufen",
+      "errorTitle": "Zahlungsfehler",
+      "errorDescription": "Bei der Verarbeitung Ihrer Zahlung ist ein Fehler aufgetreten."
+    },
     "pagination": {
       "prev": "Vorherige Seite",
       "next": "Nächste Seite",
