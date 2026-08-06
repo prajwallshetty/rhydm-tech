@@ -6,8 +6,16 @@ import { setRequestLocale, getMessages } from "next-intl/server";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { BackToTop } from "@/components/layout/back-to-top";
+import { JsonLd } from "@/components/seo/json-ld";
+import { Analytics } from "@/components/seo/analytics";
 import { routing } from "@/i18n/routing";
 import { COMPANY, SITE_URL } from "@/lib/business";
+import { KEYWORDS_GLOBAL, VERIFICATION } from "@/lib/seo/constants";
+import {
+  organizationSchema,
+  websiteSchema,
+  graphSchema,
+} from "@/lib/seo/schemas";
 import "../../globals.css";
 
 const geistSans = Geist({
@@ -29,6 +37,7 @@ export const metadata: Metadata = {
     template: `%s | ${COMPANY.name}`,
   },
   description: COMPANY.description,
+  keywords: [...KEYWORDS_GLOBAL],
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -51,6 +60,24 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    "max-image-preview": "large" as const,
+    "max-snippet": -1,
+    "max-video-preview": -1,
+  },
+  verification: {
+    google: VERIFICATION.google,
+    yandex: VERIFICATION.yandex,
+    other: {
+      ...(VERIFICATION.bing ? { "msvalidate.01": VERIFICATION.bing } : {}),
+    },
+  },
+  alternates: {
+    types: {
+      "application/rss+xml": `${SITE_URL}/feed.xml`,
+    },
+  },
+  other: {
+    "msapplication-TileColor": "#0f172a",
   },
 };
 
@@ -89,7 +116,23 @@ export default async function SiteLocaleLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Preconnect to external origins for faster resource loading */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* OpenSearch description for browser search-engine integration */}
+        <link
+          rel="search"
+          type="application/opensearchdescription+xml"
+          title={COMPANY.name}
+          href="/opensearch.xml"
+        />
+      </head>
       <body className="min-h-full flex flex-col">
+        {/* Global structured data: Organization + WebSite */}
+        <JsonLd
+          data={graphSchema(organizationSchema(), websiteSchema())}
+        />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
@@ -102,6 +145,7 @@ export default async function SiteLocaleLayout({
             <BackToTop />
           </ThemeProvider>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );

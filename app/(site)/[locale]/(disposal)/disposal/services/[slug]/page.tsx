@@ -7,12 +7,18 @@ import { ButtonLink } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { FadeIn } from "@/components/motion/fade-in";
+import { JsonLd } from "@/components/seo/json-ld";
 import {
   getServiceBySlug,
   getServiceSlugs,
   getServices,
 } from "@/lib/repositories/disposal";
-
+import { createServiceMetadata } from "@/lib/seo/metadata";
+import {
+  graphSchema,
+  serviceSchema,
+  breadcrumbSchema,
+} from "@/lib/seo/schemas";
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 /** Prerender every published service at build time. */
@@ -32,16 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: t("notFound") };
   }
 
-  return {
-    title: service.title,
-    description: service.summary,
-    alternates: { canonical: `/disposal/services/${service.slug}` },
-    openGraph: {
-      title: service.title,
-      description: service.summary,
-      url: `/disposal/services/${service.slug}`,
-    },
-  };
+  return createServiceMetadata(service);
 }
 
 export default async function ServiceDetailPage({ params }: Props) {
@@ -61,6 +58,17 @@ export default async function ServiceDetailPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={graphSchema(
+          serviceSchema({ name: service.title, slug: service.slug, description: service.summary }),
+          breadcrumbSchema([
+            { name: "IT Asset Disposal", url: "/disposal" },
+            { name: "Services", url: "/disposal/services" },
+            { name: service.title },
+          ]),
+        )}
+      />
+
       <PageHeader
         eyebrow={t("eyebrow")}
         title={service.title}

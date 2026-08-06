@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { GatewayBackdrop } from "@/components/gateway/gateway-backdrop";
@@ -6,18 +5,24 @@ import { GatewayCard } from "@/components/gateway/gateway-card";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { FadeIn } from "@/components/motion/fade-in";
-import { COMPANY, DIVISION_LIST } from "@/lib/business";
+import { DIVISION_LIST } from "@/lib/business";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: `${COMPANY.name} — Choose Your Service`,
-  description:
-    "We provide secure IT asset disposal services and premium refurbished electronics. Choose the service you're looking for.",
-  openGraph: {
-    title: `${COMPANY.name} — Choose Your Service`,
-    description: COMPANY.description,
-    url: "/",
-  },
-};
+export function generateMetadata() {
+  return createPageMetadata({
+    title: "Secure IT Asset Disposal & Certified Refurbished IT Equipment",
+    description:
+      "Rhydm Tech provides enterprise-grade IT asset disposal with certified data destruction, and professionally refurbished laptops, desktops and servers with warranty.",
+    path: "/",
+    keywords: [
+      "IT Asset Disposal",
+      "Refurbished IT Equipment",
+      "Certified Refurbished Laptops",
+      "Secure Data Wiping",
+      "E-Waste Recycling",
+    ],
+  });
+}
 
 export default async function GatewayPage({
   params,

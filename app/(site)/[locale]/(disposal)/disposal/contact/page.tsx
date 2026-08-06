@@ -6,7 +6,10 @@ import { ContactForm } from "@/components/disposal/contact-form";
 import { FadeIn } from "@/components/motion/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
+import { JsonLd } from "@/components/seo/json-ld";
 import { COMPANY } from "@/lib/business";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { localBusinessSchema, singleSchema } from "@/lib/seo/schemas";
 
 export async function generateMetadata({
   params,
@@ -15,7 +18,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "disposal.contact" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return createPageMetadata({
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/disposal/contact",
+    keywords: ["IT Disposal Contact", "Request IT Pickup", "IT Asset Disposal Berlin"],
+  });
 }
 
 export default async function ContactPage({

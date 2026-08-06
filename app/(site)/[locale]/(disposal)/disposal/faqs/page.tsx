@@ -5,8 +5,10 @@ import { Accordion } from "@/components/ui/accordion";
 import { ButtonLink } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
-import { SITE_URL } from "@/lib/business";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getFaqs } from "@/lib/repositories/disposal";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { faqSchema, singleSchema } from "@/lib/seo/schemas";
 
 export async function generateMetadata({
   params,
@@ -15,7 +17,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "disposal.faqs" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return createPageMetadata({
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/disposal/faqs",
+    keywords: ["IT Disposal FAQ", "ITAD Questions", "Data Destruction FAQ"],
+  });
 }
 
 export default async function FaqsPage({
@@ -30,25 +37,9 @@ export default async function FaqsPage({
   const tc = await getTranslations("disposal");
   const faqs = await getFaqs();
 
-  // FAQPage structured data makes these eligible for rich results.
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "@id": `${SITE_URL}/disposal/faqs`,
-    mainEntity: faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: { "@type": "Answer", text: faq.answer },
-    })),
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        // Content is our own CMS data, not user input.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={singleSchema(faqSchema(faqs))} />
 
       <PageHeader
         eyebrow={t("eyebrow")}

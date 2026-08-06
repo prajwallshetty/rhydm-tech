@@ -7,7 +7,11 @@ import { Icon } from "@/components/icon";
 import { FadeIn } from "@/components/motion/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getServices } from "@/lib/repositories/disposal";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { KEYWORDS_DISPOSAL } from "@/lib/seo/constants";
+import { collectionPageSchema, singleSchema } from "@/lib/seo/schemas";
 
 export async function generateMetadata({
   params,
@@ -16,7 +20,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "disposal.services" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return createPageMetadata({
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/disposal/services",
+    keywords: [...KEYWORDS_DISPOSAL, "ITAD Services"],
+  });
 }
 
 export default async function ServicesPage({
