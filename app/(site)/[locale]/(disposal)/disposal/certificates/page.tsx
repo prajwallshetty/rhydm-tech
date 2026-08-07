@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { getCertifications } from "@/lib/repositories/disposal";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
 export async function generateMetadata({
   params,
@@ -15,7 +16,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "disposal.certificates" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return createPageMetadata({
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/disposal/certificates",
+    keywords: ["IT Disposal Certificates", "Certificate of Destruction", "ISO 27001", "NIST 800-88", "Data Destruction Compliance"],
+  });
 }
 
 export default async function CertificatesPage({

@@ -6,7 +6,10 @@ import { ButtonLink } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { FadeIn } from "@/components/motion/fade-in";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getProcessSteps } from "@/lib/repositories/disposal";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { howToSchema, singleSchema } from "@/lib/seo/schemas";
 
 export async function generateMetadata({
   params,
@@ -15,7 +18,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "disposal.process" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return createPageMetadata({
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/disposal/process",
+    keywords: ["IT Asset Disposal Process", "ITAD Process", "Secure Disposal Steps"],
+  });
 }
 
 export default async function ProcessPage({

@@ -98,6 +98,12 @@ export const COMPANY = {
     postalCode: "13599",
     country: "Germany",
   },
+  geo: {
+    latitude: 52.54829,
+    longitude: 13.25174,
+  },
+  openingHours: "Mo-Fr 09:00-18:00",
+  foundingDate: "2024",
 } as const;
 
 /** Used by metadata, sitemap and JSON-LD. Override in production via env. */

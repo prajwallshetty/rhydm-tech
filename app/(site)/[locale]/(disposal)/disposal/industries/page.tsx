@@ -5,6 +5,7 @@ import { FadeIn } from "@/components/motion/fade-in";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { getIndustries } from "@/lib/repositories/disposal";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
 export async function generateMetadata({
   params,
@@ -13,7 +14,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "disposal.industries" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return createPageMetadata({
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/disposal/industries",
+    keywords: ["IT Disposal Industries", "Enterprise ITAD", "Healthcare ITAD", "Government IT Disposal"],
+  });
 }
 
 export default async function IndustriesPage({

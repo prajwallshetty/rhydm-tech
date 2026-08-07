@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
+import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, Laptop, ShieldCheck } from "lucide-react";
 

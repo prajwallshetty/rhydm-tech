@@ -11,6 +11,7 @@ import { ItadServices } from "@/components/disposal/itad/services";
 import { ItadTestimonials } from "@/components/disposal/itad/testimonials";
 import { ItadWhyBento } from "@/components/disposal/itad/why-bento";
 import { Accordion } from "@/components/ui/accordion";
+import { JsonLd } from "@/components/seo/json-ld";
 import { SITE_URL } from "@/lib/business";
 import { getSectionContent } from "@/lib/cms/content";
 import type {
@@ -26,6 +27,13 @@ import {
   getServices,
   getTestimonials,
 } from "@/lib/repositories/disposal";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { KEYWORDS_DISPOSAL } from "@/lib/seo/constants";
+import {
+  graphSchema,
+  localBusinessSchema,
+  faqSchema,
+} from "@/lib/seo/schemas";
 
 export async function generateMetadata({
   params,
@@ -34,27 +42,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "disposal.home" });
-  return {
+  return createPageMetadata({
     title: t("metaTitle"),
     description: t("metaDescription"),
-    keywords: [
-      "IT Asset Disposition",
-      "ITAD",
-      "IT Asset Disposal",
-      "Data Destruction",
-      "Secure Data Wiping",
-      "Enterprise ITAD",
-      "Global ITAD",
-      "IT Lifecycle Management",
-      "Asset Recovery",
-      "E-Waste Recycling",
-    ],
-    openGraph: {
-      title: t("metaTitle"),
-      description: t("metaDescription"),
-      url: "/disposal",
-    },
-  };
+    path: "/disposal",
+    keywords: [...KEYWORDS_DISPOSAL],
+  });
 }
 
 export default async function DisposalHomePage({
@@ -91,24 +84,36 @@ export default async function DisposalHomePage({
     getSectionContent<DisposalFinalCtaContent>("section.disposal.finalCta", locale),
   ]);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "@id": `${SITE_URL}/disposal`,
-    name: "Global IT Asset Disposition (ITAD)",
-    serviceType: "IT Asset Disposition",
-    areaServed: "Worldwide",
-    description:
-      "Certified data destruction, global recycling, refurbishment, resale, and audit-ready compliance for enterprise IT estates.",
-    provider: { "@type": "Organization", name: "Rhydm Tech", url: SITE_URL },
-  };
+  const jsonLd = graphSchema(
+    {
+      "@type": "Service",
+      "@id": `${SITE_URL}/disposal`,
+      name: "Global IT Asset Disposition (ITAD)",
+      serviceType: "IT Asset Disposition",
+      areaServed: "Worldwide",
+      description:
+        "Certified data destruction, global recycling, refurbishment, resale, and audit-ready compliance for enterprise IT estates.",
+      provider: { "@type": "Organization", name: "Rhydm Tech", url: SITE_URL },
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "ITAD Services",
+        itemListElement: services.map((s) => ({
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: s.title,
+            description: s.summary,
+          },
+        })),
+      },
+    },
+    localBusinessSchema(),
+    faqSchema(faqs),
+  );
 
   return (
     <div className="bg-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
 
       <ItadHero content={heroContent} />
       <ItadWhyBento content={whyContent} />
