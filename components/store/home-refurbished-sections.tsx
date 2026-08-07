@@ -66,7 +66,7 @@ export function HomeRefurbishedSections({
         </div>
 
         {/* Responsive grid displaying all circles fully without horizontal scrolling */}
-        <div className="grid grid-cols-4 lg:grid-cols-8 gap-4 sm:gap-6 justify-items-center py-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6 justify-items-center py-6">
           {categories.map((cat) => (
             <motion.div
               key={cat.id}

@@ -18,6 +18,25 @@ export type CartLine = {
   variantId?: string;
   selectedOptions?: Record<string, string>;
   variantSku?: string;
+  tradeIn?: {
+    deviceType: string;
+    brand: string;
+    model: string;
+    customModel: boolean;
+    configRam: string;
+    configStorage: string;
+    configCpu: string;
+    configGpu?: string | null;
+    configGeneration?: string | null;
+    serialNumber?: string | null;
+    serviceTag?: string | null;
+    purchaseYear: number;
+    condition: string;
+    checklist: any;
+    images: string[];
+    description?: string;
+    estimatedValueCents: number;
+  } | null;
 };
 
 type StoreState = {
@@ -33,6 +52,7 @@ type StoreState = {
       variantId?: string;
       selectedOptions?: Record<string, string>;
       variantSku?: string;
+      tradeIn?: CartLine["tradeIn"];
     },
   ) => void;
   setQuantity: (slug: string, quantity: number, variantId?: string) => void;
@@ -65,7 +85,8 @@ export const useStore = create<StoreState>()(
           const existingIndex = state.cart.findIndex(
             (line) =>
               line.slug === slug &&
-              (line.variantId || null) === (options?.variantId || null),
+              (line.variantId || null) === (options?.variantId || null) &&
+              JSON.stringify(line.tradeIn || null) === JSON.stringify(options?.tradeIn || null),
           );
           if (existingIndex >= 0) {
             const updated = [...state.cart];
@@ -84,6 +105,7 @@ export const useStore = create<StoreState>()(
                 variantId: options?.variantId,
                 selectedOptions: options?.selectedOptions,
                 variantSku: options?.variantSku,
+                tradeIn: options?.tradeIn || null,
               },
             ],
           };

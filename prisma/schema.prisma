@@ -75,6 +75,8 @@ model User {
   auditLogs               AuditLog[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  exchangeRequests        ExchangeRequest[]
+  exchangeActivities      ExchangeActivity[]
 
   @@index([role])
   @@index([status])
@@ -426,6 +428,7 @@ model Product {
   options        ProductOption[]
   variants       ProductVariant[]
   stockMovements StockMovement[]
+  exchangeRequests ExchangeRequest[]
 
   @@index([categoryId, status])
   @@index([brandId])
@@ -576,6 +579,10 @@ model Order {
 
   user  User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   items OrderItem[]
+
+  exchangeCreditCents Int?             @default(0)
+  exchangeRequestId   String?          @unique
+  exchangeRequest     ExchangeRequest? @relation(fields: [exchangeRequestId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([status, createdAt])
@@ -811,4 +818,60 @@ model ProductVariantImage {
 
   @@index([variantId, position])
   @@index([assetId])
+}
+
+model ExchangeRequest {
+  id                  String           @id @default(cuid())
+  referenceNumber     String           @unique
+  userId              String?
+  productId           String?          // The product they purchase, if linked
+  deviceType          String           // Laptop, Desktop, etc.
+  brand               String           // Dell, Apple, etc.
+  model               String
+  customModel         Boolean          @default(false)
+  configRam           String
+  configStorage       String
+  configCpu           String
+  configGpu           String?
+  configGeneration    String?
+  serialNumber        String?
+  serviceTag          String?
+  purchaseYear        Int?
+  condition           String           // Excellent, Good, Fair, Damaged, Non Working
+  checklist           Json             // checklist results as json
+  images              String[]         // front, back, etc.
+  description         String?          @db.Text
+  estimatedValueCents Int
+  finalValueCents     Int?             // set by admin
+  status              String           // PENDING, UNDER_REVIEW, APPROVED, REJECTED, PICKUP_SCHEDULED, RECEIVED, INSPECTION, COMPLETED, CANCELLED
+  notes               String?          @db.Text
+  pickupOption        String?          // Pickup, Drop-off, Courier
+  pickupSchedule      Json?            // date, time, address
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  user                User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product             Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  order               Order?
+  activities          ExchangeActivity[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([referenceNumber])
+}
+
+model ExchangeActivity {
+  id                String           @id @default(cuid())
+  exchangeRequestId String
+  userId            String?
+  action            String           // e.g. "REQUEST_CREATED", "STATUS_UPDATED", "COUNTER_OFFER_MADE", "IMAGES_UPLOADED", "PICKUP_SCHEDULED", etc.
+  fromStatus        String?
+  toStatus          String?
+  details           String?          @db.Text
+  createdAt         DateTime         @default(now())
+
+  exchangeRequest   ExchangeRequest  @relation(fields: [exchangeRequestId], references: [id], onDelete: Cascade)
+  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([exchangeRequestId])
 }

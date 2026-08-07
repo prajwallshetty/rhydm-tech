@@ -25,6 +25,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  RotateCcw,
 } from "lucide-react";
 import { logoutAdminAction } from "@/app/(backend)/(admin)/admin/actions";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
       { name: "Products", href: "/admin/products", icon: Package },
+      { name: "Exchanges", href: "/admin/exchanges", icon: RotateCcw },
       { name: "Customers", href: "/admin/customers", icon: Users },
       { name: "Reviews", href: "/admin/reviews", icon: Star },
     ],

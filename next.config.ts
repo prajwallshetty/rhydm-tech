@@ -6,6 +6,7 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       // Cloudinary-hosted media (uploads land under res.cloudinary.com).
       { protocol: "https", hostname: "res.cloudinary.com" },

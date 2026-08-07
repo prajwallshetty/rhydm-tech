@@ -6,6 +6,7 @@ import { setRequestLocale, getMessages } from "next-intl/server";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { BackToTop } from "@/components/layout/back-to-top";
+import { CookieBanner } from "@/components/layout/cookie-banner";
 import { routing } from "@/i18n/routing";
 import { COMPANY, SITE_URL } from "@/lib/business";
 import "../../globals.css";
@@ -99,6 +100,7 @@ export default async function SiteLocaleLayout({
             disableTransitionOnChange
           >
             {children}
+            <CookieBanner />
             <BackToTop />
           </ThemeProvider>
         </NextIntlClientProvider>

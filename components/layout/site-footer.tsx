@@ -16,7 +16,7 @@ export async function SiteFooter({ division }: { division: Division }) {
   return (
     <footer className="relative w-full overflow-hidden bg-white text-slate-900 pt-16 lg:pt-20 border-t border-slate-200">
       {/* Main Content Grid aligned with page grid */}
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
           {/* Left Column: Logo & Copyright */}
           <div className="lg:col-span-4 space-y-4">
@@ -98,23 +98,43 @@ export async function SiteFooter({ division }: { division: Division }) {
               </h3>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
-                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
+                  <Link href="/privacy-policy" className="hover:text-[#16A34A] transition-colors">
                     {t("privacyPolicy")}
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
+                  <Link href="/terms-and-conditions" className="hover:text-[#16A34A] transition-colors">
                     {t("termsOfService")}
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
+                  <Link href="/cookie-policy" className="hover:text-[#16A34A] transition-colors">
                     {t("cookiePolicy")}
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-[#16A34A] transition-colors">
-                    {t("dataSecurity")}
+                  <Link href="/imprint" className="hover:text-[#16A34A] transition-colors">
+                    Imprint (Impressum)
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/return-policy" className="hover:text-[#16A34A] transition-colors">
+                    Return Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/withdrawal-policy" className="hover:text-[#16A34A] transition-colors">
+                    Right of Withdrawal
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/sustainability" className="hover:text-[#16A34A] transition-colors">
+                    Sustainability
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/compliance" className="hover:text-[#16A34A] transition-colors">
+                    Compliance & Standards
                   </Link>
                 </li>
               </ul>

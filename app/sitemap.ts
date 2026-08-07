@@ -24,6 +24,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...NAV.refurbished.map((item) => ({ path: item.href, priority: 0.8 })),
   ];
 
+  const legalRoutes = [
+    "/privacy-policy",
+    "/cookie-policy",
+    "/terms-and-conditions",
+    "/imprint",
+    "/refund-policy",
+    "/return-policy",
+    "/shipping-policy",
+    "/withdrawal-policy",
+    "/payment-policy",
+    "/data-deletion-policy",
+    "/security-policy",
+    "/accessibility",
+    "/sustainability",
+    "/compliance",
+  ];
+
   return routing.locales.flatMap((locale) => [
     ...staticRoutes.map(({ path, priority }) => ({
       url: url(path, locale),
@@ -45,6 +62,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily" as const,
       priority: 0.7,
       alternates: alternates(`/refurbished/categories/${category.slug}`),
+    })),
+    ...legalRoutes.map((path) => ({
+      url: url(path, locale),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+      alternates: alternates(path),
     })),
   ]);
 }

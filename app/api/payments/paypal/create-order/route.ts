@@ -11,6 +11,25 @@ const createOrderSchema = z.object({
     z.object({
       slug: z.string().min(1),
       quantity: z.number().int().min(1).max(99),
+      tradeIn: z.object({
+        deviceType: z.string(),
+        brand: z.string(),
+        model: z.string(),
+        customModel: z.boolean(),
+        configRam: z.string(),
+        configStorage: z.string(),
+        configCpu: z.string(),
+        configGpu: z.string().optional().nullable(),
+        configGeneration: z.string().optional().nullable(),
+        serialNumber: z.string().optional().nullable(),
+        serviceTag: z.string().optional().nullable(),
+        purchaseYear: z.number(),
+        condition: z.string(),
+        checklist: z.any(),
+        images: z.array(z.string()),
+        description: z.string().optional().nullable(),
+        estimatedValueCents: z.number(),
+      }).optional().nullable(),
     })
   ).min(1),
 });
@@ -92,11 +111,36 @@ export async function POST(request: Request) {
     );
     const totals = calculateTotals({ subtotalCents, delivery });
 
+    // Handle trade-in credit verification
+    let exchangeCreditCents = 0;
+    const firstLineWithTradeIn = lines.find((l) => l.tradeIn);
+
+    if (firstLineWithTradeIn && firstLineWithTradeIn.tradeIn) {
+      const { getExchangeRules } = await import("@/lib/repositories/exchange");
+      const { calculateValuation } = await import("@/lib/services/valuation");
+
+      const rules = await getExchangeRules();
+      const ti = firstLineWithTradeIn.tradeIn;
+      
+      const computedValuation = calculateValuation({
+        deviceType: ti.deviceType,
+        brand: ti.brand,
+        purchaseYear: ti.purchaseYear ?? undefined,
+        configRam: ti.configRam,
+        configStorage: ti.configStorage,
+        configCpu: ti.configCpu,
+        condition: ti.condition,
+        checklist: ti.checklist,
+      }, rules);
+
+      exchangeCreditCents = computedValuation;
+    }
+
     // Generate a unique order number that will be matched on capture
     const orderNumber = generateOrderNumber();
 
-    // Call PayPal API to create order
-    const amountEUR = (totals.totalCents / 100).toFixed(2);
+    // Call PayPal API to create order for net remaining amount
+    const amountEUR = (Math.max(totals.totalCents - exchangeCreditCents, 0) / 100).toFixed(2);
     const orderID = await createPayPalOrder(amountEUR, orderNumber);
 
     return NextResponse.json({ orderID });

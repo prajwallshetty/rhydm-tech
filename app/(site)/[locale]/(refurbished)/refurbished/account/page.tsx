@@ -106,6 +106,62 @@ export default async function AccountPage() {
     isDefault: a.isDefault,
   }));
 
+  const dbExchanges = await db.exchangeRequest.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    include: {
+      activities: {
+        orderBy: { createdAt: "asc" },
+      },
+      product: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  const initialExchanges = dbExchanges.map((ex) => ({
+    id: ex.id,
+    referenceNumber: ex.referenceNumber,
+    createdAtStr: new Date(ex.createdAt).toLocaleDateString(locale, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }),
+    status: ex.status,
+    deviceType: ex.deviceType,
+    brand: ex.brand,
+    model: ex.model,
+    customModel: ex.customModel,
+    condition: ex.condition,
+    estimatedValueCents: ex.estimatedValueCents,
+    finalValueCents: ex.finalValueCents,
+    images: ex.images,
+    description: ex.description,
+    serialNumber: ex.serialNumber,
+    serviceTag: ex.serviceTag,
+    purchaseYear: ex.purchaseYear,
+    pickupOption: ex.pickupOption,
+    pickupSchedule: ex.pickupSchedule,
+    checklist: ex.checklist,
+    linkedProduct: ex.product ? { name: ex.product.name, slug: ex.product.slug } : null,
+    activities: ex.activities.map((act) => ({
+      id: act.id,
+      createdAtStr: new Date(act.createdAt).toLocaleString(locale, {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      action: act.action,
+      fromStatus: act.fromStatus,
+      toStatus: act.toStatus,
+      details: act.details,
+    })),
+  }));
+
   return (
     <AccountClient
       user={{
@@ -114,6 +170,7 @@ export default async function AccountPage() {
       }}
       initialOrders={initialOrders}
       initialAddresses={initialAddresses}
+      initialExchanges={initialExchanges}
     />
   );
 }

@@ -40,22 +40,22 @@ export default async function GatewayPage({
   }));
 
   return (
-    <main className="relative flex h-screen min-h-screen w-full flex-col items-center justify-between overflow-hidden px-6 py-6 sm:py-8 font-sans">
+    <main className="relative flex min-h-screen w-full flex-col items-center justify-between overflow-x-hidden px-4 sm:px-6 py-6 sm:py-8 font-sans">
       <GatewayBackdrop />
 
-      <div className="absolute top-4 right-6 z-50">
+      <div className="absolute top-4 right-4 sm:right-6 z-50">
         <LanguageSwitcher />
       </div>
 
-      <div className="relative w-full max-w-4xl flex-1 flex flex-col justify-between my-auto py-2">
+      <div className="relative w-full max-w-4xl flex-1 flex flex-col justify-between my-auto py-2 gap-6">
         {/* Top Header Logo */}
-        <FadeIn className="flex justify-center">
+        <FadeIn className="flex justify-center pt-2 sm:pt-0">
           <Logo />
         </FadeIn>
 
         {/* Title & Subtitle */}
-        <FadeIn delay={0.1} className="text-center mt-4 sm:mt-6 space-y-2">
-          <h1 className="mx-auto max-w-2xl text-pretty text-3xl font-black tracking-tight sm:text-4xl md:text-[2.75rem] leading-tight text-slate-900 dark:text-white">
+        <FadeIn delay={0.1} className="text-center space-y-2">
+          <h1 className="mx-auto max-w-2xl text-pretty text-2xl sm:text-4xl md:text-[2.75rem] font-black tracking-tight leading-tight text-slate-900 dark:text-white">
             {t("title")}
           </h1>
           <p className="mx-auto max-w-xl text-pretty text-xs sm:text-sm leading-relaxed text-muted-foreground">
@@ -64,14 +64,14 @@ export default async function GatewayPage({
         </FadeIn>
 
         {/* Gateway Cards Grid */}
-        <div className="mt-6 grid gap-6 md:grid-cols-2 items-stretch flex-1 max-h-[460px]">
+        <div className="grid gap-6 md:grid-cols-2 items-stretch flex-1">
           {divisions.map((division, index) => (
             <GatewayCard key={division.slug} division={division} index={index} />
           ))}
         </div>
 
         {/* Bottom Switch Note */}
-        <FadeIn delay={0.4} className="mt-6 text-center">
+        <FadeIn delay={0.4} className="text-center pb-2">
           <p className="text-xs text-muted-foreground">
             {t("switchNote")}
           </p>

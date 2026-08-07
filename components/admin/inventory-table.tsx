@@ -148,7 +148,8 @@ export function InventoryTable({
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto touch-scroll">
+            <table className="w-full text-sm">
             <thead className="border-b border-border/80 bg-muted/40 text-left text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-semibold">Product</th>
@@ -241,6 +242,7 @@ export function InventoryTable({
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

@@ -16,6 +16,7 @@ export function AddToCart({
   selectedOptions,
   variantSku,
   variantPriceCents,
+  tradeIn = null,
 }: {
   slug: string;
   name: string;
@@ -24,6 +25,7 @@ export function AddToCart({
   selectedOptions?: Record<string, string>;
   variantSku?: string;
   variantPriceCents?: number;
+  tradeIn?: any;
 }) {
   const [quantity, setQuantity] = useState(1);
   const addToCart = useStore((s) => s.addToCart);
@@ -73,12 +75,14 @@ export function AddToCart({
         </div>
 
         <button
+          id="add-to-cart-trigger"
           type="button"
           onClick={() => {
             addToCart(slug, quantity, {
               variantId,
               selectedOptions,
               variantSku,
+              tradeIn,
             });
             push(
               quantity > 1
@@ -87,7 +91,7 @@ export function AddToCart({
             );
           }}
           disabled={outOfStock}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-8"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-8 cursor-pointer"
         >
           <ShoppingCart className="size-4" strokeWidth={1.8} />
           {outOfStock ? t("outOfStock") : t("addToCart")}

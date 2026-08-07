@@ -149,6 +149,58 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
     );
     const totals = calculateTotals({ subtotalCents, delivery });
 
+    // Handle trade-in credit verification and creation
+    let exchangeRequestId: string | null = null;
+    let exchangeCreditCents = 0;
+    const firstLineWithTradeIn = lines.find((l) => l.tradeIn);
+
+    if (firstLineWithTradeIn && firstLineWithTradeIn.tradeIn) {
+      const { getExchangeRules, createExchangeRequestInDb } = await import("@/lib/repositories/exchange");
+      const { calculateValuation } = await import("@/lib/services/valuation");
+
+      const rules = await getExchangeRules();
+      const ti = firstLineWithTradeIn.tradeIn;
+      
+      const computedValuation = calculateValuation({
+        deviceType: ti.deviceType,
+        brand: ti.brand,
+        purchaseYear: ti.purchaseYear ?? undefined,
+        configRam: ti.configRam,
+        configStorage: ti.configStorage,
+        configCpu: ti.configCpu,
+        condition: ti.condition,
+        checklist: ti.checklist,
+      }, rules);
+
+      exchangeCreditCents = computedValuation;
+
+      const matchedProduct = products.find((p) => p.slug === firstLineWithTradeIn.slug);
+      
+      const exchangeRequest = await createExchangeRequestInDb({
+        userId: userId || null,
+        productId: matchedProduct?.id || null,
+        deviceType: ti.deviceType,
+        brand: ti.brand,
+        model: ti.model,
+        customModel: ti.customModel,
+        configRam: ti.configRam,
+        configStorage: ti.configStorage,
+        configCpu: ti.configCpu,
+        configGpu: ti.configGpu ?? undefined,
+        configGeneration: ti.configGeneration ?? undefined,
+        serialNumber: ti.serialNumber ?? undefined,
+        serviceTag: ti.serviceTag ?? undefined,
+        purchaseYear: ti.purchaseYear ?? undefined,
+        condition: ti.condition,
+        checklist: ti.checklist,
+        images: ti.images,
+        description: ti.description ?? undefined,
+        estimatedValueCents: computedValuation,
+      });
+
+      exchangeRequestId = exchangeRequest.id;
+    }
+
     const order = await db.order.create({
       data: {
         orderNumber: generateOrderNumber(),
@@ -158,7 +210,9 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
         subtotalCents: totals.subtotalCents,
         shippingCents: totals.shippingCents,
         taxCents: totals.taxCents,
-        totalCents: totals.totalCents,
+        totalCents: Math.max(totals.totalCents - exchangeCreditCents, 0),
+        exchangeCreditCents,
+        exchangeRequestId,
         shippingAddress: { ...shipping, phone: phone || null, company: company || null },
         notes: notes || null,
         items: { create: items },

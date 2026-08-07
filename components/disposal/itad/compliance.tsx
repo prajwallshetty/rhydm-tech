@@ -145,16 +145,6 @@ export function ItadCompliance() {
                   <ShieldCheck className="size-4 text-[#16A34A]" />
                   <span>{t("footerVerification")}</span>
                 </div>
-
-                <a
-                  href="/isocer.png"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex min-h-11 items-center gap-1 py-2 -my-2 text-xs font-bold text-[#16A34A] hover:underline"
-                >
-                  <span>{t("viewCertificate")}</span>
-                  <ArrowUpRight className="size-4.5" />
-                </a>
               </div>
             </SpotlightCard>
           </motion.div>

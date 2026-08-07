@@ -21,6 +21,25 @@ const captureOrderSchema = z.object({
       z.object({
         slug: z.string().min(1),
         quantity: z.number().int().min(1).max(99),
+        tradeIn: z.object({
+          deviceType: z.string(),
+          brand: z.string(),
+          model: z.string(),
+          customModel: z.boolean(),
+          configRam: z.string(),
+          configStorage: z.string(),
+          configCpu: z.string(),
+          configGpu: z.string().optional().nullable(),
+          configGeneration: z.string().optional().nullable(),
+          serialNumber: z.string().optional().nullable(),
+          serviceTag: z.string().optional().nullable(),
+          purchaseYear: z.number(),
+          condition: z.string(),
+          checklist: z.any(),
+          images: z.array(z.string()),
+          description: z.string().optional().nullable(),
+          estimatedValueCents: z.number(),
+        }).optional().nullable(),
       })
     ).min(1),
   }),
@@ -154,6 +173,79 @@ export async function POST(request: Request) {
         }
       }
 
+      // Handle trade-in credit verification and creation inside order transaction
+      let exchangeRequestId: string | null = null;
+      let exchangeCreditCents = 0;
+      const firstLineWithTradeIn = lines.find((l) => l.tradeIn);
+
+      if (firstLineWithTradeIn && firstLineWithTradeIn.tradeIn) {
+        const { getExchangeRules } = await import("@/lib/repositories/exchange");
+        const { calculateValuation } = await import("@/lib/services/valuation");
+
+        const rules = await getExchangeRules();
+        const ti = firstLineWithTradeIn.tradeIn;
+        
+        const computedValuation = calculateValuation({
+          deviceType: ti.deviceType,
+          brand: ti.brand,
+          purchaseYear: ti.purchaseYear ?? undefined,
+          configRam: ti.configRam,
+          configStorage: ti.configStorage,
+          configCpu: ti.configCpu,
+          condition: ti.condition,
+          checklist: ti.checklist,
+        }, rules);
+
+        exchangeCreditCents = computedValuation;
+
+        const matchedProduct = products.find((p) => p.slug === firstLineWithTradeIn.slug);
+        const referenceNumber = `EXCH-${Math.floor(100000 + Math.random() * 900000)}`;
+        
+        const exchangeRequest = await tx.exchangeRequest.create({
+          data: {
+            referenceNumber,
+            userId: userId || null,
+            productId: matchedProduct?.id || null,
+            deviceType: ti.deviceType,
+            brand: ti.brand,
+            model: ti.model,
+            customModel: ti.customModel,
+            configRam: ti.configRam,
+            configStorage: ti.configStorage,
+            configCpu: ti.configCpu,
+            configGpu: ti.configGpu || null,
+            configGeneration: ti.configGeneration || null,
+            serialNumber: ti.serialNumber || null,
+            serviceTag: ti.serviceTag || null,
+            purchaseYear: ti.purchaseYear || null,
+            condition: ti.condition,
+            checklist: ti.checklist,
+            images: ti.images,
+            description: ti.description || null,
+            estimatedValueCents: computedValuation,
+            status: "PENDING",
+          },
+        });
+
+        await tx.exchangeActivity.create({
+          data: {
+            exchangeRequestId: exchangeRequest.id,
+            userId: userId || null,
+            action: "REQUEST_CREATED",
+            toStatus: "PENDING",
+            details: "Exchange request submitted via checkout.",
+          },
+        });
+
+        exchangeRequestId = exchangeRequest.id;
+
+        // Mock notify admin
+        const { notifyAdminNewRequest } = await import("@/lib/services/notifications");
+        await notifyAdminNewRequest(referenceNumber, `${ti.brand} ${ti.model}`);
+      }
+
+      const finalTotalCents = Math.max(totals.totalCents - exchangeCreditCents, 0);
+
       // Create Order
       const newOrder = await tx.order.create({
         data: {
@@ -164,7 +256,9 @@ export async function POST(request: Request) {
           subtotalCents: totals.subtotalCents,
           shippingCents: totals.shippingCents,
           taxCents: totals.taxCents,
-          totalCents: totals.totalCents,
+          totalCents: finalTotalCents,
+          exchangeCreditCents,
+          exchangeRequestId,
           shippingAddress: { ...shipping, phone: phone || null, company: company || null },
           notes: notes || null,
           paymentMethod: "PayPal",
@@ -194,7 +288,7 @@ export async function POST(request: Request) {
           paypalTransactionId: captureID,
           payerEmail,
           payerName,
-          amountCents: totals.totalCents,
+          amountCents: finalTotalCents,
           currency: "EUR",
           paymentMethod: "PayPal",
           status: "COMPLETED",

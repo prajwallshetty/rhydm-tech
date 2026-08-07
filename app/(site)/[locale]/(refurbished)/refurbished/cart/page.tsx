@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { Heart, Loader2, Minus, Plus, ShoppingBag, Tag, Trash2 } from "lucide-react";
+import { Heart, Loader2, Minus, Plus, ShoppingBag, Tag, Trash2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -62,6 +62,10 @@ export default function CartPage() {
 
   const subtotalCents = lines.reduce(
     (total, line) => total + line.product.priceCents * line.quantity,
+    0,
+  );
+  const totalExchangeCreditCents = lines.reduce(
+    (total, line) => total + (line.tradeIn?.estimatedValueCents || 0) * line.quantity,
     0,
   );
   // A previously-applied coupon is re-clamped whenever the cart changes, so an
@@ -160,11 +164,11 @@ export default function CartPage() {
           {lines.map((line) => (
             <article
               key={line.slug}
-              className="flex gap-5 rounded-2xl border border-border/80 bg-card p-5"
+              className="flex flex-col sm:flex-row gap-4 sm:gap-5 rounded-2xl border border-border/80 bg-card p-4 sm:p-5"
             >
               <Link
                 href={`/refurbished/products/${line.slug}`}
-                className="shrink-0"
+                className="shrink-0 flex justify-center sm:block"
               >
                 <ProductThumb
                   slug={line.slug}
@@ -193,24 +197,38 @@ export default function CartPage() {
                       {tc(line.product.condition)} ·{" "}
                       {tp("warrantyBadge", { count: line.product.warrantyMonths })}
                     </p>
+                    {line.tradeIn && (
+                      <div className="mt-2 text-xs text-slate-500 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/60 flex flex-col gap-0.5 max-w-sm">
+                        <div className="font-extrabold text-[#2E6F40] uppercase tracking-wider text-[9px] flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" />
+                          <span>Trade-in Device attached</span>
+                        </div>
+                        <div className="mt-1 font-semibold text-slate-800">
+                          {line.tradeIn.brand} {line.tradeIn.model} ({line.tradeIn.condition})
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-medium">
+                          Serial: {line.tradeIn.serialNumber || "N/A"} · Est. Credit: <span className="font-bold text-[#16A34A]">{formatPriceExact(line.tradeIn.estimatedValueCents)}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <p className="shrink-0 font-semibold">
+                  <p className="shrink-0 font-semibold text-base sm:text-sm">
                     {formatPriceExact(line.product.priceCents * line.quantity)}
                   </p>
                 </div>
 
-                <div className="mt-auto flex flex-wrap items-center gap-4 pt-4">
-                  <div className="inline-flex items-center rounded-lg border border-border">
+                <div className="mt-4 sm:mt-auto flex flex-wrap items-center justify-between sm:justify-start gap-4 pt-3 sm:pt-4 border-t sm:border-t-0 border-border/40">
+                  <div className="inline-flex items-center rounded-xl border border-border">
                     <button
                       type="button"
                       onClick={() => setQuantity(line.slug, line.quantity - 1)}
                       aria-label={t("decreaseOf", { name: line.product.name })}
-                      className="grid size-9 place-items-center rounded-l-lg transition-colors hover:bg-accent"
+                      className="grid size-11 place-items-center rounded-l-xl transition-colors hover:bg-accent cursor-pointer"
                     >
-                      <Minus className="size-3.5" />
+                      <Minus className="size-4" />
                     </button>
-                    <span className="grid w-10 place-items-center text-sm font-medium">
+                    <span className="grid w-10 place-items-center text-sm font-bold">
                       {line.quantity}
                     </span>
                     <button
@@ -218,7 +236,7 @@ export default function CartPage() {
                       onClick={() => setQuantity(line.slug, line.quantity + 1)}
                       disabled={line.quantity >= line.product.stock}
                       aria-label={t("increaseOf", { name: line.product.name })}
-                      className="grid size-9 place-items-center rounded-r-lg transition-colors hover:bg-accent disabled:opacity-40"
+                      className="grid size-11 place-items-center rounded-r-xl transition-colors hover:bg-accent disabled:opacity-40 cursor-pointer"
                     >
                       <Plus className="size-3.5" />
                     </button>
@@ -283,10 +301,18 @@ export default function CartPage() {
                 label={t("tax")}
                 value={formatPriceExact(totals.taxCents)}
               />
+              {totalExchangeCreditCents > 0 && (
+                <div className="text-[#16A34A] font-semibold">
+                  <Row
+                    label="Trade-In Credit"
+                    value={`−${formatPriceExact(totalExchangeCreditCents)}`}
+                  />
+                </div>
+              )}
               <div className="border-t border-border pt-3">
                 <Row
                   label={t("total")}
-                  value={formatPriceExact(totals.totalCents)}
+                  value={formatPriceExact(Math.max(totals.totalCents - totalExchangeCreditCents, 0))}
                   emphasis
                 />
               </div>

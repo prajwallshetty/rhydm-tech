@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AlertTriangle, Calendar } from "lucide-react";
+import { AlertTriangle, Calendar, RotateCcw } from "lucide-react";
+import { db } from "@/lib/db";
 
 import { formatMoney } from "@/lib/format";
 import {
@@ -16,14 +17,19 @@ import {
  * baseline yet, and an invented trend is worse than none.
  */
 export default async function AdminDashboardPage() {
-  const [stats, salesByDay, topProducts, recentOrders, categorySales] =
+  const [stats, salesByDay, topProducts, recentOrders, categorySales, totalExchangesCount, pendingExchangesCount, completedExchangesSum] =
     await Promise.all([
       getDashboardStats(),
       getSalesByDay(7),
       getTopProducts(5),
       getRecentOrders(5),
       getSalesByCategory(),
+      db.exchangeRequest.count(),
+      db.exchangeRequest.count({ where: { status: "PENDING" } }),
+      db.exchangeRequest.aggregate({ where: { status: "COMPLETED" }, _sum: { finalValueCents: true } }),
     ]);
+
+  const totalExchangeValueCents = completedExchangesSum._sum.finalValueCents || 0;
 
   const averageOrderCents =
     stats.totalOrders > 0
@@ -35,6 +41,8 @@ export default async function AdminDashboardPage() {
     { title: "Orders", value: String(stats.totalOrders) },
     { title: "Customers", value: String(stats.totalCustomers) },
     { title: "Avg. Order Value", value: formatMoney(averageOrderCents) },
+    { title: "Trade-ins Value", value: formatMoney(totalExchangeValueCents) },
+    { title: "Pending Exchanges", value: String(pendingExchangesCount), alert: pendingExchangesCount > 0 },
     {
       title: "Low Stock",
       value: String(stats.lowStockCount),

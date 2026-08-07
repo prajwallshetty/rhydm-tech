@@ -23,6 +23,12 @@ import {
   ShieldCheck,
   Trash2,
   User,
+  Calendar,
+  Truck,
+  Info,
+  AlertTriangle,
+  Upload,
+  Camera,
 } from "lucide-react";
 
 import { ProductThumb } from "@/components/store/product-thumb";
@@ -37,8 +43,14 @@ import {
   setDefaultAddressAction,
   updateProfileAction,
 } from "@/app/(backend)/(auth)/actions";
+import {
+  customerRespondToCounterAction,
+  customerAddImagesAction,
+  customerSchedulePickupAction,
+  signExchangeUploadAction,
+} from "@/app/actions/exchange";
 
-type Tab = "overview" | "orders" | "addresses" | "profile" | "security";
+type Tab = "overview" | "orders" | "exchanges" | "addresses" | "profile" | "security";
 
 export interface SerializedOrder {
   id: string;
@@ -90,11 +102,13 @@ interface AccountClientProps {
   };
   initialOrders: SerializedOrder[];
   initialAddresses: SerializedAddress[];
+  initialExchanges?: any[];
 }
 
 const NAV: { id: Tab; labelKey: string; icon: React.ElementType }[] = [
   { id: "overview", labelKey: "navOverview", icon: User },
   { id: "orders", labelKey: "navOrders", icon: Package },
+  { id: "exchanges", labelKey: "navExchanges", icon: RotateCcw },
   { id: "addresses", labelKey: "navAddresses", icon: MapPin },
   { id: "profile", labelKey: "navProfile", icon: Building2 },
   { id: "security", labelKey: "navSecurity", icon: Lock },
@@ -120,13 +134,14 @@ export function AccountClient({
   user,
   initialOrders,
   initialAddresses,
+  initialExchanges = [],
 }: AccountClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const rawTab = searchParams.get("tab");
   const parsedTab = (rawTab === "address" ? "addresses" : (rawTab as Tab)) || "overview";
-  const initialTab: Tab = ["overview", "orders", "addresses", "profile", "security"].includes(parsedTab)
+  const initialTab: Tab = ["overview", "orders", "exchanges", "addresses", "profile", "security"].includes(parsedTab)
     ? parsedTab
     : "overview";
 
@@ -138,7 +153,7 @@ export function AccountClient({
     const currentRaw = searchParams.get("tab");
     if (!currentRaw) return;
     const tabParam = (currentRaw === "address" ? "addresses" : currentRaw) as Tab;
-    if (["overview", "orders", "addresses", "profile", "security"].includes(tabParam)) {
+    if (["overview", "orders", "exchanges", "addresses", "profile", "security"].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -168,6 +183,7 @@ export function AccountClient({
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const [orders] = useState<SerializedOrder[]>(initialOrders);
+  const [exchanges, setExchanges] = useState<any[]>(initialExchanges);
   const [addresses, setAddresses] =
     useState<SerializedAddress[]>(initialAddresses);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -175,6 +191,16 @@ export function AccountClient({
   /** Two-step delete: first click arms, second confirms. */
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // Exchanges-specific state
+  const [expandedExchangeId, setExpandedExchangeId] = useState<string | null>(null);
+  const [pickupOptionState, setPickupOptionState] = useState<string>("courier");
+  const [pickupDateState, setPickupDateState] = useState<string>("");
+  const [pickupTimeState, setPickupTimeState] = useState<string>("09:00 - 12:00");
+  const [pickupAddressState, setPickupAddressState] = useState<string>("");
+  const [pickupInstructionsState, setPickupInstructionsState] = useState<string>("");
+  const [uploadingExtraState, setUploadingExtraState] = useState<boolean>(false);
+  const [actionBusyState, setActionBusyState] = useState<string | null>(null);
 
   const displayName =
     `${profile.firstName} ${profile.lastName}`.trim() ||
@@ -285,6 +311,206 @@ export function AccountClient({
     }
   }
 
+  async function handleCounterResponse(id: string, accept: boolean) {
+    setActionBusyState(accept ? `accept-${id}` : `reject-${id}`);
+    try {
+      const res = await customerRespondToCounterAction(id, accept);
+      if (res.success) {
+        pushToast(accept ? "Counter offer accepted!" : "Counter offer rejected.");
+        setExchanges((prev) =>
+          prev.map((ex) => (ex.id === id ? { ...ex, ...res.updated } : ex))
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+      pushToast("An error occurred. Please try again.");
+    } finally {
+      setActionBusyState(null);
+    }
+  }
+
+  async function handleConfirmPickup(id: string) {
+    setActionBusyState(`pickup-${id}`);
+    try {
+      const schedule = {
+        address: pickupOptionState === "courier" ? pickupAddressState : undefined,
+        date: pickupOptionState === "courier" ? pickupDateState : undefined,
+        timeSlot: pickupOptionState === "courier" ? pickupTimeState : undefined,
+        instructions: pickupOptionState === "courier" ? pickupInstructionsState : undefined,
+      };
+
+      const res = await customerSchedulePickupAction(id, pickupOptionState, schedule);
+      if (res.success) {
+        pushToast("Delivery pickup scheduled successfully!");
+        setExchanges((prev) =>
+          prev.map((ex) => (ex.id === id ? { ...ex, ...res.updated } : ex))
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+      pushToast("An error occurred. Please try again.");
+    } finally {
+      setActionBusyState(null);
+    }
+  }
+
+  const handleUploadExtraPhotos = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingExtraState(true);
+
+    try {
+      const signRes = await signExchangeUploadAction();
+      if ("error" in signRes) throw new Error(signRes.error);
+
+      const uploadInfo = signRes.upload;
+      if (!uploadInfo) throw new Error("Signature failed.");
+
+      const newUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        // Canvas compression
+        const reader = new FileReader();
+        const compressedBlob = await new Promise<Blob>((resolve) => {
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              let width = img.width;
+              let height = img.height;
+              if (width > 1200) {
+                height = Math.round((1200 / width) * height);
+                width = 1200;
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx?.drawImage(img, 0, 0, width, height);
+              canvas.toBlob((blob) => resolve(blob || file), "image/jpeg", 0.75);
+            };
+            img.src = event.target?.result as string;
+          };
+          reader.readAsDataURL(file);
+        });
+
+        const formData = new FormData();
+        formData.append("file", compressedBlob, file.name);
+        formData.append("api_key", uploadInfo.apiKey);
+        formData.append("timestamp", String(uploadInfo.timestamp));
+        formData.append("folder", uploadInfo.folder);
+        formData.append("signature", uploadInfo.signature);
+
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${uploadInfo.cloudName}/image/upload`,
+          { method: "POST", body: formData }
+        );
+
+        if (!res.ok) throw new Error("Upload request failed.");
+
+        const json = await res.json();
+        newUrls.push(json.secure_url);
+      }
+
+      const dbRes = await customerAddImagesAction(id, newUrls);
+      if (dbRes.success) {
+        pushToast("Additional photos uploaded successfully!");
+        setExchanges((prev) =>
+          prev.map((ex) => (ex.id === id ? { ...ex, ...dbRes.updated } : ex))
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+      pushToast(err.message || "Failed to upload photo.");
+    } finally {
+      setUploadingExtraState(false);
+    }
+  };
+
+  function handlePrintQuote(exch: any) {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const checklistLabels = Object.entries(exch.checklist || {})
+      .filter(([_, v]) => v)
+      .map(([k]) => k.replace(/([A-Z])/g, " $1").trim())
+      .join(", ");
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Trade-In Quotation - ${exch.referenceNumber}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+            .header { border-bottom: 2px solid #2E6F40; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+            .title { font-size: 24px; font-weight: bold; color: #2E6F40; }
+            .meta { text-align: right; font-size: 14px; color: #666; }
+            .section { margin-bottom: 25px; }
+            .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; text-transform: uppercase; }
+            .grid { display: grid; grid-template-cols: 1fr 1fr; gap: 15px; font-size: 14px; }
+            .label { color: #888; }
+            .value { font-weight: bold; }
+            .total-box { margin-top: 40px; padding: 20px; background: #f4fbf6; border: 1px solid #d1eed8; border-radius: 8px; text-align: center; }
+            .total-value { font-size: 28px; font-weight: black; color: #2E6F40; margin-top: 10px; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="title">RHYDM TECH</div>
+              <div style="font-size: 12px; color: #666;">Refurbished Hardware Exchange Division</div>
+            </div>
+            <div class="meta">
+              <div>Reference: <strong>${exch.referenceNumber}</strong></div>
+              <div>Date: ${exch.createdAtStr}</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Customer Information</div>
+            <div class="grid">
+              <div><span class="label">Email Address:</span> <span class="value">${user.email}</span></div>
+              <div><span class="label">Recipient Name:</span> <span class="value">${user.firstName || ""} ${user.lastName || ""}</span></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Device Specifications</div>
+            <div class="grid">
+              <div><span class="label">Device:</span> <span class="value">${exch.brand} ${exch.model}</span></div>
+              <div><span class="label">Type:</span> <span class="value">${exch.deviceType}</span></div>
+              <div><span class="label">Condition:</span> <span class="value">${exch.condition}</span></div>
+              <div><span class="label">Purchase Year:</span> <span class="value">${exch.purchaseYear || "N/A"}</span></div>
+              <div><span class="label">Serial Number:</span> <span class="value font-mono">${exch.serialNumber || "N/A"}</span></div>
+              <div><span class="label">Service Tag:</span> <span class="value font-mono">${exch.serviceTag || "N/A"}</span></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Technician Checklist</div>
+            <div style="font-size: 14px; font-weight: 550; color: #555;">
+              ${checklistLabels || "No special components verified."}
+            </div>
+          </div>
+
+          <div class="total-box">
+            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Total Estimated Exchange Value</div>
+            <div class="total-value">${formatPriceExact(exch.finalValueCents ?? exch.estimatedValueCents)}</div>
+            <div style="font-size: 11px; color: #888; margin-top: 10px;">Subject to physical inspection at our depot center. Quotation valid for 14 days.</div>
+          </div>
+
+          <div class="no-print" style="margin-top: 40px; text-align: center;">
+            <button onclick="window.print();" style="background: #2E6F40; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer;">Print This Quotation</button>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
   async function handleLogout() {
     setLoggingOut(true);
     // logoutAction returns { success, redirectUrl } rather than redirecting
@@ -325,9 +551,11 @@ export function AccountClient({
                   const count =
                     item.id === "orders"
                       ? orders.length
-                      : item.id === "addresses"
-                        ? addresses.length
-                        : null;
+                      : item.id === "exchanges"
+                        ? exchanges.length
+                        : item.id === "addresses"
+                          ? addresses.length
+                          : null;
 
                   return (
                     <button
@@ -343,7 +571,9 @@ export function AccountClient({
                       )}
                     >
                       <item.icon className="size-4" strokeWidth={2} />
-                      <span className="flex-1 text-left">{t(item.labelKey)}</span>
+                      <span className="flex-1 text-left">
+                        {item.id === "exchanges" ? "My Exchanges" : t(item.labelKey)}
+                      </span>
                       {count != null && count > 0 && (
                         <span
                           className={cn(
@@ -615,6 +845,356 @@ export function AccountClient({
                         </div>
                       </article>
                     ))
+                  )}
+                </div>
+              )}
+
+              {activeTab === "exchanges" && (
+                <div className="space-y-4">
+                  {exchanges.length === 0 ? (
+                    <SectionCard title="My Exchanges">
+                      <EmptyState
+                        icon={RotateCcw}
+                        title="No Exchanges Yet"
+                        body="You haven't submitted any hardware exchange or trade-in requests yet."
+                        cta={{ href: "/refurbished/shop", label: "Browse Shop & Exchange" }}
+                      />
+                    </SectionCard>
+                  ) : (
+                    exchanges.map((exch) => {
+                      const isExpanded = expandedExchangeId === exch.id;
+                      const hasCounter = exch.status === "COUNTER_OFFER";
+                      const canSchedule = exch.status === "APPROVED" && !exch.pickupOption;
+                      const hasScheduled = !!exch.pickupOption;
+
+                      return (
+                        <article
+                          key={exch.id}
+                          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4"
+                        >
+                          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                            <div>
+                              <p className="font-mono text-sm font-bold flex items-center gap-1.5">
+                                <span className="text-slate-500">Ref:</span>
+                                <span>{exch.referenceNumber}</span>
+                              </p>
+                              <p className="mt-0.5 text-xs text-slate-500">
+                                Submitted on {exch.createdAtStr} · {exch.brand} {exch.model}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className={cn(
+                                "rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border",
+                                exch.status === "PENDING" && "bg-slate-50 text-slate-600 border-slate-200",
+                                exch.status === "COUNTER_OFFER" && "bg-amber-50 text-amber-700 border-amber-200 animate-pulse",
+                                exch.status === "APPROVED" && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                                exch.status === "REJECTED" && "bg-red-50 text-red-705 border-red-200",
+                                exch.status === "PICKUP_SCHEDULED" && "bg-blue-50 text-blue-700 border-blue-200",
+                                exch.status === "RECEIVED" && "bg-violet-50 text-violet-700 border-violet-200",
+                                exch.status === "COMPLETED" && "bg-[#E8F5E9] text-[#1B5E20] border-emerald-250"
+                              )}>
+                                {exch.status.replace("_", " ")}
+                              </span>
+                              <span className="text-sm font-black text-slate-900">
+                                {formatPriceExact(exch.finalValueCents ?? exch.estimatedValueCents)}
+                              </span>
+                            </div>
+                          </header>
+
+                          {/* Quick Specs Overview */}
+                          <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
+                            <div className="flex flex-wrap gap-4 text-slate-600 font-medium">
+                              <div>Type: <span className="font-bold text-slate-850">{exch.deviceType}</span></div>
+                              <div>Condition: <span className="font-bold text-slate-850">{exch.condition}</span></div>
+                              {exch.linkedProduct && (
+                                <div className="text-emerald-700 font-bold">
+                                  Linked to: <Link href={`/refurbished/products/${exch.linkedProduct.slug}`} className="hover:underline">{exch.linkedProduct.name}</Link>
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedExchangeId(isExpanded ? null : exch.id)}
+                              className="text-[#2E6F40] font-bold hover:underline cursor-pointer"
+                            >
+                              {isExpanded ? "Show Less" : "Show Details & Tracking"}
+                            </button>
+                          </div>
+
+                          {/* Expanded Details Section */}
+                          {isExpanded && (
+                            <div className="border-t border-slate-100 pt-5 space-y-6">
+                              {/* Specs & Images Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Device Specifications</h4>
+                                  <div className="grid grid-cols-2 gap-2 text-xs rounded-xl bg-slate-50 p-4 border border-slate-100">
+                                    <div><span className="text-slate-400">RAM:</span> <span className="font-semibold text-slate-800">{exch.checklist?.configRam || "Standard"}</span></div>
+                                    <div><span className="text-slate-400">Storage:</span> <span className="font-semibold text-slate-800">{exch.checklist?.configStorage || "Standard"}</span></div>
+                                    <div><span className="text-slate-400">CPU:</span> <span className="font-semibold text-slate-800">{exch.checklist?.configCpu || "Standard"}</span></div>
+                                    <div><span className="text-slate-400">Purchase Year:</span> <span className="font-semibold text-slate-800">{exch.purchaseYear || "N/A"}</span></div>
+                                    <div className="col-span-2"><span className="text-slate-400">Serial Num:</span> <span className="font-mono text-slate-800">{exch.serialNumber || "N/A"}</span></div>
+                                  </div>
+                                </div>
+
+                                {/* Images gallery */}
+                                <div className="space-y-3">
+                                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Uploaded Photos</h4>
+                                  <div className="flex gap-2.5 overflow-x-auto pb-1 max-w-full">
+                                    {exch.images.map((url: string, index: number) => (
+                                      <a key={index} href={url} target="_blank" rel="noreferrer" className="shrink-0 aspect-square size-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 relative group">
+                                        <img src={url} alt="Device Photo" className="h-full w-full object-cover" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Description */}
+                              {exch.description && (
+                                <div className="space-y-1.5">
+                                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Customer Description</h4>
+                                  <p className="text-xs text-slate-600 bg-slate-50 rounded-xl p-3 border border-slate-100 leading-relaxed font-medium">
+                                    {exch.description}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Print Quote Invoice block */}
+                              <div className="p-4 border border-slate-200/60 bg-slate-50/55 rounded-2xl flex items-center justify-between gap-4">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-bold text-slate-900">Official Valuation Quote</h4>
+                                  <p className="text-xs text-slate-500">Download or print the legal trade-in quotation sheet.</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handlePrintQuote(exch)}
+                                  className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                                >
+                                  <FileText className="h-3.5 w-3.5" />
+                                  <span>Print Quote</span>
+                                </button>
+                              </div>
+
+                              {/* Customer Counter Offer Decision panel */}
+                              {hasCounter && (
+                                <div className="p-5 border border-amber-250 bg-amber-50/20 rounded-2xl space-y-4">
+                                  <div className="flex gap-3">
+                                    <AlertTriangle className="h-5 w-5 text-amber-605 shrink-0 mt-0.5" />
+                                    <div>
+                                      <h4 className="text-sm font-bold text-slate-900">Counter-Offer Proposed by Administrator</h4>
+                                      <p className="text-xs text-slate-600 leading-relaxed mt-1">
+                                        After reviewing your device description and images, our technicians proposed a counter-offer valuation of <span className="font-extrabold text-[#16A34A]">{formatPriceExact(exch.finalValueCents ?? 0)}</span>.
+                                        You can accept this counter offer for instant store credit, or reject it to cancel and get your hardware back.
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-3">
+                                    <button
+                                      type="button"
+                                      disabled={actionBusyState !== null}
+                                      onClick={() => handleCounterResponse(exch.id, true)}
+                                      className="px-5 py-2.5 bg-[#16A34A] hover:bg-[#159342] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#16A34A]/10 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                    >
+                                      {actionBusyState === `accept-${exch.id}` && <Loader2 className="animate-spin h-3.5 w-3.5" />}
+                                      <span>Accept Counter Offer</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={actionBusyState !== null}
+                                      onClick={() => handleCounterResponse(exch.id, false)}
+                                      className="px-5 py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                    >
+                                      {actionBusyState === `reject-${exch.id}` && <Loader2 className="animate-spin h-3.5 w-3.5" />}
+                                      <span>Reject Counter Offer</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Courier Scheduling Form */}
+                              {canSchedule && (
+                                <div className="p-5 border border-blue-200 bg-blue-50/20 rounded-2xl space-y-4">
+                                  <div className="flex gap-3">
+                                    <Truck className="h-5 w-5 text-blue-650 shrink-0 mt-0.5" />
+                                    <div>
+                                      <h4 className="text-sm font-bold text-slate-900">Schedule Hardware Pickup</h4>
+                                      <p className="text-xs text-slate-500 mt-0.5">Your request is approved! Choose how to deliver the device to our inspection warehouse.</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Segmented Option Selector */}
+                                  <div className="flex gap-2 bg-slate-100 p-1 rounded-xl w-fit">
+                                    {["courier", "dropoff", "selfship"].map((opt) => (
+                                      <button
+                                        key={opt}
+                                        type="button"
+                                        onClick={() => setPickupOptionState(opt)}
+                                        className={cn(
+                                          "px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer",
+                                          pickupOptionState === opt ? "bg-white text-slate-950 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                                        )}
+                                      >
+                                        {opt === "courier" ? "Courier Pickup" : opt === "dropoff" ? "Drop-off Box" : "Self-Ship"}
+                                      </button>
+                                    ))}
+                                  </div>
+
+                                  {/* Options Fields */}
+                                  {pickupOptionState === "courier" && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                      <div className="space-y-1.5 col-span-2">
+                                        <label className="font-bold text-slate-700">Pickup Address</label>
+                                        <input
+                                          type="text"
+                                          placeholder="Address for courier pickup..."
+                                          value={pickupAddressState}
+                                          onChange={(e) => setPickupAddressState(e.target.value)}
+                                          className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-xs outline-none focus:border-[#2E6F40]"
+                                        />
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <label className="font-bold text-slate-700">Pickup Date</label>
+                                        <input
+                                          type="date"
+                                          value={pickupDateState}
+                                          min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                                          onChange={(e) => setPickupDateState(e.target.value)}
+                                          className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-xs outline-none focus:border-[#2E6F40]"
+                                        />
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <label className="font-bold text-slate-700">Preferred Hours Window</label>
+                                        <select
+                                          value={pickupTimeState}
+                                          onChange={(e) => setPickupTimeState(e.target.value)}
+                                          className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-xs outline-none focus:border-[#2E6F40]"
+                                        >
+                                          <option value="09:00 - 12:00">Morning (09:00 - 12:00)</option>
+                                          <option value="12:00 - 15:00">Midday (12:00 - 15:00)</option>
+                                          <option value="15:00 - 18:00">Afternoon (15:00 - 18:00)</option>
+                                        </select>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {pickupOptionState === "dropoff" && (
+                                    <div className="text-xs bg-slate-50 p-4 rounded-xl border border-slate-200/50 leading-relaxed font-medium text-slate-600">
+                                      <p className="font-bold text-slate-800 text-sm mb-1.5">Drop-off Instructions</p>
+                                      Pack your device securely in its original box (or standard bubblewrap box). Drop it off at any local DHL Parcel point using our prepaid shipping label (which will be emailed to you shortly).
+                                    </div>
+                                  )}
+
+                                  {pickupOptionState === "selfship" && (
+                                    <div className="text-xs bg-slate-50 p-4 rounded-xl border border-slate-200/50 leading-relaxed font-medium text-slate-600">
+                                      <p className="font-bold text-slate-800 text-sm mb-1.5">Self-Ship Address</p>
+                                      Please ship your device to the following address:
+                                      <br />
+                                      <span className="font-bold text-slate-900 font-sans">Rhydm Tech Refurbished Division, Gutenbergstraße 12, 50823 Köln, Germany</span>.
+                                      Make sure to write your Exchange Reference <span className="font-bold font-mono text-slate-900">{exch.referenceNumber}</span> clearly on the outer package.
+                                    </div>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    disabled={actionBusyState !== null || (pickupOptionState === "courier" && (!pickupAddressState || !pickupDateState))}
+                                    onClick={() => handleConfirmPickup(exch.id)}
+                                    className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-primary/10 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                  >
+                                    {actionBusyState === `pickup-${exch.id}` && <Loader2 className="animate-spin h-3.5 w-3.5" />}
+                                    <span>Confirm Pickup Delivery</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* Scheduled Pickup Display */}
+                              {hasScheduled && (
+                                <div className="p-4 border border-blue-100 bg-blue-50/10 rounded-2xl flex gap-3.5 text-xs text-slate-600 leading-relaxed">
+                                  <Truck className="h-5 w-5 text-blue-650 shrink-0 mt-0.5" />
+                                  <div>
+                                    <h4 className="font-bold text-slate-900">Delivery / Pickup Scheduled</h4>
+                                    <p className="mt-1 font-medium">
+                                      Delivery Option: <span className="font-bold text-slate-800 uppercase">{exch.pickupOption}</span>
+                                    </p>
+                                    {exch.pickupSchedule?.date && (
+                                      <p className="font-medium">
+                                        Date & Time: <span className="font-bold text-slate-805">{exch.pickupSchedule.date} ({exch.pickupSchedule.timeSlot})</span>
+                                      </p>
+                                    )}
+                                    {exch.pickupSchedule?.address && (
+                                      <p className="font-medium mt-0.5">
+                                        Address: <span className="font-mono text-slate-705">{exch.pickupSchedule.address}</span>
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Upload additional images dropzone (if requested or for extra inspection) */}
+                              <div className="space-y-3 p-4 border border-slate-100 bg-slate-50/20 rounded-2xl">
+                                <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                  <Camera className="h-3.5 w-3.5 text-slate-400 animate-pulse" />
+                                  <span>Need to upload more photos?</span>
+                                </h4>
+                                <div className="flex items-center gap-3">
+                                  <label className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50">
+                                    {uploadingExtraState ? (
+                                      <>
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        <span>Uploading...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Upload className="h-3.5 w-3.5 text-slate-500" />
+                                        <span>Add More Photos</span>
+                                      </>
+                                    )}
+                                    <input
+                                      type="file"
+                                      multiple
+                                      accept="image/*"
+                                      disabled={uploadingExtraState}
+                                      onChange={(e) => handleUploadExtraPhotos(exch.id, e)}
+                                      className="hidden"
+                                    />
+                                  </label>
+                                  <span className="text-[10px] text-slate-400 font-medium">PNG, JPG or WEBP formats.</span>
+                                </div>
+                              </div>
+
+                              {/* Activity Timeline Audit Log */}
+                              <div className="space-y-4">
+                                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                  <Info className="h-4 w-4" />
+                                  <span>Activity Timeline & Audit Trail</span>
+                                </h4>
+                                <div className="relative border-l border-slate-200 pl-4 ml-2.5 space-y-4 text-xs">
+                                  {exch.activities.map((act: any, aIdx: number) => (
+                                    <div key={act.id || aIdx} className="relative">
+                                      <div className="absolute -left-[21px] top-1 bg-white border border-[#2E6F40] size-2.5 rounded-full" />
+                                      <div className="flex flex-col gap-0.5">
+                                        <div className="font-extrabold text-slate-800 flex items-center gap-1.5">
+                                          <span>{act.action.replace("_", " ")}</span>
+                                          {act.toStatus && (
+                                            <span className="bg-slate-100 text-slate-550 px-1.5 py-0.5 rounded-md text-[9px] uppercase tracking-wider">
+                                              → {act.toStatus.replace("_", " ")}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="text-slate-500 text-[10px] font-medium">{act.createdAtStr}</div>
+                                        <div className="text-slate-650 mt-1 font-medium leading-relaxed">{act.details}</div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })
                   )}
                 </div>
               )}

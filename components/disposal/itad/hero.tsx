@@ -131,7 +131,7 @@ export function ItadHero({ content }: { content: DisposalHeroContent }) {
             >
               <div className="relative overflow-hidden rounded-2xl">
                 <Image
-                  src="/disposalhero.png"
+                  src={content.imageUrl || "/disposalhero.png"}
                   alt={t("heroAlt")}
                   width={1200}
                   height={1000}

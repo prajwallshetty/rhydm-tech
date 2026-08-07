@@ -159,7 +159,7 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
 
           {/* Trust Badges */}
           <div
-            className="animate-reveal grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-200/80 pt-6 mt-6"
+            className="animate-reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 border-t border-slate-200/80 pt-6 mt-6"
             style={{ "--reveal-delay": "0.55s", "--reveal-blur": "0px" } as React.CSSProperties}
           >
             {trustBadges.map((badge, idx) => {
@@ -184,7 +184,7 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="lg:col-span-7 relative flex items-center justify-center h-full min-h-[450px] lg:min-h-[680px]"
+          className="lg:col-span-7 relative flex items-center justify-center h-full min-h-[300px] sm:min-h-[450px] lg:min-h-[680px]"
         >
           <motion.div
             animate={{
@@ -199,13 +199,13 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
             className="relative w-full h-full flex items-center justify-center lg:translate-x-6"
           >
             <Image
-              src="/hero.png"
+              src={content.imageUrl || "/hero.png"}
               alt={tc("laptopAlt")}
               width={1280}
               height={853}
               priority
               sizes="(min-width: 1024px) 55vw, 100vw"
-              className="max-h-[600px] lg:max-h-[820px] w-full object-contain drop-shadow-2xl pointer-events-none scale-105 lg:scale-120"
+              className="max-h-[400px] sm:max-h-[600px] lg:max-h-[820px] w-full object-contain drop-shadow-2xl pointer-events-none scale-95 sm:scale-100 lg:scale-120 mx-auto"
             />
           </motion.div>
         </motion.div>

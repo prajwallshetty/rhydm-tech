@@ -172,36 +172,130 @@ export function FloatingNav() {
       {/* Mobile Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-x-4 top-20 z-40 rounded-3xl border border-border/80 bg-card/95 p-6 shadow-2xl backdrop-blur-2xl lg:hidden"
-          >
-            <nav className="flex flex-col space-y-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-xl px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="pt-3 border-t border-border/60">
+          <div className="fixed inset-0 z-50 flex justify-end lg:hidden">
+            {/* Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Slide-in Drawer */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 280 }}
+              className="relative z-10 flex h-full w-[85%] max-w-sm flex-col justify-between border-l border-border/80 bg-card p-6 shadow-2xl overflow-y-auto"
+            >
+              <div>
+                {/* Header inside drawer */}
+                <div className="flex items-center justify-between border-b border-border/60 pb-4">
+                  <Logo showShield={false} />
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="grid size-9 place-items-center rounded-full border border-border text-foreground hover:bg-muted"
+                    aria-label="Close menu"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+
+                {/* Quick Access Bar: Search, Wishlist, Cart, Account */}
+                <div className="mt-4 flex items-center justify-around rounded-2xl border border-border/60 bg-muted/40 p-2.5">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setSearchOpen(true);
+                    }}
+                    className="flex flex-col items-center gap-1 text-xs font-semibold text-foreground/80 hover:text-foreground"
+                  >
+                    <div className="grid size-9 place-items-center rounded-full bg-background border border-border/50">
+                      <Search className="size-4" />
+                    </div>
+                    <span>Search</span>
+                  </button>
+
+                  <Link
+                    href="/refurbished/wishlist"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="relative flex flex-col items-center gap-1 text-xs font-semibold text-foreground/80 hover:text-foreground"
+                  >
+                    <div className="grid size-9 place-items-center rounded-full bg-background border border-border/50">
+                      <Heart className="size-4" />
+                      {wishlist.length > 0 && (
+                        <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                          {wishlist.length}
+                        </span>
+                      )}
+                    </div>
+                    <span>Wishlist</span>
+                  </Link>
+
+                  <Link
+                    href="/refurbished/cart"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="relative flex flex-col items-center gap-1 text-xs font-semibold text-foreground/80 hover:text-foreground"
+                  >
+                    <div className="grid size-9 place-items-center rounded-full bg-background border border-border/50">
+                      <ShoppingBag className="size-4" />
+                      {cartCount(cart) > 0 && (
+                        <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-[#2E6F40] text-[9px] font-bold text-white">
+                          {cartCount(cart)}
+                        </span>
+                      )}
+                    </div>
+                    <span>Cart</span>
+                  </Link>
+
+                  <Link
+                    href="/refurbished/account"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex flex-col items-center gap-1 text-xs font-semibold text-foreground/80 hover:text-foreground"
+                  >
+                    <div className="grid size-9 place-items-center rounded-full bg-background border border-border/50">
+                      <User className="size-4" />
+                    </div>
+                    <span>Account</span>
+                  </Link>
+                </div>
+
+                {/* Nav Links */}
+                <nav className="mt-6 flex flex-col space-y-1">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="rounded-xl px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="mt-8 space-y-4 border-t border-border/60 pt-6">
                 <Link
                   href="/disposal"
                   onClick={() => setMobileMenuOpen(false)}
                   style={{ backgroundColor: "#2E6F40" }}
-                  className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md"
+                  className="flex items-center justify-between rounded-xl px-4 py-3.5 text-sm font-semibold text-white shadow-md hover:brightness-110 transition-all"
                 >
                   <span>{t("disposeAssets")}</span>
-                  <ArrowUpRight className="h-4 w-4" />
+                  <ArrowUpRight className="size-4" />
                 </Link>
+
+                <div className="flex items-center justify-between px-2 pt-2">
+                  <span className="text-xs text-muted-foreground font-medium">Language</span>
+                  <LanguageSwitcher />
+                </div>
               </div>
-            </nav>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

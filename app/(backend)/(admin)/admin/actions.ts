@@ -537,6 +537,106 @@ export async function saveSiteSettingsAction(formData: FormData) {
   revalidatePath("/admin/settings");
 }
 
+export async function saveExchangeRulesAction(formData: FormData) {
+  await requireAdmin();
+  const { updateExchangeRules } = await import("@/lib/repositories/exchange");
+
+  const categoriesStr = formData.get("acceptedCategories")?.toString() || "";
+  const acceptedCategories = categoriesStr.split(",").map((s) => s.trim()).filter(Boolean);
+
+  const brandsStr = formData.get("acceptedBrands")?.toString() || "";
+  const acceptedBrands = brandsStr.split(",").map((s) => s.trim()).filter(Boolean);
+
+  const depreciationPercent = parseInt(formData.get("depreciationPercent")?.toString() || "15", 10);
+  const maxExchangeValueCents = Math.round(parseFloat(formData.get("maxExchangeValue")?.toString() || "1000") * 100);
+  const pickupChargesCents = Math.round(parseFloat(formData.get("pickupCharges")?.toString() || "15") * 100);
+
+  // Category base prices
+  const baseCategoryPricesCents: Record<string, number> = {};
+  acceptedCategories.forEach((cat) => {
+    const key = `price_${cat}`;
+    const priceEUR = parseFloat(formData.get(key)?.toString() || "0");
+    baseCategoryPricesCents[cat] = Math.round(priceEUR * 100);
+  });
+
+  // Condition multipliers
+  const conditionMultipliers = {
+    Excellent: parseFloat(formData.get("mult_Excellent")?.toString() || "1.0"),
+    Good: parseFloat(formData.get("mult_Good")?.toString() || "0.8"),
+    Fair: parseFloat(formData.get("mult_Fair")?.toString() || "0.6"),
+    Damaged: parseFloat(formData.get("mult_Damaged")?.toString() || "0.3"),
+    "Non Working": parseFloat(formData.get("mult_NonWorking")?.toString() || "0.1"),
+  };
+
+  await updateExchangeRules({
+    acceptedCategories,
+    acceptedBrands,
+    depreciationPercent,
+    maxExchangeValueCents,
+    pickupChargesCents,
+    baseCategoryPricesCents,
+    conditionMultipliers,
+  });
+
+  revalidatePath("/admin/settings");
+}
+
+export async function updateExchangeStatusAction(
+  id: string,
+  newStatus: string,
+  options: {
+    details?: string;
+    finalValueCents?: number;
+    notes?: string;
+    pickupOption?: string;
+    pickupSchedule?: any;
+  }
+) {
+  const admin = await requireAdmin();
+  const { updateExchangeStatusInDb, getExchangeRequestById } = await import("@/lib/repositories/exchange");
+  const { notifyCustomerStatusChange, notifyCustomerCounterOffer } = await import("@/lib/services/notifications");
+
+  const request = await getExchangeRequestById(id);
+  if (!request) throw new Error("Request not found.");
+
+  let action = "STATUS_UPDATED";
+  let details = options.details || `Status changed to ${newStatus}`;
+
+  if (newStatus === "APPROVED") {
+    action = "OFFER_APPROVED";
+    details = `Offer approved by admin. Value set to €${((options.finalValueCents ?? request.estimatedValueCents) / 100).toFixed(2)}`;
+  } else if (newStatus === "REJECTED") {
+    action = "OFFER_REJECTED";
+    details = "Offer rejected by admin.";
+  } else if (options.finalValueCents !== undefined && options.finalValueCents !== request.estimatedValueCents) {
+    action = "COUNTER_OFFER_MADE";
+    details = `Admin proposed counter offer of €${(options.finalValueCents / 100).toFixed(2)}.`;
+  }
+
+  const updated = await updateExchangeStatusInDb(id, newStatus, {
+    userId: admin.id,
+    action,
+    details,
+    finalValueCents: options.finalValueCents,
+    notes: options.notes,
+    pickupOption: options.pickupOption,
+    pickupSchedule: options.pickupSchedule,
+  });
+
+  // Trigger email notifications
+  if (request.user?.email) {
+    if (action === "COUNTER_OFFER_MADE" && options.finalValueCents !== undefined) {
+      await notifyCustomerCounterOffer(request.user.email, request.referenceNumber, options.finalValueCents);
+    } else {
+      await notifyCustomerStatusChange(request.user.email, request.referenceNumber, newStatus, details);
+    }
+  }
+
+  revalidatePath("/admin/exchanges");
+  revalidatePath(`/admin/exchanges/${id}`);
+  return updated;
+}
+
 // ===========================================================================
 // Deals
 // ===========================================================================

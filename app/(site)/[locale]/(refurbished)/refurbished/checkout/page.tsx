@@ -173,7 +173,11 @@ export default function CheckoutPage() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 delivery: form.delivery,
-                lines: cart.map((line) => ({ slug: line.slug, quantity: line.quantity })),
+                lines: cart.map((line) => ({
+                  slug: line.slug,
+                  quantity: line.quantity,
+                  tradeIn: line.tradeIn || null,
+                })),
               }),
             });
 
@@ -207,7 +211,11 @@ export default function CheckoutPage() {
                   shipping: form.shipping,
                   delivery: form.delivery,
                   notes: form.notes,
-                  lines: cart.map((line) => ({ slug: line.slug, quantity: line.quantity })),
+                  lines: cart.map((line) => ({
+                    slug: line.slug,
+                    quantity: line.quantity,
+                    tradeIn: line.tradeIn || null,
+                  })),
                 },
               }),
             });
@@ -273,6 +281,12 @@ export default function CheckoutPage() {
   );
   const totals = calculateTotals({ subtotalCents, delivery: form.delivery });
 
+  const totalExchangeCreditCents = lines.reduce(
+    (total, line) => total + (line.tradeIn?.estimatedValueCents || 0) * line.quantity,
+    0,
+  );
+  const netTotalCents = Math.max(totals.totalCents - totalExchangeCreditCents, 0);
+
   function validateStep(current: number) {
     const next: Record<string, string> = {};
 
@@ -306,7 +320,11 @@ export default function CheckoutPage() {
 
     const payload: CheckoutInput = {
       ...form,
-      lines: cart.map((line) => ({ slug: line.slug, quantity: line.quantity })),
+      lines: cart.map((line) => ({
+        slug: line.slug,
+        quantity: line.quantity,
+        tradeIn: line.tradeIn || null,
+      })),
     };
 
     const result = await placeOrder(payload);
@@ -664,41 +682,70 @@ export default function CheckoutPage() {
                 </ul>
               </div>
 
-              {/* PayPal Button Container */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 space-y-4 dark:border-border dark:bg-card/50">
-                <div className="flex gap-3">
-                  <CreditCard
-                    aria-hidden
-                    className="mt-0.5 size-5 shrink-0 text-[#2E6F40]"
-                    strokeWidth={1.6}
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      Pay Securely with PayPal
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                      Complete your purchase instantly. You will be redirected to PayPal's secure portal to authorize payment.
-                    </p>
+              {/* Payment Section: PayPal or Free submit button */}
+              {netTotalCents > 0 ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 space-y-4 dark:border-border dark:bg-card/50">
+                  <div className="flex gap-3">
+                    <CreditCard
+                      aria-hidden
+                      className="mt-0.5 size-5 shrink-0 text-[#2E6F40]"
+                      strokeWidth={1.6}
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        Pay Securely with PayPal
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        Complete your purchase instantly. You will be redirected to PayPal's secure portal to authorize payment.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative mt-4">
+                    {submitting && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60 backdrop-blur-[1px] text-xs font-semibold text-[#2E6F40] animate-pulse">
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                        Processing payment...
+                      </div>
+                    )}
+                    <div 
+                      ref={paypalButtonRef}
+                      id="paypal-button-container"
+                      className={cn(
+                        "w-full transition-opacity duration-200", 
+                        submitting ? "opacity-50 pointer-events-none" : "opacity-100"
+                      )}
+                    />
                   </div>
                 </div>
-
-                <div className="relative mt-4">
-                  {submitting && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60 backdrop-blur-[1px] text-xs font-semibold text-[#2E6F40] animate-pulse">
-                      <Loader2 className="mr-2 size-4 animate-spin" />
-                      Processing payment...
+              ) : (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 space-y-4 dark:border-border dark:bg-card/50">
+                  <div className="flex gap-3">
+                    <Check
+                      aria-hidden
+                      className="mt-0.5 size-5 shrink-0 text-[#2E6F40]"
+                      strokeWidth={1.6}
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        Order Covered by Exchange Credit
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        Your estimated exchange credit completely covers the cost of this order. No payment is required.
+                      </p>
                     </div>
-                  )}
-                  <div 
-                    ref={paypalButtonRef}
-                    id="paypal-button-container"
-                    className={cn(
-                      "w-full transition-opacity duration-200", 
-                      submitting ? "opacity-50 pointer-events-none" : "opacity-100"
-                    )}
-                  />
+                  </div>
+
+                  <Button
+                    onClick={submit}
+                    disabled={submitting}
+                    className="w-full h-11 bg-[#16A34A] text-white hover:bg-[#159342] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-[#16A34A]/25 cursor-pointer"
+                  >
+                    {submitting && <Loader2 className="animate-spin h-4 w-4" />}
+                    <span>Confirm & Place Order</span>
+                  </Button>
                 </div>
-              </div>
+              )}
 
               {formError && (
                 <p role="alert" className="text-sm text-destructive">
@@ -751,11 +798,19 @@ export default function CheckoutPage() {
                 label={t("tax")}
                 value={formatPriceExact(totals.taxCents)}
               />
+              {totalExchangeCreditCents > 0 && (
+                <div className="text-[#16A34A] font-semibold">
+                  <SummaryRow
+                    label="Trade-In Credit"
+                    value={`−${formatPriceExact(totalExchangeCreditCents)}`}
+                  />
+                </div>
+              )}
               <div className="border-t border-border pt-3">
                 <div className="flex justify-between">
                   <span className="font-medium">{t("total")}</span>
                   <span className="text-base font-semibold">
-                    {formatPriceExact(totals.totalCents)}
+                    {formatPriceExact(netTotalCents)}
                   </span>
                 </div>
               </div>

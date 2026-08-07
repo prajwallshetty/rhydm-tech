@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Save, Settings, Building, Mail, Phone, MapPin, Share2 } from "lucide-react";
 import { getAdminSiteSettings } from "@/lib/repositories/admin";
 import { saveSiteSettingsAction } from "@/app/(backend)/(admin)/admin/actions";
@@ -7,9 +8,18 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="space-y-8 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Site Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage organization details, contact info, branding, and social channels.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Site Settings</h1>
+          <p className="text-sm text-muted-foreground">Manage organization details, contact info, branding, and social channels.</p>
+        </div>
+        <Link
+          href="/admin/settings/exchange"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-accent transition-colors cursor-pointer"
+        >
+          <Settings className="h-4 w-4" />
+          <span>Exchange Rules & pricing</span>
+        </Link>
       </div>
 
       <form action={saveSiteSettingsAction} className="space-y-6">
