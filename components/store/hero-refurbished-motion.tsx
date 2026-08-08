@@ -196,7 +196,7 @@ export function HeroRefurbishedMotion({ content }: { content: StoreHeroContent }
               repeatType: "mirror",
               ease: "easeInOut",
             }}
-            className="relative w-full h-full flex items-center justify-center lg:translate-x-6"
+            className="relative w-full h-full flex items-center justify-center -translate-x-6 md:translate-x-0 lg:translate-x-6"
           >
             <Image
               src={content.imageUrl || "/hero.png"}
