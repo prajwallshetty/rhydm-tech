@@ -4,11 +4,14 @@ import { SITE_URL } from "@/lib/business";
 import { SERVICES } from "@/lib/data/disposal";
 import { CATEGORIES } from "@/lib/data/store";
 import { NAV } from "@/lib/navigation";
+import { db } from "@/lib/db";
+import { PublishStatus } from "@/lib/generated/prisma/client";
 
 import { routing } from "@/i18n/routing";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  
   // Every public path exists once per locale, cross-linked via hreflang.
   const url = (path: string, locale: string) =>
     `${SITE_URL}/${locale}${path === "/" ? "" : path}`;
@@ -21,6 +24,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     { path: "/", priority: 1 },
     { path: "/about", priority: 0.9 },
+    { path: "/about/yash-saad", priority: 0.7 },
+    { path: "/it-asset-disposal-berlin", priority: 0.9 },
+    { path: "/blog", priority: 0.8 },
     ...NAV.disposal.map((item) => ({ path: item.href, priority: 0.8 })),
     ...NAV.refurbished.map((item) => ({ path: item.href, priority: 0.8 })),
   ];
@@ -42,6 +48,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/compliance",
   ];
 
+  // Fetch all published posts to include in the sitemap index
+  const posts = await db.post.findMany({
+    where: { status: PublishStatus.PUBLISHED },
+    select: { slug: true },
+  });
+
   return routing.locales.flatMap((locale) => [
     ...staticRoutes.map(({ path, priority }) => ({
       url: url(path, locale),
@@ -49,6 +61,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority,
       alternates: alternates(path),
+    })),
+    ...posts.map((post) => ({
+      url: url(`/blog/${post.slug}`, locale),
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+      alternates: alternates(`/blog/${post.slug}`),
     })),
     ...SERVICES.map((service) => ({
       url: url(`/disposal/services/${service.slug}`, locale),

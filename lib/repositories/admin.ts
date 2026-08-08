@@ -1233,11 +1233,11 @@ export async function getAdminSiteSettings(): Promise<SiteSettings> {
   });
 
   return ((section?.content as unknown as SiteSettings) || {
-    companyName: "Rhydm Technologies",
+    companyName: "Rhydm Tech",
     tagline: "Enterprise IT Asset Disposal & Refurbished Electronics",
-    email: "support@rhydm.tech",
-    phone: "+49 15560 765557",
-    address: "Gartenfelder Str. 29, 13599 Berlin, Germany",
+    email: "hello@rhydm.tech",
+    phone: "+4915560765557",
+    address: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany",
     twitterUrl: "https://twitter.com/rhydmtech",
     linkedinUrl: "https://linkedin.com/company/rhydmtech",
     githubUrl: "https://github.com/rhydmtech",

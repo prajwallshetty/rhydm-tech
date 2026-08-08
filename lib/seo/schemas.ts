@@ -47,6 +47,15 @@ export function organizationSchema() {
     address: postalAddressSchema(),
     contactPoint: contactPointSchema(),
     geo: geoCoordinatesSchema(),
+    founder: {
+      "@type": "Person",
+      name: "Yash Saad",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Berlin",
+        addressCountry: "Germany",
+      },
+    },
     ...(SOCIAL_PROFILES.length > 0 ? { sameAs: SOCIAL_PROFILES } : {}),
   };
 }
@@ -447,5 +456,25 @@ export function singleSchema(schema: Record<string, any>) {
   return {
     "@context": "https://schema.org",
     ...schema,
+  };
+}
+
+export function personSchema() {
+  return {
+    "@type": "Person",
+    name: "Yash Saad",
+    jobTitle: "Founder",
+    worksFor: {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "Rhydm Tech",
+      url: `${SITE_URL}/`,
+    },
+    url: `${SITE_URL}/about/yash-saad`,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Berlin",
+      addressCountry: "Germany",
+    },
   };
 }

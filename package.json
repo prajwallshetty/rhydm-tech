@@ -12,6 +12,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-blogs": "tsx prisma/seed-blogs.ts",
+    "db:seed-entity": "tsx prisma/seed-entity-content.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {

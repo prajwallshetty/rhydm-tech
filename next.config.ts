@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(import.meta.dirname),
   },
+  experimental: {
+    cpus: 1,
+    workerThreads: false,
+  },
+  staticPageGenerationTimeout: 240,
 };
 
 export default withNextIntl(nextConfig);

@@ -88,11 +88,11 @@ export const COMPANY = {
   name: "Rhydm Tech",
   legalName: "Rhydm Tech",
   description:
-    "Secure IT asset disposal services and certified refurbished IT equipment.",
+    "Rhydm Tech is a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, IT equipment recycling, trade-in/value recovery, and circular IT solutions.",
   email: "hello@rhydm.tech",
-  phone: "+49 15560 765557",
+  phone: "+4915560765557",
   address: {
-    street: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2. Etage",
+    street: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage",
     city: "Berlin",
     region: "",
     postalCode: "13599",
