@@ -94,7 +94,7 @@ export const GEO = {
 // ---------------------------------------------------------------------------
 
 export const VERIFICATION = {
-  google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? undefined,
+  google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? "NRyhRImSNo9G1SJGfE9rUXMV4FUgLhyHBj-hdeKSsGA",
   bing: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ?? undefined,
   yandex: process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION ?? undefined,
 } as const;
