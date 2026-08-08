@@ -13,6 +13,8 @@ import type {
 } from "@/lib/cms/registry";
 import { cn } from "@/lib/utils";
 
+import { MediaPicker } from "@/components/admin/media-picker";
+
 /**
  * Schema-driven editor: one component renders the form for every registered
  * section from its field definitions, so adding a new editable section is a
@@ -173,6 +175,8 @@ function ScalarEditor({
   const shared =
     "w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[#2E6F40]";
 
+  const isImage = field.key.toLowerCase().includes("image") || field.key.toLowerCase().includes("logo");
+
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="block text-xs font-bold text-muted-foreground">
@@ -187,12 +191,22 @@ function ScalarEditor({
           className={cn(shared, "resize-y")}
         />
       ) : (
-        <input
-          id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={shared}
-        />
+        <div className="flex gap-2">
+          <input
+            id={id}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={shared}
+          />
+          {isImage && (
+            <MediaPicker
+              folder="hero"
+              onSelect={(asset) => onChange(asset.url)}
+              triggerLabel="Choose/Upload Image"
+              className="shrink-0 h-10 px-4 py-2 text-xs font-bold"
+            />
+          )}
+        </div>
       )}
     </div>
   );

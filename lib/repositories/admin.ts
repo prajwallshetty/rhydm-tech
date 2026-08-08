@@ -913,6 +913,7 @@ export type DisposalHeroContent = {
   eyebrow: string;
   heading: string;
   subheading: string;
+  imageUrl?: string;
 };
 
 export async function getDisposalCmsData() {
@@ -928,11 +929,13 @@ export async function getDisposalCmsData() {
   ]);
 
   return {
-    hero: ((hero?.content as unknown as DisposalHeroContent) || {
+    hero: {
       eyebrow: "ISO 27001 · R2 Certified",
       heading: "Retire IT assets without inheriting the risk",
       subheading: "Secure data wiping, certified destruction and zero-landfill recycling.",
-    }) as DisposalHeroContent,
+      imageUrl: "/disposalhero.png",
+      ...((hero?.content as unknown as Record<string, string>) || {}),
+    } as DisposalHeroContent,
     services,
     steps,
     industries,

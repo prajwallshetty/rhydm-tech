@@ -31,6 +31,7 @@ import {
 } from "@/app/(backend)/(admin)/admin/actions";
 import { SubmissionStatus } from "@/lib/generated/prisma/enums";
 import Link from "next/link";
+import { MediaPicker } from "@/components/admin/media-picker";
 
 export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
   const [activeTab, setActiveTab] = useState<
@@ -105,6 +106,30 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
               defaultValue={cmsData.hero.subheading}
               className="w-full rounded-lg border border-input bg-background/50 p-3 text-xs outline-none focus:border-primary"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Hero Image URL</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                name="imageUrl"
+                id="disposal-hero-image"
+                defaultValue={cmsData.hero.imageUrl || ""}
+                className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs outline-none focus:border-primary"
+              />
+              <MediaPicker
+                folder="hero"
+                onSelect={(asset) => {
+                  const el = document.getElementById("disposal-hero-image") as HTMLInputElement;
+                  if (el) {
+                    el.value = asset.url;
+                  }
+                }}
+                triggerLabel="Choose/Upload Image"
+                className="shrink-0 h-10 px-4 py-2 text-xs font-bold"
+              />
+            </div>
           </div>
 
           <button

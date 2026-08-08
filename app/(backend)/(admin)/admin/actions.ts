@@ -349,8 +349,9 @@ export async function saveDisposalHeroAction(formData: FormData) {
   const eyebrow = formData.get("eyebrow")?.toString() || "";
   const heading = formData.get("heading")?.toString() || "";
   const subheading = formData.get("subheading")?.toString() || "";
+  const imageUrl = formData.get("imageUrl")?.toString() || "";
 
-  await updateDisposalHero({ eyebrow, heading, subheading });
+  await updateDisposalHero({ eyebrow, heading, subheading, imageUrl });
   revalidatePath("/admin/disposal");
   revalidateDisposalStorefront();
 }

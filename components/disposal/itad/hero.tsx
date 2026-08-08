@@ -105,7 +105,7 @@ export function ItadHero({ content }: { content: DisposalHeroContent }) {
           </div>
 
           {/* Right Column — Product Hero Image */}
-          <div className="lg:col-span-6">
+          <div className="lg:col-span-6 flex justify-center w-full">
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 20 }}
               animate={
@@ -127,9 +127,9 @@ export function ItadHero({ content }: { content: DisposalHeroContent }) {
                       default: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
                     }
               }
-              className="relative mx-auto max-w-xl lg:max-w-none"
+              className="relative mx-auto max-w-xl lg:max-w-none w-full flex justify-center"
             >
-              <div className="relative overflow-hidden rounded-2xl">
+              <div className="relative overflow-hidden rounded-2xl flex justify-center w-full">
                 <Image
                   src={content.imageUrl || "/disposalhero.png"}
                   alt={t("heroAlt")}
@@ -137,7 +137,7 @@ export function ItadHero({ content }: { content: DisposalHeroContent }) {
                   height={1000}
                   priority
                   sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="w-full h-auto object-contain"
+                  className="w-full h-auto object-contain mx-auto"
                 />
               </div>
             </motion.div>

@@ -63,7 +63,7 @@ export function FloatingNav() {
         >
           {/* Logo without shield icon or premium tag */}
           <Link href="/refurbished" className="flex items-center gap-3 shrink-0 group py-2 -my-2">
-            <Logo showShield={false} />
+            <Logo showShield={false} className="h-9 sm:h-14 lg:h-16" />
           </Link>
 
           {/* Desktop Nav Links */}
@@ -93,7 +93,7 @@ export function FloatingNav() {
             {/* Wishlist Icon with Badge */}
             <Link
               href="/refurbished/wishlist"
-              className="relative flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
+              className="relative hidden md:flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
               aria-label={t("wishlist")}
             >
               <Heart className="h-4 w-4" />
@@ -140,7 +140,7 @@ export function FloatingNav() {
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
 
-            <LanguageSwitcher />
+            <LanguageSwitcher className="hidden lg:block" />
 
             {/* Mobile Menu Toggle */}
             <button
