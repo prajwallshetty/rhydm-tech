@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { COMPANY, SITE_URL } from "@/lib/business";
 
 interface LegalLayoutProps {
   title: string;
@@ -193,13 +194,16 @@ export function LegalLayout({
   }, [content, searchQuery]);
 
   // Schema structured JSON-LD data
+  const pageUrl = `${SITE_URL}/${locale}/${slug}`;
+  const homeUrl = `${SITE_URL}/${locale}`;
+  const logoUrl = `${SITE_URL}/logo.png`;
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebPage",
-        "@id": `https://rhydm.tech/${locale}/${slug}`,
-        "url": `https://rhydm.tech/${locale}/${slug}`,
+        "@id": pageUrl,
+        "url": pageUrl,
         "name": seoTitle,
         "description": seoDescription,
         "inLanguage": locale
@@ -210,15 +214,15 @@ export function LegalLayout({
         "dateModified": new Date().toISOString(),
         "author": {
           "@type": "Organization",
-          "name": "Rhydm Tech GmbH",
-          "url": "https://rhydm.tech"
+          "name": COMPANY.name,
+          "url": `${SITE_URL}/`
         },
         "publisher": {
           "@type": "Organization",
-          "name": "Rhydm Tech GmbH",
+          "name": COMPANY.name,
           "logo": {
             "@type": "ImageObject",
-            "url": "https://rhydm.tech/logo.png"
+            "url": logoUrl
           }
         }
       },
@@ -229,13 +233,13 @@ export function LegalLayout({
             "@type": "ListItem",
             "position": 1,
             "name": locale === "de" ? "Startseite" : "Home",
-            "item": `https://rhydm.tech/${locale}`
+            "item": homeUrl
           },
           {
             "@type": "ListItem",
             "position": 2,
             "name": locale === "de" ? "Rechtliches" : "Legal",
-            "item": `https://rhydm.tech/${locale}/${slug}`
+            "item": pageUrl
           }
         ]
       }

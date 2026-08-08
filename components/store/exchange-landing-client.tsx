@@ -12,6 +12,7 @@ import { submitExchangeRequestAction } from "@/app/actions/exchange";
 import { useToast } from "@/components/ui/toast";
 import { formatPriceExact } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { SITE_URL } from "@/lib/business";
 
 interface ExchangeLandingClientProps {
   pageType: "trade-in" | "exchange" | "sell-your-device";
@@ -40,7 +41,7 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
     publisher: {
       "@type": "Organization",
       name: "Rhydm Tech",
-      url: "https://rhydm.tech",
+      url: SITE_URL,
     },
   };
 

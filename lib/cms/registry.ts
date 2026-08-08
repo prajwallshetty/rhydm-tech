@@ -1244,6 +1244,63 @@ Wir stellen B2B-Kunden revisionssichere Berichte bereit, die direkt für Complia
       },
     },
   },
+  {
+    key: "site.legal.about",
+    division: "DISPOSAL",
+    label: "Legal — About Us",
+    renderedOn: "/about",
+    fields: [
+      { type: "text", key: "title", label: "Page Title" },
+      { type: "textarea", key: "content", label: "Markdown Content" },
+      { type: "text", key: "seoTitle", label: "SEO Title" },
+      { type: "text", key: "seoDescription", label: "SEO Description" },
+      { type: "text", key: "publishStatus", label: "Publish Status" },
+    ],
+    defaults: {
+      title: "About Rhydm Tech",
+      seoTitle: "About Rhydm Tech | Circular IT Solutions",
+      seoDescription: "Learn about Rhydm Tech, a Berlin-based technology company specializing in circular IT, ITAD, and refurbished business electronics.",
+      publishStatus: "PUBLISHED",
+      content: `# About Rhydm Tech
+
+Rhydm Tech is a technology company based in Berlin, Germany, focused on circular IT. The company provides IT asset disposal, secure data destruction, responsible electronics recycling, and refurbished technology solutions.
+
+## Our Mission
+We enable enterprises to securely retire their IT assets, verify data destruction, and extend the lifecycle of technology equipment, contributing to a sustainable and circular economy.
+
+## The Brand Name
+The name "Rhydm" is a proprietary brand name of Rhydm Tech. It represents our commitment to secondary life cycles for hardware and enterprise IT assets.
+
+## What We Do
+* **IT Asset Disposition (ITAD)**: Secure lifecycle management for enterprise IT estates.
+* **Data Destruction**: Verified, audit-ready data erasure conforming to standards such as NIST 800-88.
+* **Refurbished Technology**: Testing, restoring, and warranting business-grade hardware.
+* **Sustainability**: Helping companies achieve zero-landfill ESG recycling goals.`,
+    },
+    localizedDefaults: {
+      de: {
+        title: "Über Rhydm Tech",
+        seoTitle: "Über Rhydm Tech | Zirkuläre IT-Lösungen",
+        seoDescription: "Erfahren Sie mehr über Rhydm Tech, ein Berliner Technologieunternehmen, das auf zirkuläre IT, ITAD und aufbereitete Business-Elektronik spezialisiert ist.",
+        publishStatus: "PUBLISHED",
+        content: `# Über Rhydm Tech
+
+Rhydm Tech ist ein in Berlin ansässiges Technologieunternehmen, das sich auf zirkuläre IT spezialisiert hat. Das Unternehmen bietet Lösungen für die Entsorgung von IT-Assets, sichere Datenvernichtung, verantwortungsvolles Elektronik-Recycling und hochwertige generalüberholte IT-Geräte.
+
+## Unsere Mission
+Wir ermöglichen es Unternehmen, ihre IT-Assets sicher stillzulegen, die Datenlöschung zu zertifizieren und den Lebenszyklus von Technologiegeräten zu verlängern, um einen Beitrag zu einer nachhaltigen Kreislaufwirtschaft zu leisten.
+
+## Der Markenname
+Der Name „Rhydm“ ist ein geschützter Markenname der Rhydm Tech. Er repräsentiert unser Engagement für den zweiten Lebenszyklus von Hardware und IT-Infrastruktur.
+
+## Unsere Leistungen
+* **IT-Asset-Disposition (ITAD)**: Sicheres Lebenszyklus-Management für die IT von Unternehmen.
+* **Datenvernichtung**: Zertifizierte, auditierbare Datenlöschung gemäß Standards wie NIST 800-88.
+* **Refurbished IT-Geräte**: Professionelle Aufbereitung und Garantieabdeckung für Business-Hardware.
+* **Nachhaltigkeit**: Unterstützung von Unternehmen beim Erreichen von Zero-Landfill- und ESG-Recyclingzielen.`,
+      },
+    },
+  },
 ];
 
 export function getSectionDef(key: string): SectionDef | undefined {

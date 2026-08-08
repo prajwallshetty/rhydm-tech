@@ -27,12 +27,13 @@ function abs(path: string): string {
 // ---------------------------------------------------------------------------
 
 export function organizationSchema() {
+  const url = `${SITE_URL}/`;
   return {
     "@type": "Organization",
     "@id": `${SITE_URL}/#organization`,
-    name: COMPANY.name,
-    legalName: COMPANY.legalName,
-    url: SITE_URL,
+    name: "Rhydm Tech",
+    alternateName: "Rhydm",
+    url: url,
     logo: {
       "@type": "ImageObject",
       url: abs("/logo.png"),
@@ -55,11 +56,16 @@ export function organizationSchema() {
 // ---------------------------------------------------------------------------
 
 export function websiteSchema() {
+  const url = `${SITE_URL}/`;
   return {
     "@type": "WebSite",
     "@id": `${SITE_URL}/#website`,
-    name: COMPANY.name,
-    url: SITE_URL,
+    name: "Rhydm Tech",
+    alternateName: [
+      "Rhydm",
+      "rhydm-tech.com"
+    ],
+    url: url,
     description: COMPANY.description,
     publisher: { "@id": `${SITE_URL}/#organization` },
     potentialAction: {

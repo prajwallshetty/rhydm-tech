@@ -1,21 +1,16 @@
 import { getSectionContent } from "@/lib/cms/content";
 import { LegalLayout } from "@/components/layout/legal-layout";
 import { setRequestLocale } from "next-intl/server";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const content = await getSectionContent<any>("site.legal.accessibility", locale);
-  return {
+  return createPageMetadata({
     title: content.seoTitle || content.title,
     description: content.seoDescription,
-    alternates: {
-      canonical: `https://rhydm.tech/${locale}/accessibility`,
-      languages: {
-        en: "https://rhydm.tech/en/accessibility",
-        de: "https://rhydm.tech/de/accessibility",
-      },
-    },
-  };
+    path: "/accessibility",
+  });
 }
 
 export default async function AccessibilityPage({ params }: { params: Promise<{ locale: string }> }) {

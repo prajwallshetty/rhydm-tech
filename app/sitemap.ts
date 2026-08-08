@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticRoutes = [
     { path: "/", priority: 1 },
+    { path: "/about", priority: 0.9 },
     ...NAV.disposal.map((item) => ({ path: item.href, priority: 0.8 })),
     ...NAV.refurbished.map((item) => ({ path: item.href, priority: 0.8 })),
   ];

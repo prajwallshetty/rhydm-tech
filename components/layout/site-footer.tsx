@@ -24,8 +24,12 @@ export async function SiteFooter({ division }: { division: Division }) {
               <Logo className="h-12 w-auto" />
             </Link>
 
-            <p className="text-xs text-slate-500 font-medium">
-              {t("copyright", { company: COMPANY.name, year: new Date().getFullYear() })}
+            <p className="text-xs leading-relaxed text-slate-500 font-medium max-w-sm">
+              {t("brandDescription")}
+            </p>
+
+            <p className="text-xs text-slate-400 font-medium pt-1">
+              {t("copyright", { company: "Rhydm Tech", year: new Date().getFullYear() })}
             </p>
           </div>
 

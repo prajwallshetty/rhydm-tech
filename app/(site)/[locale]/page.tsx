@@ -8,11 +8,22 @@ import { FadeIn } from "@/components/motion/fade-in";
 import { DIVISION_LIST } from "@/lib/business";
 import { createPageMetadata } from "@/lib/seo/metadata";
 
-export function generateMetadata() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const isDe = locale === "de";
+
   return createPageMetadata({
-    title: "Secure IT Asset Disposal & Certified Refurbished IT Equipment",
-    description:
-      "Rhydm Tech provides enterprise-grade IT asset disposal with certified data destruction, and professionally refurbished laptops, desktops and servers with warranty.",
+    title: isDe
+      ? "Rhydm Tech – IT Asset Disposal & Refurbished IT"
+      : "Rhydm Tech | IT Asset Disposal & Refurbished Technology",
+    absoluteTitle: true,
+    description: isDe
+      ? "Rhydm Tech ist ein in Berlin ansässiges Technologieunternehmen, das sich auf IT-Asset-Disposition (ITAD), sichere Datenvernichtung, zirkuläre IT-Lösungen und hochwertige generalüberholte IT-Geräte spezialisiert hat."
+      : "Rhydm Tech is a Berlin-based technology company specializing in IT asset disposition, secure data destruction, circular IT solutions, and premium refurbished technology.",
     path: "/",
     keywords: [
       "IT Asset Disposal",
@@ -59,12 +70,12 @@ export default async function GatewayPage({
         </FadeIn>
 
         {/* Title & Subtitle */}
-        <FadeIn delay={0.1} className="text-center space-y-2">
+        <FadeIn delay={0.1} className="text-center space-y-3">
           <h1 className="mx-auto max-w-2xl text-pretty text-2xl sm:text-4xl md:text-[2.75rem] font-black tracking-tight leading-tight text-slate-900 dark:text-white">
             {t("title")}
           </h1>
-          <p className="mx-auto max-w-xl text-pretty text-xs sm:text-sm leading-relaxed text-muted-foreground">
-            {t("subtitle")}
+          <p className="mx-auto max-w-2xl text-pretty text-xs sm:text-sm leading-relaxed text-muted-foreground">
+            {t("brandDescription")}
           </p>
         </FadeIn>
 

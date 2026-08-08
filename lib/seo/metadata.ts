@@ -39,6 +39,8 @@ function alternatesForPath(path: string) {
 export type PageMetadataOptions = {
   /** Page title (without the site-name suffix — the template adds it). */
   title: string;
+  /** Force the title to be absolute (bypasses template suffix). */
+  absoluteTitle?: boolean;
   /** Meta description. Should be unique and 120-160 chars. */
   description: string;
   /** Path without locale prefix, e.g. "/disposal/services". */
@@ -65,6 +67,7 @@ export type PageMetadataOptions = {
 export function createPageMetadata(opts: PageMetadataOptions): Metadata {
   const {
     title,
+    absoluteTitle = false,
     description,
     path,
     keywords = [],
@@ -80,7 +83,7 @@ export function createPageMetadata(opts: PageMetadataOptions): Metadata {
   ];
 
   return {
-    title,
+    title: absoluteTitle ? { absolute: title } : title,
     description,
     keywords: mergedKeywords,
     alternates: alternatesForPath(path),
