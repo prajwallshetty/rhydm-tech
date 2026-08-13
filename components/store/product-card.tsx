@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { Heart, ShoppingBag, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart, Loader2, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { motion } from "motion/react";
 
 import { ProductThumb } from "@/components/store/product-thumb";
 import { useToast } from "@/components/ui/toast";
@@ -25,6 +27,9 @@ export function ProductCard({
   const t = useTranslations("store.product");
   const tc = useTranslations("store.conditionShort");
 
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+
   const href = `/refurbished/products/${product.slug}`;
   const brandName = product.brand?.name ?? product.category?.name ?? "RHYDM";
   const conditionTag = tc(product.condition);
@@ -32,7 +37,7 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col justify-between overflow-hidden rounded-[32px] border border-slate-200 bg-white p-5 sm:p-6 shadow-sm hover:border-slate-300 hover:shadow-2xl transition-all duration-300",
+        "group relative flex h-full flex-col justify-between overflow-hidden rounded-[32px] border border-slate-200 bg-white p-5 sm:p-6 shadow-sm hover:border-slate-300 hover:shadow-xl transition-all duration-300",
         className,
       )}
     >
@@ -46,8 +51,10 @@ export function ProductCard({
             </span>
           </div>
 
-          {/* Top-Right Wishlist Button */}
-          <button
+          {/* Top-Right Wishlist Button with Hover Reveal on Desktop */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             type="button"
             onClick={(e) => {
               e.preventDefault();
@@ -57,7 +64,7 @@ export function ProductCard({
                 wishlisted
                   ? t("removedWishlist", { name: product.name })
                   : t("savedWishlist", { name: product.name }),
-                "heart",
+                wishlisted ? "info" : "heart",
               );
             }}
             aria-label={
@@ -65,7 +72,7 @@ export function ProductCard({
                 ? t("removeWishlist", { name: product.name })
                 : t("saveWishlist", { name: product.name })
             }
-            className="absolute right-2.5 top-2.5 z-20 grid size-11 sm:size-8 sm:right-3.5 sm:top-3.5 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+            className="absolute right-2.5 top-2.5 z-20 grid size-11 sm:size-8 sm:right-3.5 sm:top-3.5 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-all duration-300 md:opacity-0 md:scale-95 group-hover:opacity-100 group-hover:scale-100 hover:bg-white cursor-pointer"
           >
             <Heart
               className={cn(
@@ -73,7 +80,7 @@ export function ProductCard({
                 wishlisted ? "fill-[#2E6F40] text-[#2E6F40]" : "text-slate-400 hover:text-slate-700",
               )}
             />
-          </button>
+          </motion.button>
 
           {/* Center Product Image / Thumb */}
           <Link href={href} className="absolute inset-0 flex items-center justify-center p-4">
@@ -81,14 +88,14 @@ export function ProductCard({
               <img
                 src={product.images[0].url}
                 alt={product.images[0].alt ?? product.name}
-                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               />
             ) : (
               <ProductThumb
                 slug={product.slug}
                 category={product.category.slug}
                 name={product.name}
-                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
               />
             )}
           </Link>
@@ -133,15 +140,43 @@ export function ProductCard({
         <button
           type="button"
           onClick={() => {
-            addToCart(product.slug);
-            push(t("addedCart", { name: product.name }));
+            if (adding || added) return;
+            setAdding(true);
+            setTimeout(() => {
+              addToCart(product.slug);
+              setAdding(false);
+              setAdded(true);
+              push(t("addedCart", { name: product.name }), "check");
+              setTimeout(() => {
+                setAdded(false);
+              }, 1600);
+            }, 650);
           }}
-          disabled={product.stock <= 0}
+          disabled={product.stock <= 0 || adding}
           aria-label={t("addToCart") + ": " + product.name}
-          className="relative z-10 inline-flex min-h-11 sm:min-h-0 items-center gap-1.5 rounded-full bg-slate-950 hover:bg-[#2E6F40] px-4.5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+          className={cn(
+            "relative z-10 inline-flex min-h-11 sm:min-h-0 items-center justify-center gap-1.5 rounded-full px-4.5 py-2.5 text-xs font-bold text-white shadow-md transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer min-w-24 text-center",
+            added
+              ? "bg-emerald-600 hover:bg-emerald-600"
+              : "bg-slate-950 hover:bg-[#2E6F40]"
+          )}
         >
-          <ShoppingCart aria-hidden className="size-3.5" strokeWidth={2} />
-          <span>{t("add")}</span>
+          {adding ? (
+            <>
+              <Loader2 className="size-3.5 animate-spin" />
+              <span>{t("adding")}</span>
+            </>
+          ) : added ? (
+            <>
+              <Check className="size-3.5" />
+              <span>{t("added")}</span>
+            </>
+          ) : (
+            <>
+              <ShoppingCart aria-hidden className="size-3.5" strokeWidth={2} />
+              <span>{t("add")}</span>
+            </>
+          )}
         </button>
       </div>
     </article>

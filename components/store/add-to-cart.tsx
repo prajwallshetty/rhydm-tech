@@ -1,11 +1,11 @@
 "use client";
 
-import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingCart, Loader2, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useToast } from "@/components/ui/toast";
-import { useStore } from "@/lib/store/cart";
+import { useStore, type CartLine } from "@/lib/store/cart";
 import { cn } from "@/lib/utils";
 
 export function AddToCart({
@@ -25,7 +25,7 @@ export function AddToCart({
   selectedOptions?: Record<string, string>;
   variantSku?: string;
   variantPriceCents?: number;
-  tradeIn?: any;
+  tradeIn?: CartLine["tradeIn"];
 }) {
   const [quantity, setQuantity] = useState(1);
   const addToCart = useStore((s) => s.addToCart);
@@ -34,6 +34,9 @@ export function AddToCart({
   const recordView = useStore((s) => s.recordView);
   const push = useToast((s) => s.push);
   const t = useTranslations("store.product");
+
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
 
   // Recording the view here rather than on the server keeps the product page
   // statically renderable.
@@ -78,23 +81,52 @@ export function AddToCart({
           id="add-to-cart-trigger"
           type="button"
           onClick={() => {
-            addToCart(slug, quantity, {
-              variantId,
-              selectedOptions,
-              variantSku,
-              tradeIn,
-            });
-            push(
-              quantity > 1
-                ? t("addedCartQty", { count: quantity, name })
-                : t("addedCart", { name }),
-            );
+            if (adding || added) return;
+            setAdding(true);
+            setTimeout(() => {
+              addToCart(slug, quantity, {
+                variantId,
+                selectedOptions,
+                variantSku,
+                tradeIn,
+              });
+              setAdding(false);
+              setAdded(true);
+              push(
+                quantity > 1
+                  ? t("addedCartQty", { count: quantity, name })
+                  : t("addedCart", { name }),
+                "check",
+              );
+              setTimeout(() => {
+                setAdded(false);
+              }, 1600);
+            }, 650);
           }}
-          disabled={outOfStock}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-8 cursor-pointer"
+          disabled={outOfStock || adding}
+          className={cn(
+            "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-6 text-sm font-medium transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-8 cursor-pointer",
+            added
+              ? "bg-emerald-600 hover:bg-emerald-600 text-white"
+              : "bg-brand text-brand-foreground hover:opacity-90"
+          )}
         >
-          <ShoppingCart className="size-4" strokeWidth={1.8} />
-          {outOfStock ? t("outOfStock") : t("addToCart")}
+          {adding ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              <span>{t("adding")}</span>
+            </>
+          ) : added ? (
+            <>
+              <Check className="size-4" />
+              <span>{t("added")}</span>
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="size-4" strokeWidth={1.8} />
+              <span>{outOfStock ? t("outOfStock") : t("addToCart")}</span>
+            </>
+          )}
         </button>
 
         <button
@@ -105,7 +137,7 @@ export function AddToCart({
               wishlisted
                 ? t("removedWishlist", { name })
                 : t("savedWishlist", { name }),
-              "heart",
+              wishlisted ? "info" : "heart",
             );
           }}
           aria-label={
@@ -114,7 +146,7 @@ export function AddToCart({
               : t("saveWishlist", { name })
           }
           aria-pressed={wishlisted}
-          className="grid size-11 place-items-center rounded-xl border border-border transition-colors hover:bg-accent"
+          className="grid size-11 place-items-center rounded-xl border border-border transition-colors hover:bg-accent cursor-pointer active:scale-95 duration-100"
         >
           <Heart
             className={cn("size-4.5", wishlisted && "fill-brand text-brand")}

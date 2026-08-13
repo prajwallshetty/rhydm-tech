@@ -168,6 +168,8 @@
     },
     "product": {
       "add": "In den Warenkorb",
+      "adding": "Wird hinzugefügt...",
+      "added": "Hinzugefügt",
       "addToCart": "In den Warenkorb",
       "outOfStock": "Nicht auf Lager",
       "warrantyBadge": "{count} Mon. Garantie",

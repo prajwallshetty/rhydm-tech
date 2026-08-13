@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
-import { usePathname } from "@/i18n/navigation";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "motion/react";
-import { Search, Heart, ShoppingBag, User, ArrowUpRight, Menu, X, ChevronDown, Sparkles } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, ArrowUpRight, Menu, X } from "lucide-react";
 
 import { useTranslations } from "next-intl";
 
@@ -14,7 +13,6 @@ import { cartCount, useStore } from "@/lib/store/cart";
 import { SearchBox } from "@/components/store/search-box";
 
 export function FloatingNav() {
-  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -93,32 +91,48 @@ export function FloatingNav() {
             {/* Wishlist Icon with Badge */}
             <Link
               href="/refurbished/wishlist"
-              className="relative hidden md:flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
+              className="relative hidden md:flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all cursor-pointer"
               aria-label={t("wishlist")}
             >
               <Heart className="h-4 w-4" />
-              {wishlist.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                  {wishlist.length}
-                </span>
-              )}
+              <AnimatePresence mode="popLayout">
+                {wishlist.length > 0 && (
+                  <motion.span
+                    key={wishlist.length}
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.6, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground"
+                  >
+                    {wishlist.length}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </Link>
 
             {/* Cart Icon with Badge */}
             <Link
               href="/refurbished/cart"
-              className="relative flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all"
+              className="relative flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-foreground/80 hover:bg-muted hover:text-foreground transition-all cursor-pointer"
               aria-label={t("cart")}
             >
               <ShoppingBag className="h-4 w-4" />
-              {cartCount(cart) > 0 && (
-                <span
-                  style={{ backgroundColor: "#2E6F40" }}
-                  className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white shadow-sm"
-                >
-                  {cartCount(cart)}
-                </span>
-              )}
+              <AnimatePresence mode="popLayout">
+                {cartCount(cart) > 0 && (
+                  <motion.span
+                    key={cartCount(cart)}
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.6, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    style={{ backgroundColor: "#2E6F40" }}
+                    className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white shadow-sm"
+                  >
+                    {cartCount(cart)}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </Link>
 
             {/* Account Profile */}
@@ -187,7 +201,7 @@ export function FloatingNav() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 280 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="relative z-10 flex h-full w-[85%] max-w-sm flex-col justify-between border-l border-border/80 bg-card p-6 shadow-2xl overflow-y-auto"
             >
               <div>
@@ -196,7 +210,7 @@ export function FloatingNav() {
                   <Logo showShield={false} />
                   <button
                     onClick={() => setMobileMenuOpen(false)}
-                    className="grid size-9 place-items-center rounded-full border border-border text-foreground hover:bg-muted"
+                    className="grid size-9 place-items-center rounded-full border border-border text-foreground hover:bg-muted cursor-pointer"
                     aria-label="Close menu"
                   >
                     <X className="size-4" />
@@ -210,7 +224,7 @@ export function FloatingNav() {
                       setMobileMenuOpen(false);
                       setSearchOpen(true);
                     }}
-                    className="flex flex-col items-center gap-1 text-xs font-semibold text-foreground/80 hover:text-foreground"
+                    className="flex flex-col items-center gap-1 text-xs font-semibold text-foreground/80 hover:text-foreground cursor-pointer"
                   >
                     <div className="grid size-9 place-items-center rounded-full bg-background border border-border/50">
                       <Search className="size-4" />
@@ -225,11 +239,20 @@ export function FloatingNav() {
                   >
                     <div className="grid size-9 place-items-center rounded-full bg-background border border-border/50">
                       <Heart className="size-4" />
-                      {wishlist.length > 0 && (
-                        <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                          {wishlist.length}
-                        </span>
-                      )}
+                      <AnimatePresence mode="popLayout">
+                        {wishlist.length > 0 && (
+                          <motion.span
+                            key={wishlist.length}
+                            initial={{ scale: 0.6, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.6, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground"
+                          >
+                            {wishlist.length}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </div>
                     <span>Wishlist</span>
                   </Link>
@@ -241,11 +264,20 @@ export function FloatingNav() {
                   >
                     <div className="grid size-9 place-items-center rounded-full bg-background border border-border/50">
                       <ShoppingBag className="size-4" />
-                      {cartCount(cart) > 0 && (
-                        <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-[#2E6F40] text-[9px] font-bold text-white">
-                          {cartCount(cart)}
-                        </span>
-                      )}
+                      <AnimatePresence mode="popLayout">
+                        {cartCount(cart) > 0 && (
+                          <motion.span
+                            key={cartCount(cart)}
+                            initial={{ scale: 0.6, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.6, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-[#2E6F40] text-[9px] font-bold text-white"
+                          >
+                            {cartCount(cart)}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </div>
                     <span>Cart</span>
                   </Link>

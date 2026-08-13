@@ -168,6 +168,8 @@
     },
     "product": {
       "add": "Add",
+      "adding": "Adding...",
+      "added": "Added",
       "addToCart": "Add to cart",
       "outOfStock": "Out of stock",
       "warrantyBadge": "{count}-mo warranty",

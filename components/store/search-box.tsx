@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { Loader2, Search, TrendingUp, X } from "lucide-react";
+import { Search, TrendingUp, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 
@@ -191,11 +191,30 @@ export function SearchBox({ className }: { className?: string }) {
 
           {showResults && (
             <div className="p-2">
-              {isPending && visibleHits.length === 0 && (
-                <p className="flex items-center gap-2 px-3 py-6 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" />
-                  {t("searching")}
-                </p>
+              {isPending && (
+                <div className="p-3 space-y-3.5">
+                  <div className="flex justify-between items-center gap-3">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-muted shimmer-bg rounded w-3/4" />
+                      <div className="h-3 bg-muted shimmer-bg rounded w-1/2" />
+                    </div>
+                    <div className="h-4 bg-muted shimmer-bg rounded w-12" />
+                  </div>
+                  <div className="flex justify-between items-center gap-3">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-muted shimmer-bg rounded w-2/3" />
+                      <div className="h-3 bg-muted shimmer-bg rounded w-1/3" />
+                    </div>
+                    <div className="h-4 bg-muted shimmer-bg rounded w-10" />
+                  </div>
+                  <div className="flex justify-between items-center gap-3">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-muted shimmer-bg rounded w-4/5" />
+                      <div className="h-3 bg-muted shimmer-bg rounded w-1/2" />
+                    </div>
+                    <div className="h-4 bg-muted shimmer-bg rounded w-14" />
+                  </div>
+                </div>
               )}
 
               {!isPending && visibleHits.length === 0 && (
