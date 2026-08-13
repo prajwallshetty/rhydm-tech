@@ -206,13 +206,14 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
           {rows.map((t, i) => (
             <li
               key={t.id}
-              draggable
+              draggable={!isPending}
               onDragStart={() => setDragId(t.id)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => onDrop(t.id)}
               className={cn(
-                "flex items-start gap-3 rounded-xl border border-border/80 bg-card p-4 shadow-sm transition-all",
+                "flex items-start gap-3 rounded-xl border border-border/80 bg-card p-4 shadow-sm transition-all duration-300",
                 dragId === t.id && "opacity-50 ring-2 ring-primary/40",
+                loadingId === t.id && isPending && "opacity-50 pointer-events-none shimmer-bg",
               )}
             >
               {/* Drag handle + arrows */}

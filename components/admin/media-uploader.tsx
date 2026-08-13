@@ -229,14 +229,17 @@ export function MediaUploader({
               </span>
 
               {item.status === "uploading" && (
-                <span className="w-32 shrink-0">
-                  <span className="block h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-muted">
+                <div className="flex items-center gap-2 w-44 shrink-0">
+                  <span className="block flex-1 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-muted">
                     <span
-                      className="block h-full rounded-full bg-[#2E6F40] transition-all"
+                      className="block h-full rounded-full bg-[#2E6F40] transition-all duration-300 ease-out"
                       style={{ width: `${item.progress}%` }}
                     />
                   </span>
-                </span>
+                  <span className="w-8 text-right text-[10px] font-mono font-bold text-muted-foreground">
+                    {item.progress}%
+                  </span>
+                </div>
               )}
 
               {item.status === "error" && (

@@ -79,7 +79,14 @@ function buildWhere(filters: ProductFilters): Prisma.ProductWhereInput {
     status: PublishStatus.PUBLISHED,
   };
 
-  if (filters.category) where.category = { slug: filters.category };
+  if (filters.category) {
+    where.category = {
+      OR: [
+        { slug: filters.category },
+        { parent: { slug: filters.category } },
+      ],
+    };
+  }
   if (filters.brands?.length) where.brand = { slug: { in: filters.brands } };
   if (filters.conditions?.length) {
     where.condition = {
@@ -105,6 +112,7 @@ function buildWhere(filters: ProductFilters): Prisma.ProductWhereInput {
       { sku: { contains: term, mode: "insensitive" } },
       { brand: { name: { contains: term, mode: "insensitive" } } },
       { category: { name: { contains: term, mode: "insensitive" } } },
+      { specs: { some: { value: { contains: term, mode: "insensitive" } } } },
     ];
   }
 

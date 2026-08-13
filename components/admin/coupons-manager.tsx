@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { LoadingButton } from "@/components/ui/loading-button";
 
 type Coupon = {
   id: string;
@@ -40,7 +41,8 @@ export function CouponsManager({
   const push = useToast((s) => s.push);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   function openCreate() {
@@ -56,11 +58,11 @@ export function CouponsManager({
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    setBusy(true);
+    setSubmitting(true);
     const res = editing
       ? await updateCouponAction(editing.id, formData)
       : await createCouponAction(formData);
-    setBusy(false);
+    setSubmitting(false);
 
     if (res?.error) {
       push(res.error);
@@ -73,9 +75,9 @@ export function CouponsManager({
   }
 
   async function toggleActive(c: Coupon) {
-    setBusy(true);
+    setBusyId(c.id);
     const res = await setCouponActiveAction(c.id, !c.active);
-    setBusy(false);
+    setBusyId(null);
     if (res?.success) {
       push(c.active ? "Coupon disabled" : "Coupon enabled");
       router.refresh();
@@ -88,9 +90,9 @@ export function CouponsManager({
       return;
     }
     setConfirmId(null);
-    setBusy(true);
+    setBusyId(c.id);
     const res = await deleteCouponAction(c.id);
-    setBusy(false);
+    setBusyId(null);
     if (res?.success) {
       push("Coupon deleted");
       router.refresh();
@@ -138,8 +140,15 @@ export function CouponsManager({
             <tbody className="divide-y divide-border/60">
               {coupons.map((c) => {
                 const expired = c.expiresAt && new Date(c.expiresAt) < new Date();
+                const isBusy = busyId === c.id;
                 return (
-                  <tr key={c.id} className="hover:bg-muted/30">
+                  <tr
+                    key={c.id}
+                    className={cn(
+                      "hover:bg-muted/30 transition-all duration-300",
+                      isBusy && "opacity-50 pointer-events-none shimmer-bg"
+                    )}
+                  >
                     <td className="px-4 py-3">
                       <div className="font-mono font-bold text-foreground">{c.code}</div>
                       <div className="mt-0.5 flex flex-wrap gap-1">
@@ -177,7 +186,7 @@ export function CouponsManager({
                       <button
                         type="button"
                         onClick={() => toggleActive(c)}
-                        disabled={busy}
+                        disabled={busyId != null || submitting}
                         className={cn(
                           "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50",
                           expired
@@ -195,7 +204,8 @@ export function CouponsManager({
                         <button
                           type="button"
                           onClick={() => openEdit(c)}
-                          className="rounded p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                          disabled={busyId != null || submitting}
+                          className="rounded p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary disabled:opacity-50"
                           aria-label="Edit coupon"
                         >
                           <Pencil className="size-4" />
@@ -204,8 +214,9 @@ export function CouponsManager({
                           type="button"
                           onClick={() => remove(c)}
                           onBlur={() => setConfirmId(null)}
+                          disabled={busyId != null || submitting}
                           className={cn(
-                            "rounded p-1.5 transition-colors",
+                            "rounded p-1.5 transition-colors disabled:opacity-50",
                             confirmId === c.id
                               ? "bg-destructive text-white"
                               : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
@@ -233,7 +244,7 @@ export function CouponsManager({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowForm(false)}
+            onClick={() => !submitting && setShowForm(false)}
           />
           <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
@@ -242,7 +253,7 @@ export function CouponsManager({
               </h2>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => !submitting && setShowForm(false)}
                 className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
                 aria-label="Close"
               >
@@ -395,18 +406,20 @@ export function CouponsManager({
               </label>
 
               <div className="flex items-center gap-3 pt-2">
-                <button
+                <LoadingButton
                   type="submit"
-                  disabled={busy}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                  loading={submitting}
+                  loadingText={editing ? "Saving..." : "Creating..."}
+                  className="shadow-md shadow-primary/20 text-xs px-5 py-2.5 h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                 >
-                  {busy && <Loader2 className="size-4 animate-spin" />}
-                  {editing ? "Save changes" : "Create coupon"}
-                </button>
+                  <Check className="size-4" />
+                  <span>{editing ? "Save changes" : "Create coupon"}</span>
+                </LoadingButton>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
-                  className="rounded-lg border border-border px-5 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted"
+                  onClick={() => !submitting && setShowForm(false)}
+                  disabled={submitting}
+                  className="rounded-lg border border-border px-5 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted disabled:opacity-50"
                 >
                   Cancel
                 </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
 
@@ -8,6 +8,7 @@ import { MediaPicker } from "@/components/admin/media-picker";
 import { saveProductAction } from "@/app/(backend)/(admin)/admin/actions";
 import { ProductCondition, PublishStatus } from "@/lib/generated/prisma/enums";
 import { ProductVariantManager, ConfiguredOption, ManagedVariant } from "@/components/admin/product-variant-manager";
+import { LoadingButton } from "@/components/ui/loading-button";
 
 export function ProductForm({
   initialData,
@@ -18,6 +19,27 @@ export function ProductForm({
   categories: any[];
   brands: any[];
 }) {
+  const [isPending, startTransition] = useTransition();
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(false);
+    setSuccess(false);
+
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      try {
+        await saveProductAction(formData);
+        setSuccess(true);
+      } catch (err) {
+        console.error(err);
+        setError(true);
+      }
+    });
+  };
+
   const [name, setName] = useState(initialData?.name || "");
   const [slug, setSlug] = useState(initialData?.slug || "");
   const [sku, setSku] = useState(initialData?.sku || "");
@@ -108,7 +130,7 @@ export function ProductForm({
   );
 
   return (
-    <form action={saveProductAction} className="space-y-8 max-w-4xl">
+    <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
       {initialData?.id && <input type="hidden" name="id" value={initialData.id} />}
       <input type="hidden" name="specs" value={JSON.stringify(specs)} />
       <input type="hidden" name="featured" value={featured ? "true" : "false"} />
@@ -128,13 +150,19 @@ export function ProductForm({
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Products</span>
         </Link>
-        <button
+        <LoadingButton
           type="submit"
-          className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 transition-all cursor-pointer"
+          loading={isPending}
+          success={success}
+          error={error}
+          loadingText={initialData ? "Updating..." : "Saving..."}
+          successText={initialData ? "Updated!" : "Saved!"}
+          errorText="Failed!"
+          className="shadow-md shadow-primary/20"
         >
           <Save className="h-4 w-4" />
           <span>{initialData ? "Update Product" : "Save Product"}</span>
-        </button>
+        </LoadingButton>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">

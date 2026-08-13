@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, Loader2, Plus, Save, Trash2 } from "lucide-reac
 
 import { saveSiteSectionAction } from "@/app/(backend)/(admin)/admin/actions";
 import { useToast } from "@/components/ui/toast";
+import { LoadingButton } from "@/components/ui/loading-button";
 import type {
   FieldDef,
   ListFieldDef,
@@ -142,19 +143,19 @@ function SectionEditor({
             <p className="text-[11px] text-muted-foreground">
               Clearing a text field restores the built-in default copy.
             </p>
-            <button
+            <LoadingButton
               type="button"
               onClick={save}
-              disabled={saving || !dirty}
-              className="inline-flex items-center gap-2 rounded-full bg-[#2E6F40] px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#255833] disabled:opacity-50"
+              disabled={!dirty}
+              loading={saving}
+              loadingText="Saving..."
+              successText="Saved!"
+              errorText="Failed!"
+              className="rounded-full bg-[#2E6F40] px-5 py-2.5 h-10 text-xs font-bold text-white transition-colors hover:bg-[#255833]"
             >
-              {saving ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Save className="size-3.5" />
-              )}
-              {saving ? "Saving…" : "Save & publish"}
-            </button>
+              <Save className="size-3.5" />
+              <span>Save & publish</span>
+            </LoadingButton>
           </div>
         </div>
       )}

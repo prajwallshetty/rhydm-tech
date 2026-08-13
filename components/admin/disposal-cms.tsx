@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import {
   Save,
   Plus,
@@ -14,6 +15,7 @@ import {
   CheckCircle,
   FileText,
   Clock,
+  Loader2,
 } from "lucide-react";
 import {
   saveDisposalHeroAction,
@@ -32,6 +34,54 @@ import {
 import { SubmissionStatus } from "@/lib/generated/prisma/enums";
 import Link from "next/link";
 import { MediaPicker } from "@/components/admin/media-picker";
+import { LoadingButton } from "@/components/ui/loading-button";
+
+function SaveButton({ label, loadingLabel = "Saving..." }: { label: string; loadingLabel?: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <LoadingButton
+      type="submit"
+      loading={pending}
+      loadingText={loadingLabel}
+      successText="Saved!"
+      errorText="Failed!"
+      className="shadow-sm h-9 text-xs"
+    >
+      <Save className="h-4 w-4" />
+      <span>{label}</span>
+    </LoadingButton>
+  );
+}
+
+function AddButton({ label, loadingLabel = "Adding..." }: { label: string; loadingLabel?: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <LoadingButton
+      type="submit"
+      loading={pending}
+      loadingText={loadingLabel}
+      successText="Added!"
+      errorText="Failed!"
+      className="shadow-sm h-9 text-xs"
+    >
+      <Plus className="h-4 w-4" />
+      <span>{label}</span>
+    </LoadingButton>
+  );
+}
+
+function DeleteButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} className="text-muted-foreground hover:text-destructive p-1 disabled:opacity-50">
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin text-destructive" />
+      ) : (
+        <Trash2 className="h-4 w-4" />
+      )}
+    </button>
+  );
+}
 
 export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
   const [activeTab, setActiveTab] = useState<
@@ -132,12 +182,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-all cursor-pointer"
-          >
-            <Save className="h-4 w-4" /> Save Hero Section
-          </button>
+          <SaveButton label="Save Hero Section" loadingLabel="Saving Hero..." />
         </form>
       )}
 
@@ -169,12 +214,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
               placeholder="Short service summary..."
               className="w-full rounded-lg border border-input bg-background/50 p-3 text-xs outline-none focus:border-primary"
             />
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground cursor-pointer"
-            >
-              <Plus className="h-4 w-4" /> Add Service
-            </button>
+            <AddButton label="Add Service" loadingLabel="Adding Service..." />
           </form>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -186,9 +226,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
                   <p className="text-xs text-muted-foreground mt-2">{item.summary}</p>
                 </div>
                 <form action={deleteDisposalServiceAction.bind(null, item.id)}>
-                  <button type="submit" className="text-muted-foreground hover:text-destructive p-1">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <DeleteButton />
                 </form>
               </div>
             ))}
@@ -224,9 +262,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
               placeholder="Description..."
               className="w-full rounded-lg border border-input bg-background/50 p-3 text-xs outline-none focus:border-primary"
             />
-            <button type="submit" className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground cursor-pointer">
-              <Plus className="h-4 w-4" /> Save Step
-            </button>
+            <AddButton label="Save Step" loadingLabel="Saving Step..." />
           </form>
 
           <div className="space-y-3 max-w-2xl">
@@ -242,9 +278,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
                   </div>
                 </div>
                 <form action={deleteProcessStepAction.bind(null, step.id)}>
-                  <button type="submit" className="text-muted-foreground hover:text-destructive p-1">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <DeleteButton />
                 </form>
               </div>
             ))}
@@ -264,9 +298,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
               placeholder="Industry Name (e.g. Healthcare & Pharma)"
               className="w-full rounded-lg border border-input bg-background/50 px-3 py-2 text-xs outline-none focus:border-primary"
             />
-            <button type="submit" className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground cursor-pointer">
-              <Plus className="h-4 w-4" /> Add Industry
-            </button>
+            <AddButton label="Add Industry" loadingLabel="Adding Industry..." />
           </form>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -274,9 +306,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
               <div key={ind.id} className="flex items-center justify-between rounded-xl border border-border/80 bg-card p-3 shadow-sm">
                 <span className="font-medium text-xs text-foreground">{ind.name}</span>
                 <form action={deleteIndustryAction.bind(null, ind.id)}>
-                  <button type="submit" className="text-muted-foreground hover:text-destructive p-1">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <DeleteButton />
                 </form>
               </div>
             ))}
@@ -310,9 +340,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
               placeholder="Description..."
               className="w-full rounded-lg border border-input bg-background/50 p-3 text-xs outline-none focus:border-primary"
             />
-            <button type="submit" className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground cursor-pointer">
-              <Plus className="h-4 w-4" /> Add Certification
-            </button>
+            <AddButton label="Add Certification" loadingLabel="Adding Cert..." />
           </form>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -326,9 +354,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
                   {cert.description && <p className="text-xs text-muted-foreground mt-1">{cert.description}</p>}
                 </div>
                 <form action={deleteCertificationAction.bind(null, cert.id)}>
-                  <button type="submit" className="text-muted-foreground hover:text-destructive p-1">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <DeleteButton />
                 </form>
               </div>
             ))}
@@ -375,9 +401,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
               placeholder="Answer text..."
               className="w-full rounded-lg border border-input bg-background/50 p-3 text-xs outline-none focus:border-primary"
             />
-            <button type="submit" className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground cursor-pointer">
-              <Plus className="h-4 w-4" /> Add FAQ
-            </button>
+            <AddButton label="Add FAQ" loadingLabel="Adding FAQ..." />
           </form>
 
           <div className="space-y-3 max-w-2xl">
@@ -386,9 +410,7 @@ export function DisposalCmsManager({ cmsData }: { cmsData: any }) {
                 <div className="flex items-center justify-between">
                   <div className="font-semibold text-xs text-foreground">{faq.question}</div>
                   <form action={deleteFaqAction.bind(null, faq.id)}>
-                    <button type="submit" className="text-muted-foreground hover:text-destructive p-1">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <DeleteButton />
                   </form>
                 </div>
                 <p className="text-xs text-muted-foreground">{faq.answer}</p>

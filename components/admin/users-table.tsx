@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   ShieldCheck,
@@ -19,6 +20,8 @@ import {
   adminToggleUserStatusAction,
   adminDeleteUserAction,
 } from "@/app/(backend)/(auth)/actions";
+import { useToast } from "@/components/ui/toast";
+import { cn } from "@/lib/utils";
 
 interface UserItem {
   id: string;
@@ -54,10 +57,13 @@ export function UsersTable({
   users: UserItem[];
   currentRole: Role;
 }) {
+  const router = useRouter();
+  const push = useToast((s) => s.push);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [selectedUserLogs, setSelectedUserLogs] = useState<UserItem | null>(null);
+  const [busyIds, setBusyIds] = useState<string[]>([]);
 
   const isSuperAdmin = currentRole === Role.SUPER_ADMIN;
 
@@ -75,24 +81,54 @@ export function UsersTable({
 
   const handleRoleChange = async (userId: string, newRole: Role) => {
     if (!isSuperAdmin) {
-      alert("Only Super Admin can change user roles.");
+      push("Only Super Admin can change user roles.", "error");
       return;
     }
-    await adminUpdateUserRoleAction(userId, newRole);
+    setBusyIds((prev) => [...prev, userId]);
+    try {
+      await adminUpdateUserRoleAction(userId, newRole);
+      push(`Successfully changed user role to ${newRole.toLowerCase()}.`, "check");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      push("Unable to update user role. Please try again.", "error");
+    } finally {
+      setBusyIds((prev) => prev.filter((id) => id !== userId));
+    }
   };
 
   const handleStatusToggle = async (userId: string, currentStatus: UserStatus) => {
     const nextStatus = currentStatus === UserStatus.SUSPENDED ? UserStatus.ACTIVE : UserStatus.SUSPENDED;
-    await adminToggleUserStatusAction(userId, nextStatus);
+    setBusyIds((prev) => [...prev, userId]);
+    try {
+      await adminToggleUserStatusAction(userId, nextStatus);
+      push(`Successfully changed user status to ${nextStatus.toLowerCase()}.`, "check");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      push("Unable to update user status. Please try again.", "error");
+    } finally {
+      setBusyIds((prev) => prev.filter((id) => id !== userId));
+    }
   };
 
   const handleDelete = async (userId: string, email: string) => {
     if (!isSuperAdmin) {
-      alert("Only Super Admin can delete user accounts.");
+      push("Only Super Admin can delete user accounts.", "error");
       return;
     }
     if (confirm(`Are you sure you want to permanently delete user ${email}?`)) {
-      await adminDeleteUserAction(userId);
+      setBusyIds((prev) => [...prev, userId]);
+      try {
+        await adminDeleteUserAction(userId);
+        push(`Successfully deleted user account for ${email}.`, "check");
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+        push("Unable to delete user account. Please try again.", "error");
+      } finally {
+        setBusyIds((prev) => prev.filter((id) => id !== userId));
+      }
     }
   };
 
@@ -163,8 +199,16 @@ export function UsersTable({
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/80 dark:hover:bg-muted/40 transition-colors">
+                filteredUsers.map((u) => {
+                  const isBusy = busyIds.includes(u.id);
+                  return (
+                    <tr
+                      key={u.id}
+                      className={cn(
+                        "hover:bg-slate-50/80 dark:hover:bg-muted/40 transition-all duration-300",
+                        isBusy && "opacity-50 pointer-events-none shimmer-bg"
+                      )}
+                    >
                     <td className="p-3.5">
                       <div className="flex items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-full bg-[#2E6F40] text-white font-black text-xs shrink-0">
@@ -270,7 +314,8 @@ export function UsersTable({
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+              })
               )}
             </tbody>
           </table>

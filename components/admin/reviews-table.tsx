@@ -178,7 +178,10 @@ export function ReviewsTable({
           {reviews.map((review) => (
             <article
               key={review.id}
-              className="rounded-xl border border-border/80 bg-card p-5 shadow-sm"
+              className={cn(
+                "rounded-xl border border-border/80 bg-card p-5 shadow-sm transition-all duration-300",
+                busyId === review.id && "opacity-50 pointer-events-none shimmer-bg"
+              )}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">

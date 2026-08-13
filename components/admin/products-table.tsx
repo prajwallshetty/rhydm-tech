@@ -7,6 +7,8 @@ import { Search, Plus, Edit, Trash2, CheckSquare, Square, Eye, Sparkles, AlertCi
 import { bulkDeleteProductsAction, bulkPublishProductsAction, deleteProductAction } from "@/app/(backend)/(admin)/admin/actions";
 import { formatMoney } from "@/lib/format";
 import { PublishStatus } from "@/lib/generated/prisma/enums";
+import { useToast } from "@/components/ui/toast";
+import { cn } from "@/lib/utils";
 
 export function ProductsTable({
   productsData,
@@ -32,8 +34,10 @@ export function ProductsTable({
   };
 }) {
   const router = useRouter();
+  const push = useToast((s) => s.push);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
 
   const { items, total, page, totalPages } = productsData;
 
@@ -67,24 +71,49 @@ export function ProductsTable({
   const handleBulkDelete = async () => {
     if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected products?`)) return;
     setIsDeleting(true);
-    await bulkDeleteProductsAction(selectedIds);
-    setSelectedIds([]);
-    setIsDeleting(false);
-    router.refresh();
+    setPendingDeleteIds((prev) => [...prev, ...selectedIds]);
+    try {
+      await bulkDeleteProductsAction(selectedIds);
+      push(`Successfully deleted ${selectedIds.length} products.`, "check");
+      setSelectedIds([]);
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      push("Failed to delete selected products. Please try again.", "error");
+    } finally {
+      setPendingDeleteIds((prev) => prev.filter((id) => !selectedIds.includes(id)));
+      setIsDeleting(false);
+    }
   };
 
   const handleBulkStatus = async (status: PublishStatus) => {
     setIsDeleting(true);
-    await bulkPublishProductsAction(selectedIds, status);
-    setSelectedIds([]);
-    setIsDeleting(false);
-    router.refresh();
+    try {
+      await bulkPublishProductsAction(selectedIds, status);
+      push(`Successfully updated status of ${selectedIds.length} products to ${status.toLowerCase()}.`, "check");
+      setSelectedIds([]);
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      push("Failed to update product statuses. Please try again.", "error");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleDeleteOne = async (id: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
-    await deleteProductAction(id);
-    router.refresh();
+    setPendingDeleteIds((prev) => [...prev, id]);
+    try {
+      await deleteProductAction(id);
+      push("The product was successfully deleted.", "check");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      push("Unable to delete the product. Please try again.", "error");
+    } finally {
+      setPendingDeleteIds((prev) => prev.filter((x) => x !== id));
+    }
   };
 
   return (
@@ -221,10 +250,15 @@ export function ProductsTable({
               ) : (
                 items.map((product) => {
                   const isSelected = selectedIds.includes(product.id);
+                  const isDeletingRow = pendingDeleteIds.includes(product.id);
                   return (
                     <tr
                       key={product.id}
-                      className={`hover:bg-muted/40 transition-colors ${isSelected ? "bg-primary/5" : ""}`}
+                      className={cn(
+                        "hover:bg-muted/40 transition-all duration-300",
+                        isSelected && "bg-primary/5",
+                        isDeletingRow && "opacity-50 pointer-events-none shimmer-bg"
+                      )}
                     >
                       <td className="p-3 text-center">
                         <button

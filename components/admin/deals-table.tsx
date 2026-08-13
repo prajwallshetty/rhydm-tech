@@ -296,7 +296,10 @@ export function DealsTable({
                   return (
                     <tr
                       key={deal.id}
-                      className="transition-colors hover:bg-slate-50/80 dark:hover:bg-muted/40"
+                      className={cn(
+                        "transition-all duration-300 hover:bg-slate-50/80 dark:hover:bg-muted/40",
+                        busy && "opacity-50 pointer-events-none shimmer-bg"
+                      )}
                     >
                       <td className="px-5 py-3.5">
                         <Link
