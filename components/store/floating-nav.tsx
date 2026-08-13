@@ -53,9 +53,9 @@ export function FloatingNav() {
         className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-7xl"
       >
         <div
-          className={`flex items-center justify-between rounded-full px-5 py-3 transition-all duration-500 border shadow-lg ${
+          className={`flex items-center justify-between rounded-full px-5 py-4 transition-all duration-500 border shadow-lg ${
             scrolled
-              ? "bg-white/95 dark:bg-card/95 border-border/80 shadow-black/10 backdrop-blur-2xl py-2.5"
+              ? "bg-white/95 dark:bg-card/95 border-border/80 shadow-black/10 backdrop-blur-2xl py-3"
               : "bg-white/80 dark:bg-card/80 border-white/40 dark:border-border/40 shadow-black/5 backdrop-blur-xl"
           }`}
         >

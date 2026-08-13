@@ -30,7 +30,7 @@ export function SiteHeader({ division }: { division: Division }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-6">
+      <div className="mx-auto flex h-20 max-w-7xl items-center gap-6 px-6">
         <Link href={meta.href} className="shrink-0 rounded-md">
           <Logo />
           <span className="sr-only">{t("homeLink", { name: meta.name })}</span>

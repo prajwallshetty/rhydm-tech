@@ -36,7 +36,7 @@ export default async function RefurbishedLayout({
   return (
     <div data-division="refurbished" className="flex min-h-dvh flex-col bg-white">
       <FloatingNav />
-      <main className="flex-1 pt-24">{children}</main>
+      <main className="flex-1 pt-28">{children}</main>
       <SiteFooter division="refurbished" />
       <Toaster />
     </div>
