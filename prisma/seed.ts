@@ -250,6 +250,12 @@ async function main() {
 
   // --- Store catalog ------------------------------------------------------
 
+  console.log("Cleaning up old store catalog data...");
+  await db.product.deleteMany({});
+  await db.category.deleteMany({});
+  await db.brand.deleteMany({});
+
+  // First pass: upsert all categories
   for (const [index, category] of SEED_CATEGORIES.entries()) {
     await db.category.upsert({
       where: { slug: category.slug },
@@ -265,6 +271,19 @@ async function main() {
         position: index,
       },
     });
+  }
+
+  // Second pass: set parent-child relationships
+  for (const category of SEED_CATEGORIES) {
+    if (category.parentSlug) {
+      const parent = await db.category.findUnique({ where: { slug: category.parentSlug } });
+      if (parent) {
+        await db.category.update({
+          where: { slug: category.slug },
+          data: { parentId: parent.id },
+        });
+      }
+    }
   }
 
   for (const [index, name] of SEED_BRANDS.entries()) {
