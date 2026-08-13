@@ -284,7 +284,7 @@ export function HomeRefurbishedSections({
             {/* Left Image Section */}
             <div className="w-full sm:w-[42%] shrink-0 relative min-h-[220px] sm:min-h-auto">
               <img
-                src="/developer_setup.png"
+                src="/workspace_setup.png"
                 alt={t("reviewAlt2")}
                 className="absolute inset-0 size-full object-cover"
               />
