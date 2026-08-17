@@ -61,7 +61,7 @@ export function FloatingNav() {
         >
           {/* Logo without shield icon or premium tag */}
           <Link href="/refurbished" className="flex items-center gap-3 shrink-0 group py-2 -my-2">
-            <Logo showShield={false} className="h-9 sm:h-14 lg:h-16" />
+            <Logo variant="auto" priority alt="" className="lg:h-12" />
           </Link>
 
           {/* Desktop Nav Links */}
@@ -207,7 +207,7 @@ export function FloatingNav() {
               <div>
                 {/* Header inside drawer */}
                 <div className="flex items-center justify-between border-b border-border/60 pb-4">
-                  <Logo showShield={false} />
+                  <Logo variant="lockup" className="h-9" />
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="grid size-9 place-items-center rounded-full border border-border text-foreground hover:bg-muted cursor-pointer"

@@ -3,14 +3,21 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft, Check, X, ShieldAlert, AlertCircle, Sparkles, Clock,
-  FileText, Sliders, MapPin, ClipboardList, Info, Landmark, User,
-  Calendar, CreditCard, ChevronRight, PenTool, CheckSquare, Camera, Loader2
+  ArrowLeft, Check, X, ShieldAlert, Clock, Sliders, Landmark, User,
+  CheckSquare, Camera, Loader2, Mail, Phone, MessageCircle,
 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { formatPriceExact } from "@/lib/format";
 import { updateExchangeStatusAction } from "@/app/(backend)/(admin)/admin/actions";
+import {
+  EXCHANGE_STATUSES,
+  EXCHANGE_TONE_CLASSES,
+  exchangeStatusLabel,
+  exchangeStatusTone,
+} from "@/lib/data/exchange-status";
 import { cn } from "@/lib/utils";
+
+const OFFER_METHODS = ["WhatsApp", "Email", "Phone", "Other"] as const;
 
 interface ExchangeDetailClientProps {
   exchange: any;
@@ -20,15 +27,25 @@ export function ExchangeDetailClient({ exchange: initialExchange }: ExchangeDeta
   const [exchange, setExchange] = useState(initialExchange);
   const pushToast = useToast((s) => s.push);
 
-  // Forms state
-  const [counterValue, setCounterValue] = useState<string>(
-    exchange.finalValueCents ? (exchange.finalValueCents / 100).toString() : (exchange.estimatedValueCents / 100).toString()
+  // Forms state. The offer amount starts blank unless one has already been
+  // recorded — never pre-filled from a computed number, because the whole
+  // point is that a human decides it.
+  const [offerValue, setOfferValue] = useState<string>(
+    exchange.finalValueCents != null ? (exchange.finalValueCents / 100).toString() : "",
   );
+  const [offerMethod, setOfferMethod] = useState<string>(exchange.offerMethod || "WhatsApp");
+  const [offerNotes, setOfferNotes] = useState<string>(exchange.offerNotes || "");
   const [adminNotes, setAdminNotes] = useState<string>(exchange.notes || "");
   const [actionNotes, setActionNotes] = useState<string>("");
-  const [technicianName, setTechnicianName] = useState<string>(exchange.notes?.match(/Technician: (.*)/)?.[1] || "");
+  const [nextStatus, setNextStatus] = useState<string>(exchange.status);
 
   const [submitting, setSubmitting] = useState<string | null>(null);
+
+  const contactName = exchange.contactName || exchange.user?.name || null;
+  const contactEmail = exchange.contactEmail || exchange.user?.email || null;
+  const contactPhone = exchange.contactPhone || exchange.user?.phone || null;
+  /** E.164-ish digits for a wa.me deep link. */
+  const whatsappNumber = contactPhone?.replace(/[^\d]/g, "") || null;
 
   const checklistItems = Object.entries(exchange.checklist || {})
     .map(([key, value]) => ({
@@ -37,51 +54,76 @@ export function ExchangeDetailClient({ exchange: initialExchange }: ExchangeDeta
       checked: !!value,
     }));
 
-  const handleAction = async (newStatus: string, actionKey: string) => {
+  const applyUpdate = (
+    updated: any,
+    newStatus: string,
+    action: string,
+    details: string,
+  ) => {
+    setExchange((prev: any) => ({
+      ...prev,
+      status: updated.status,
+      finalValueCents: updated.finalValueCents,
+      offerMethod: updated.offerMethod,
+      offerNotes: updated.offerNotes,
+      offerSentAt: updated.offerSentAt,
+      customerContactedAt: updated.customerContactedAt,
+      notes: updated.notes,
+      activities: [
+        {
+          id: `local-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          action,
+          toStatus: newStatus,
+          details,
+        },
+        ...prev.activities,
+      ],
+    }));
+    setNextStatus(updated.status);
+  };
+
+  /** Records the admin's hand-set offer and marks it as sent to the customer. */
+  const handleRecordOffer = async () => {
+    const euros = Number.parseFloat(offerValue);
+    if (!Number.isFinite(euros) || euros < 0) {
+      pushToast("Enter a valid offer amount.", "warning");
+      return;
+    }
+
+    setSubmitting("offer");
+    try {
+      const finalValueCents = Math.round(euros * 100);
+      const details = `Offer of €${euros.toFixed(2)} recorded, sent via ${offerMethod}.`;
+      const updated = await updateExchangeStatusAction(exchange.id, "OFFER_SENT", {
+        finalValueCents,
+        offerMethod,
+        offerNotes: offerNotes || undefined,
+        notes: adminNotes || undefined,
+        markOfferSent: true,
+      });
+      applyUpdate(updated, "OFFER_SENT", "OFFER_SENT", details);
+      pushToast("Offer recorded and the customer has been notified.", "check");
+    } catch {
+      pushToast("Could not record the offer. Please try again.", "error");
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string, actionKey: string) => {
     setSubmitting(actionKey);
     try {
-      let finalValueCents = undefined;
-      let notes = adminNotes;
-
-      if (actionKey === "counter") {
-        finalValueCents = Math.round(parseFloat(counterValue) * 100);
-      } else if (actionKey === "approve") {
-        finalValueCents = exchange.estimatedValueCents;
-      }
-
-      if (technicianName) {
-        notes = `${adminNotes}\nTechnician: ${technicianName}`.trim();
-      }
-
+      const details = actionNotes || `Status updated to ${exchangeStatusLabel(newStatus)}.`;
       const updated = await updateExchangeStatusAction(exchange.id, newStatus, {
-        details: actionNotes || `Status updated to ${newStatus} by Administrator.`,
-        finalValueCents,
-        notes,
+        details,
+        notes: adminNotes || undefined,
       });
-
-      // Update local state
-      setExchange({
-        ...exchange,
-        status: updated.status,
-        finalValueCents: updated.finalValueCents,
-        notes: updated.notes,
-        activities: [
-          {
-            id: Math.random().toString(),
-            createdAt: new Date().toISOString(),
-            action: actionKey.toUpperCase(),
-            toStatus: newStatus,
-            details: actionNotes || `Status updated to ${newStatus} by Administrator.`,
-          },
-          ...exchange.activities,
-        ],
-      });
-
-      pushToast(`Exchange request status updated successfully to ${newStatus}!`);
+      applyUpdate(updated, newStatus, "STATUS_UPDATED", details);
+      pushToast(`Status updated to ${exchangeStatusLabel(newStatus)}.`, "check");
       setActionNotes("");
-    } catch (err: any) {
-      console.error(err);
-      pushToast("Failed to update status. Please try again.");
+    } catch {
+      pushToast("Failed to update status. Please try again.", "error");
     } finally {
       setSubmitting(null);
     }
@@ -108,19 +150,18 @@ export function ExchangeDetailClient({ exchange: initialExchange }: ExchangeDeta
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className={cn(
-              "rounded-full px-3.5 py-1 text-xs font-black uppercase tracking-wider border",
-              exchange.status === "PENDING" && "bg-slate-50 text-slate-600 border-slate-200",
-              exchange.status === "COUNTER_OFFER" && "bg-amber-50 text-amber-700 border-amber-250 animate-pulse",
-              exchange.status === "APPROVED" && "bg-emerald-50 text-emerald-700 border-emerald-250",
-              exchange.status === "REJECTED" && "bg-red-50 text-red-700 border-red-200",
-              exchange.status === "PICKUP_SCHEDULED" && "bg-blue-50 text-blue-700 border-blue-200",
-              exchange.status === "RECEIVED" && "bg-violet-50 text-violet-700 border-violet-200",
-              exchange.status === "COMPLETED" && "bg-[#E8F5E9] text-[#1B5E20] border-emerald-250"
+              "rounded-full border px-3.5 py-1 text-xs font-black uppercase tracking-wider",
+              EXCHANGE_TONE_CLASSES[exchangeStatusTone(exchange.status)],
             )}>
-              {exchange.status.replace("_", " ")}
+              {exchangeStatusLabel(exchange.status)}
             </span>
+            {exchange.finalValueCents != null && (
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-emerald-700">
+                Offer {formatPriceExact(exchange.finalValueCents)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -136,28 +177,99 @@ export function ExchangeDetailClient({ exchange: initialExchange }: ExchangeDeta
               <User className="h-5 w-5 text-primary" />
               <span>Customer Details</span>
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium">
+            <div className="grid grid-cols-1 gap-4 text-xs font-medium md:grid-cols-2">
               <div>
                 <span className="text-slate-400">Name:</span>{" "}
-                <span className="text-slate-900 font-bold">{exchange.user?.name || "Guest / Storefront Client"}</span>
+                <span className="font-bold text-slate-900">{contactName || "Not provided"}</span>
+                {!exchange.userId && (
+                  <span className="ml-1.5 rounded-full border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-500">
+                    Guest
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <span className="text-slate-400">Email:</span>{" "}
+                {contactEmail ? (
+                  <a href={`mailto:${contactEmail}`} className="font-bold text-primary underline-offset-2 hover:underline break-all">
+                    {contactEmail}
+                  </a>
+                ) : (
+                  <span className="font-bold text-slate-900">Not provided</span>
+                )}
               </div>
               <div>
-                <span className="text-slate-400">Email:</span>{" "}
-                <span className="text-slate-900 font-bold">{exchange.user?.email || "No email available"}</span>
+                <span className="text-slate-400">Phone:</span>{" "}
+                {contactPhone ? (
+                  <a href={`tel:${contactPhone}`} className="font-bold text-primary underline-offset-2 hover:underline">
+                    {contactPhone}
+                  </a>
+                ) : (
+                  <span className="font-bold text-slate-900">Not provided</span>
+                )}
               </div>
-              {exchange.user?.phone && (
-                <div>
-                  <span className="text-slate-400">Phone:</span>{" "}
-                  <span className="text-slate-900 font-bold">{exchange.user.phone}</span>
+              <div>
+                <span className="text-slate-400">Collection:</span>{" "}
+                <span className="font-bold text-slate-900">{exchange.pickupOption || "Not specified"}</span>
+              </div>
+              {exchange.pickupSchedule?.address && (
+                <div className="md:col-span-2">
+                  <span className="text-slate-400">Address:</span>{" "}
+                  <span className="font-bold text-slate-900">{exchange.pickupSchedule.address}</span>
                 </div>
               )}
+
+              {/* One-tap contact — the admin reaches out personally, then
+                  records the offer they made. */}
+              <div className="flex flex-wrap gap-2 md:col-span-2">
+                {contactEmail && (
+                  <a
+                    href={`mailto:${contactEmail}?subject=${encodeURIComponent(`Your Rhydm trade-in ${exchange.referenceNumber}`)}`}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    <span>Email</span>
+                  </a>
+                )}
+                {whatsappNumber && (
+                  <a
+                    href={`https://wa.me/${whatsappNumber}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-[11px] font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
+                {contactPhone && (
+                  <a
+                    href={`tel:${contactPhone}`}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    <span>Call</span>
+                  </a>
+                )}
+              </div>
+
               {exchange.product && (
-                <div className="col-span-2 border-t border-slate-100 pt-3 flex justify-between items-center">
-                  <div>
-                    <span className="text-slate-400">Linked Purchase Product:</span>{" "}
-                    <span className="text-slate-900 font-bold">{exchange.product.name}</span>
+                <div className="col-span-full flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                  <div className="min-w-0">
+                    <span className="text-slate-400">Interested in:</span>{" "}
+                    <span className="font-bold text-slate-900">{exchange.product.name}</span>
                   </div>
-                  <span className="font-extrabold text-slate-800">{formatPriceExact(exchange.product.priceCents)}</span>
+                  <span className="shrink-0 font-extrabold text-slate-800">
+                    {formatPriceExact(exchange.product.priceCents)}
+                  </span>
+                </div>
+              )}
+
+              {/* Historical only: requests created before manual pricing. */}
+              {exchange.estimatedValueCents > 0 && (
+                <div className="col-span-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[10px] text-slate-500">
+                  Legacy auto-estimate on this record:{" "}
+                  <span className="font-bold">{formatPriceExact(exchange.estimatedValueCents)}</span>{" "}
+                  — reference only, never shown to the customer.
                 </div>
               )}
             </div>
@@ -187,7 +299,7 @@ export function ExchangeDetailClient({ exchange: initialExchange }: ExchangeDeta
               </div>
               <div>
                 <p className="text-slate-400 uppercase tracking-wider font-bold">Condition</p>
-                <p className="text-slate-805 font-extrabold mt-0.5">{exchange.condition}</p>
+                <p className="text-slate-800 font-extrabold mt-0.5">{exchange.condition}</p>
               </div>
               <div>
                 <p className="text-slate-400 uppercase tracking-wider font-bold">Purchase Year</p>
@@ -223,7 +335,7 @@ export function ExchangeDetailClient({ exchange: initialExchange }: ExchangeDeta
             {exchange.description && (
               <div className="mt-4 pt-4 border-t border-slate-100 space-y-1.5">
                 <p className="text-xs font-black uppercase tracking-wider text-slate-400">Customer Description</p>
-                <p className="text-xs text-slate-700 bg-slate-50 border border-slate-250/40 rounded-xl p-3 leading-relaxed font-semibold">
+                <p className="text-xs text-slate-700 bg-slate-50 border border-slate-200/60 rounded-xl p-3 leading-relaxed font-semibold">
                   {exchange.description}
                 </p>
               </div>
@@ -262,138 +374,140 @@ export function ExchangeDetailClient({ exchange: initialExchange }: ExchangeDeta
               <span>Admin Decision Center</span>
             </h2>
 
-            {/* Price evaluation dashboard display */}
-            <div className="rounded-xl bg-slate-50 p-4 border border-slate-100/60 text-xs font-medium space-y-2">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Estimated value:</span>
-                <span className="font-bold text-slate-800">{formatPriceExact(exchange.estimatedValueCents)}</span>
+            {/* Manual offer — the amount is always decided here, by a person. */}
+            <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50/30 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">
+                  Offer to customer
+                </span>
+                {exchange.offerSentAt && (
+                  <span className="text-[10px] font-bold text-emerald-700">
+                    Sent {new Date(exchange.offerSentAt).toLocaleDateString()}
+                  </span>
+                )}
               </div>
-              {exchange.finalValueCents && (
-                <div className="flex justify-between font-bold text-slate-900 border-t border-slate-150/40 pt-2 text-sm">
-                  <span>Approved value:</span>
-                  <span>{formatPriceExact(exchange.finalValueCents)}</span>
-                </div>
-              )}
+
+              <div className="space-y-1.5">
+                <label htmlFor="offer-amount" className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Amount (EUR)
+                </label>
+                <input
+                  id="offer-amount"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={5}
+                  value={offerValue}
+                  onChange={(e) => setOfferValue(e.target.value)}
+                  placeholder="e.g. 320"
+                  className="min-h-10 w-full rounded-xl border border-emerald-200 bg-white px-3.5 py-2 text-sm font-bold outline-none focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="offer-method" className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Sent via
+                </label>
+                <select
+                  id="offer-method"
+                  value={offerMethod}
+                  onChange={(e) => setOfferMethod(e.target.value)}
+                  className="min-h-10 w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-bold outline-none focus:border-[#16A34A]"
+                >
+                  {OFFER_METHODS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="offer-notes" className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Offer notes
+                </label>
+                <textarea
+                  id="offer-notes"
+                  rows={2}
+                  value={offerNotes}
+                  onChange={(e) => setOfferNotes(e.target.value)}
+                  placeholder="How the figure was reached, conditions, validity…"
+                  className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#16A34A]"
+                />
+              </div>
+
+              <button
+                type="button"
+                disabled={submitting !== null || !offerValue}
+                onClick={handleRecordOffer}
+                className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-[#16A34A] py-2.5 text-xs font-bold text-white shadow-md shadow-[#16A34A]/10 transition-colors hover:bg-[#159342] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {submitting === "offer" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>{exchange.offerSentAt ? "Update offer" : "Record offer as sent"}</span>
+              </button>
+              <p className="text-[10px] font-medium leading-relaxed text-slate-500">
+                Contact the customer yourself using the links above, then record what you
+                offered here. The customer sees the amount only once it is recorded.
+              </p>
             </div>
 
-            {/* General details textarea */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Transaction Notes / Details</label>
+            {/* Status transition */}
+            <div className="space-y-3 border-t border-slate-100 pt-4">
+              <div className="space-y-1.5">
+                <label htmlFor="next-status" className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Move to status
+                </label>
+                <select
+                  id="next-status"
+                  value={nextStatus}
+                  onChange={(e) => setNextStatus(e.target.value)}
+                  className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold outline-none focus:border-[#2E6F40]"
+                >
+                  {EXCHANGE_STATUSES.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="action-notes" className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Reason / details
+                </label>
+                <textarea
+                  id="action-notes"
+                  rows={2}
+                  value={actionNotes}
+                  onChange={(e) => setActionNotes(e.target.value)}
+                  placeholder="Recorded on the audit trail and emailed to the customer."
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#2E6F40]"
+                />
+              </div>
+
+              <button
+                type="button"
+                disabled={submitting !== null || nextStatus === exchange.status}
+                onClick={() => handleStatusChange(nextStatus, "status")}
+                className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {submitting === "status" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>Update status</span>
+              </button>
+            </div>
+
+            {/* Internal notes — explicitly never shown to the customer. */}
+            <div className="space-y-1.5 border-t border-slate-100 pt-4">
+              <label htmlFor="admin-notes" className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                <ShieldAlert className="h-3.5 w-3.5" />
+                <span>Internal notes (never shown to the customer)</span>
+              </label>
               <textarea
-                rows={2}
-                value={actionNotes}
-                onChange={(e) => setActionNotes(e.target.value)}
-                placeholder="Include reason for counter-offer, rejection, or additional verification instructions..."
-                className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-white outline-none focus:border-[#2E6F40] resize-none"
+                id="admin-notes"
+                rows={3}
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                placeholder="Assigned technician, internal valuation reasoning, risk flags…"
+                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#2E6F40]"
               />
+              <p className="text-[10px] text-slate-400">Saved with the next offer or status update.</p>
             </div>
-
-            {/* Technician assignment input */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Assigned Technician</label>
-              <input
-                type="text"
-                placeholder="e.g. John Doe"
-                value={technicianName}
-                onChange={(e) => setTechnicianName(e.target.value)}
-                className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-white outline-none focus:border-[#2E6F40]"
-              />
-            </div>
-
-            {/* PENDING Status Control panel */}
-            {exchange.status === "PENDING" && (
-              <div className="space-y-3.5 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  disabled={submitting !== null}
-                  onClick={() => handleAction("APPROVED", "approve")}
-                  className="w-full py-2.5 bg-[#16A34A] hover:bg-[#159342] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#16A34A]/10 flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {submitting === "approve" && <Loader2 className="animate-spin h-3.5 w-3.5" />}
-                  <span>Approve Request (Est. Credit)</span>
-                </button>
-
-                {/* Counter offer subform */}
-                <div className="border border-amber-200 bg-amber-50/20 p-4 rounded-2xl space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-850">Propose Counter Offer</span>
-                    <span className="text-xs font-bold text-amber-700">EUR (€)</span>
-                  </div>
-                  <input
-                    type="number"
-                    value={counterValue}
-                    step={5}
-                    onChange={(e) => setCounterValue(e.target.value)}
-                    className="w-full border border-amber-250 bg-white rounded-xl px-3.5 py-2 text-sm outline-none font-bold"
-                  />
-                  <button
-                    type="button"
-                    disabled={submitting !== null || !counterValue}
-                    onClick={() => handleAction("COUNTER_OFFER", "counter")}
-                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    {submitting === "counter" && <Loader2 className="animate-spin h-3.5 w-3.5" />}
-                    <span>Propose Counter Offer</span>
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={submitting !== null}
-                  onClick={() => handleAction("REJECTED", "reject")}
-                  className="w-full py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-650 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {submitting === "reject" && <Loader2 className="animate-spin h-3.5 w-3.5" />}
-                  <span>Reject Exchange Request</span>
-                </button>
-              </div>
-            )}
-
-            {/* PICKUP SCHEDULED Control panel */}
-            {exchange.status === "PICKUP_SCHEDULED" && (
-              <div className="space-y-3 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  disabled={submitting !== null}
-                  onClick={() => handleAction("RECEIVED", "received")}
-                  className="w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-violet-600/10 flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {submitting === "received" && <Loader2 className="animate-spin h-3.5 w-3.5" />}
-                  <span>Mark as Received at Warehouse</span>
-                </button>
-              </div>
-            )}
-
-            {/* RECEIVED Status Control panel */}
-            {exchange.status === "RECEIVED" && (
-              <div className="space-y-3 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  disabled={submitting !== null}
-                  onClick={() => handleAction("COMPLETED", "completed")}
-                  className="w-full py-2.5 bg-[#16A34A] hover:bg-[#159342] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#16A34A]/10 flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {submitting === "completed" && <Loader2 className="animate-spin h-3.5 w-3.5" />}
-                  <span>Complete Final Inspection (Credit Issued)</span>
-                </button>
-              </div>
-            )}
-
-            {/* Completed status indicator */}
-            {exchange.status === "COMPLETED" && (
-              <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 text-xs font-bold flex items-center gap-2">
-                <Check className="h-4 w-4 stroke-[3]" />
-                <span>Exchange valuation completed and store credit issued.</span>
-              </div>
-            )}
-
-            {/* Rejected status indicator */}
-            {exchange.status === "REJECTED" && (
-              <div className="p-3 bg-red-50 text-red-800 rounded-xl border border-red-200 text-xs font-bold flex items-center gap-2">
-                <X className="h-4 w-4 stroke-[3]" />
-                <span>This exchange request has been rejected.</span>
-              </div>
-            )}
           </div>
 
           {/* Activity Timeline Audit Log */}

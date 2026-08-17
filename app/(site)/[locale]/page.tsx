@@ -66,7 +66,7 @@ export default async function GatewayPage({
       <div className="relative w-full max-w-4xl flex-1 flex flex-col justify-between my-auto py-2 gap-6">
         {/* Top Header Logo */}
         <FadeIn className="flex justify-center pt-2 sm:pt-0">
-          <Logo />
+          <Logo className="h-12 sm:h-14" priority />
         </FadeIn>
 
         {/* Title & Subtitle */}

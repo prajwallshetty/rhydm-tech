@@ -8,7 +8,7 @@ export default function NotFound() {
   const t = useTranslations("errors.notFound");
   return (
     <main className="flex min-h-dvh flex-1 flex-col items-center justify-center px-6 py-20 text-center">
-      <Logo />
+      <Logo className="h-12 sm:h-14" />
 
       <p className="mt-12 text-sm font-medium uppercase tracking-widest text-brand">
         {t("code")}

@@ -135,7 +135,10 @@ export function AdminSidebar({
             className="inline-block group transition-transform hover:scale-105"
             aria-label="Dashboard"
           >
-            <Logo className={cn("w-auto", collapsedView ? "h-8" : "h-10")} markOnly={collapsedView} />
+            <Logo
+              variant={collapsedView ? "mark" : "lockup"}
+              className={cn("w-auto", collapsedView ? "h-8" : "h-10")}
+            />
           </Link>
 
           {/* Desktop collapse toggle */}

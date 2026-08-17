@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
-  Sparkles, ShieldCheck, ArrowRight, Laptop, HelpCircle,
-  TrendingUp, RefreshCw, Landmark, CheckCircle2, ChevronDown,
-  Sliders, Truck, CreditCard
+  Sparkles, ShieldCheck, ArrowRight, HelpCircle,
+  TrendingUp, RefreshCw, CheckCircle2, ChevronDown,
+  Sliders, Truck
 } from "lucide-react";
 import { ExchangeWizard } from "@/components/store/exchange-wizard";
-import { submitExchangeRequestAction } from "@/app/actions/exchange";
+import {
+  submitExchangeRequestAction,
+  type SubmitExchangeInput,
+} from "@/app/actions/exchange";
 import { useToast } from "@/components/ui/toast";
-import { formatPriceExact } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { SITE_URL } from "@/lib/business";
 
@@ -23,21 +25,21 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
   const pushToast = useToast((s) => s.push);
   
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [successData, setSuccessData] = useState<any | null>(null);
+  const [successData, setSuccessData] = useState<{ referenceNumber: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const heroTitles = {
     "trade-in": "Trade In Your Old Tech. Get Premium Upgrades.",
     exchange: "Exchange Old Hardware For Upgraded Performance.",
-    "sell-your-device": "Sell Your Old Tech For Instant Store Credit.",
+    "sell-your-device": "Sell Your Old Tech. Get A Specialist's Offer.",
   };
 
   const schemaMarkup = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: heroTitles[pageType],
-    description: "Get the best trade-in value for your used laptops, desktops, servers, and monitors. Fast direct checkout, free courier pickup, and eco-friendly refurbishing.",
+    description: "Submit your used laptops, desktops, servers or monitors for a trade-in offer. Every device is assessed by a Rhydm specialist, with free courier pickup, certified data erasure and eco-friendly refurbishing.",
     publisher: {
       "@type": "Organization",
       name: "Rhydm Tech",
@@ -48,11 +50,11 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
   const faqs = [
     {
       q: "How does the valuation process work?",
-      a: "Simply use our online wizard to select your device type, brand, model, and condition. We will calculate an instant estimated valuation. If you accept, pack the device and use our free pickup or prepaid shipping label to send it to us for final inspection.",
+      a: "You describe your device in our online form and add photos. A Rhydm specialist reviews the details by hand and contacts you with an offer — usually within one business day. If you accept, pack the device and use our free pickup or prepaid shipping label to send it in for final inspection.",
     },
     {
-      q: "When and how do I receive my credit?",
-      a: "For exchanges linked to a purchase, the credit is applied instantly at checkout. For stand-alone device sales, once our technicians inspect your device (usually within 48 hours of receipt), we will issue credit directly to your account.",
+      q: "When and how do I receive my payment?",
+      a: "Once you accept our offer and our technicians confirm the device matches your description (usually within 48 hours of receipt), we release the agreed amount — as store credit or a direct payout, whichever you prefer.",
     },
     {
       q: "What happens to my personal data on the device?",
@@ -60,22 +62,24 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
     },
     {
       q: "What if the technician finds a discrepancy in my description?",
-      a: "If the physical inspection reveals differences from your description, we will send you a counter-offer. You can accept the counter-offer, or reject it. If you reject, we ship the device back to you free of charge.",
+      a: "If the physical inspection reveals differences from your description, we will send you a revised offer. You can accept it or decline. If you decline, we ship the device back to you free of charge.",
     },
   ];
 
-  const handleWizardComplete = async (data: any) => {
+  const handleWizardComplete = async (data: SubmitExchangeInput) => {
+    if (submitting) return; // a second tap must not create a duplicate request
     setSubmitting(true);
     try {
       const res = await submitExchangeRequestAction(data);
       if (res.success) {
         setSuccessData(res);
         setWizardOpen(false);
-        pushToast("Trade-in request submitted successfully!");
+        pushToast("Exchange request submitted successfully.", "check");
+      } else {
+        pushToast(res.error, "error");
       }
-    } catch (err: any) {
-      console.error(err);
-      pushToast("An error occurred during submission. Please try again.");
+    } catch {
+      pushToast("We couldn't submit your request. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -95,20 +99,20 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
         <div className="relative max-w-2xl space-y-6">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-emerald-400 border border-emerald-500/20">
             <Sparkles className="h-4 w-4" />
-            <span>Best Value Trade-In</span>
+            <span>Reviewed by a specialist</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
             {heroTitles[pageType]}
           </h1>
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg">
-            Turn your laptops, desktops, and servers into instant storefront credits. Free pickup, secure sanitization, and premium warranties guaranteed.
+            Tell us about your laptops, desktops or servers and a Rhydm specialist comes back with a firm offer. Free pickup, certified data erasure, and no obligation.
           </p>
           <div className="pt-4 flex flex-wrap gap-4">
             <button
               onClick={() => setWizardOpen(true)}
               className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer text-sm"
             >
-              <span>Check Device Value</span>
+              <span>Start a trade-in</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -133,21 +137,21 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
           {[
             {
               step: "01",
-              title: "Value Online",
-              desc: "Describe your device configuration in 9 simple steps. Get an instant automated estimated quote in seconds.",
+              title: "Describe It Online",
+              desc: "Tell us the configuration and condition in nine short steps, and add a few photos.",
               icon: Sliders,
             },
             {
               step: "02",
-              title: "Ship for Free",
-              desc: "Schedule a free courier pickup from your address or drop it off at any local parcel point using our prepaid labels.",
-              icon: Truck,
+              title: "Get Your Offer",
+              desc: "A specialist reviews your details and photos and contacts you with a firm offer — no automated guesswork.",
+              icon: HelpCircle,
             },
             {
               step: "03",
-              title: "Get Store Credit",
-              desc: "Once inspected, apply your trade-in credit instantly to refurbished purchases or cash out directly.",
-              icon: CreditCard,
+              title: "Ship & Get Paid",
+              desc: "Accept the offer, send the device with our free pickup or prepaid label, and we release payment after inspection.",
+              icon: Truck,
             },
           ].map((item, idx) => {
             const Icon = item.icon;
@@ -175,7 +179,7 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
           <div className="space-y-3.5 text-xs font-bold text-slate-800">
             {[
               "Military-grade secure data erasure with certification.",
-              "Guaranteed highest payout value and instant pricing engines.",
+              "Every device individually assessed by a specialist — no automated lowballing.",
               "100% free courier collection and insured delivery.",
               "Promoting green circular economy by keeping tech out of landfills.",
             ].map((text, index) => (
@@ -234,6 +238,7 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
       {/* Wizard trigger Overlay */}
       {wizardOpen && (
         <ExchangeWizard
+          submitting={submitting}
           onClose={() => setWizardOpen(false)}
           onComplete={handleWizardComplete}
         />
@@ -247,25 +252,36 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <div className="space-y-1.5">
-              <h3 className="text-xl font-extrabold text-slate-900">Valuation Request Registered</h3>
-              <p className="text-xs text-slate-500 font-medium">Reference: <span className="font-mono font-bold text-slate-900">{successData.referenceNumber}</span></p>
+              <h3 className="text-xl font-extrabold text-slate-900">
+                Exchange request submitted successfully
+              </h3>
+              <p className="text-xs font-medium text-slate-500">
+                Reference:{" "}
+                <span className="font-mono font-bold text-slate-900">
+                  {successData.referenceNumber}
+                </span>
+              </p>
             </div>
-            <p className="text-xs text-slate-650 leading-relaxed font-medium">
-              We have successfully registered your trade-in estimate of <span className="font-extrabold text-[#16A34A]">{formatPriceExact(successData.estimatedValueCents)}</span>.
-              Please go to your account dashboard to print the quotation details and schedule pickup delivery!
+            {/* Deliberately no figure: valuation is done by hand, so quoting a
+                number here would be a promise we have not yet made. */}
+            <p className="text-xs font-medium leading-relaxed text-slate-600">
+              Our team will review your device details and photos and contact you with an
+              offer. Keep this reference number for your records.
             </p>
-            <div className="pt-2 flex flex-col gap-2">
+            <div className="flex flex-col gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => router.push("/refurbished/account?tab=exchanges")}
-                className="w-full py-3 bg-[#16A34A] hover:bg-[#159342] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                className="min-h-11 w-full rounded-xl bg-[#16A34A] py-3 text-xs font-bold text-white transition-colors hover:bg-[#159342] cursor-pointer"
               >
-                Go to My Exchanges
+                Track this request
               </button>
               <button
+                type="button"
                 onClick={() => setSuccessData(null)}
-                className="w-full py-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                className="min-h-11 w-full rounded-xl border border-slate-200 bg-white py-3 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer"
               >
-                Close Window
+                Close
               </button>
             </div>
           </div>

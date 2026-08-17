@@ -1,3 +1,5 @@
+import NextLink from "next/link";
+
 import { Link } from "@/i18n/navigation";
 import { COMPANY, DIVISION_META, type Division } from "@/lib/business";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -156,19 +158,19 @@ export async function SiteFooter({ division }: { division: Division }) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/signup" className="hover:text-[#16A34A] transition-colors">
+                  <NextLink href="/signup" className="hover:text-[#16A34A] transition-colors">
                     {t("signUp")}
-                  </Link>
+                  </NextLink>
                 </li>
                 <li>
-                  <Link href="/login" className="hover:text-[#16A34A] transition-colors">
+                  <NextLink href="/login" className="hover:text-[#16A34A] transition-colors">
                     {t("login")}
-                  </Link>
+                  </NextLink>
                 </li>
                 <li>
-                  <Link href="/forgot-password" className="hover:text-[#16A34A] transition-colors">
+                  <NextLink href="/forgot-password" className="hover:text-[#16A34A] transition-colors">
                     {t("forgotPassword")}
-                  </Link>
+                  </NextLink>
                 </li>
               </ul>
             </div>

@@ -1,15 +1,25 @@
 /**
- * Mock email and notification service.
- * Logs notifications to console/logs and serves as an integration point for actual email systems.
+ * Notification service.
+ *
+ * ⚠️ NO EMAIL PROVIDER IS WIRED UP. Every call below writes to the server log
+ * and nothing reaches the recipient. This is the single integration point —
+ * swap the body of `sendNotificationEmail` for a real provider (Resend,
+ * Postmark, SES, …) and every notification starts delivering.
+ *
+ * Until then the trade-in workflow depends on an admin watching
+ * /admin/exchanges, and customers are told only that the team will be in
+ * touch — no message promises an email that would never arrive.
  */
 export async function sendNotificationEmail(to: string, subject: string, htmlContent: string) {
-  console.log(`[MOCK EMAIL SENT]
-==================================================
-TO: ${to}
-SUBJECT: ${subject}
-BODY:
-${htmlContent.replace(/<[^>]*>/g, " ")} // Strip HTML for console logging
-==================================================`);
+  const body = htmlContent.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+  // warn, not log: in production this is a dropped message, not a debug line.
+  console.warn(
+    `[notifications] NOT DELIVERED (no email provider configured) — to=${to} subject=${subject}`,
+  );
+  if (process.env.NODE_ENV !== "production") {
+    console.warn(`[notifications] body: ${body}`);
+  }
 }
 
 /**
@@ -52,7 +62,10 @@ export async function notifyAdminNewRequest(referenceNumber: string, deviceName:
 }
 
 /**
- * Notifies the customer of a counter-offer.
+ * Notifies the customer that a specialist has made them an offer.
+ *
+ * Only ever called after an admin records an offer by hand — there is no
+ * automatic valuation to announce.
  */
 export async function notifyCustomerCounterOffer(
   email: string,
@@ -60,13 +73,13 @@ export async function notifyCustomerCounterOffer(
   amountCents: number
 ) {
   const amountEUR = (amountCents / 100).toFixed(2);
-  const subject = `Trade-in Request ${referenceNumber}: Counter Offer Received`;
+  const subject = `Trade-in request ${referenceNumber}: your offer`;
   const htmlContent = `
-    <h1>Counter Offer Received</h1>
+    <h1>Your trade-in offer</h1>
     <p>Dear Customer,</p>
-    <p>We have completed the inspection for your device under trade-in request <strong>${referenceNumber}</strong>.</p>
-    <p>We would like to present a counter offer of <strong>€${amountEUR}</strong> based on the condition of the hardware.</p>
-    <p>Please log in to your account dashboard to either <strong>Accept</strong> or <strong>Reject</strong> this offer.</p>
+    <p>Our team has reviewed the details and photos for trade-in request <strong>${referenceNumber}</strong>.</p>
+    <p>We can offer <strong>€${amountEUR}</strong> for your device, subject to a final inspection once we receive it.</p>
+    <p>Please log in to your account dashboard to <strong>accept</strong> or <strong>decline</strong> this offer. There is no obligation either way.</p>
     <p>Best regards,<br/>Rhydm Technologies Team</p>
   `;
 

@@ -22,9 +22,18 @@ export default async function AdminExchangeSettingsPage() {
             <span>Exchange & Trade-In Rules</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Configure whitelists, age depreciation, and spec modifiers used by the valuation engine.
+            Internal pricing guidance for the review team — accepted brands and categories,
+            the payout ceiling, and per-category starting points.
           </p>
         </div>
+      </div>
+
+      {/* The engine that once turned these into an instant customer quote has
+          been removed; every offer is now decided and recorded by a person. */}
+      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-xs font-medium leading-relaxed text-amber-900">
+        <strong className="font-bold">Reference only.</strong> These values are not shown to
+        customers and no longer generate an automatic quote. Trade-ins are priced by hand on
+        each request under <Link href="/admin/exchanges" className="underline underline-offset-2">Device Exchanges</Link>.
       </div>
 
       <form action={saveExchangeRulesAction} className="space-y-6">

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { Check, ShieldCheck, Award, Truck, RotateCcw, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { Check, ShieldCheck, Award, Truck, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { ProductGallery } from "@/components/store/product-gallery";
@@ -14,6 +13,11 @@ import { formatPrice, discountPercent, stockLabel } from "@/lib/format";
 import { ProductWithVariantsDTO, ProductVariantDTO } from "@/lib/data/variant-utils";
 import { cn } from "@/lib/utils";
 import { ExchangeWizard } from "@/components/store/exchange-wizard";
+import {
+  submitExchangeRequestAction,
+  type SubmitExchangeInput,
+} from "@/app/actions/exchange";
+import { useToast } from "@/components/ui/toast";
 
 interface VariantConfiguratorProps {
   product: ProductWithVariantsDTO;
@@ -46,6 +50,7 @@ export function VariantConfigurator({
   const t = useTranslations("store.detail");
   const ts = useTranslations("store.stock");
   const tcond = useTranslations("store.condition");
+  const pushToast = useToast((s) => s.push);
 
   // 1. Initialize option state from URL parameters or default to first available variant
   const initialSelected = useMemo(() => {
@@ -85,9 +90,28 @@ export function VariantConfigurator({
   }, [product, searchParams]);
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(initialSelected);
-  const [purchaseMode, setPurchaseMode] = useState<"buy" | "exchange">("buy");
-  const [activeExchange, setActiveExchange] = useState<any | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [submittingTradeIn, setSubmittingTradeIn] = useState(false);
+  const [tradeInRef, setTradeInRef] = useState<string | null>(null);
+
+  const handleTradeInSubmit = async (data: SubmitExchangeInput) => {
+    if (submittingTradeIn) return;
+    setSubmittingTradeIn(true);
+    try {
+      const res = await submitExchangeRequestAction(data);
+      if (res.success) {
+        setTradeInRef(res.referenceNumber);
+        setWizardOpen(false);
+        pushToast("Trade-in request submitted — we'll be in touch with an offer.", "check");
+      } else {
+        pushToast(res.error, "error");
+      }
+    } catch {
+      pushToast("We couldn't submit your request. Please try again.", "error");
+    } finally {
+      setSubmittingTradeIn(false);
+    }
+  };
 
   // 2. Resolve matching variant based on selectedOptions
   const activeVariant = useMemo<ProductVariantDTO | null>(() => {
@@ -164,24 +188,13 @@ export function VariantConfigurator({
             </div>
           )}
 
-          {/* Exchange badge */}
-          <div className="mt-4 flex items-center gap-1.5">
-            <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-              Exchange Available
-            </span>
-            <span className="text-xs font-medium text-slate-500">Trade in old tech for instant store credit</span>
-          </div>
-
           {/* Price Header with Discount */}
           <div className="mt-6 flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline gap-3">
               <span className="text-3xl font-extrabold tracking-tight text-slate-900">
-                {formatPrice(purchaseMode === "exchange" && activeExchange
-                  ? Math.max(priceCents - activeExchange.estimatedValueCents, 0)
-                  : priceCents
-                )}
+                {formatPrice(priceCents)}
               </span>
-              {compareAtCents != null && purchaseMode === "buy" && (
+              {compareAtCents != null && (
                 <>
                   <span className="text-lg text-slate-400 line-through">
                     {formatPrice(compareAtCents)}
@@ -194,93 +207,7 @@ export function VariantConfigurator({
                 </>
               )}
             </div>
-
-            {purchaseMode === "exchange" && activeExchange && (
-              <div className="text-xs font-medium text-slate-500 flex flex-col gap-0.5 border-l-2 border-emerald-500 pl-3.5 py-0.5 mt-1">
-                <div className="flex justify-between w-64">
-                  <span>Product price:</span>
-                  <span className="font-semibold text-slate-700">{formatPrice(priceCents)}</span>
-                </div>
-                <div className="flex justify-between w-64 text-[#16A34A]">
-                  <span>Exchange credit:</span>
-                  <span className="font-semibold">-{formatPrice(activeExchange.estimatedValueCents)}</span>
-                </div>
-              </div>
-            )}
           </div>
-
-          {/* Premium Segmented Buttons */}
-          <div className="mt-6 p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-200/40">
-            <button
-              type="button"
-              onClick={() => setPurchaseMode("buy")}
-              className={cn(
-                "flex-1 py-3 px-4 rounded-lg text-xs font-extrabold transition-all cursor-pointer",
-                purchaseMode === "buy"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              Buy Now
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPurchaseMode("exchange");
-                if (!activeExchange) {
-                  setWizardOpen(true);
-                }
-              }}
-              className={cn(
-                "flex-1 py-3 px-4 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer",
-                purchaseMode === "exchange"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              <span>Exchange Device</span>
-              <span className="bg-[#16A34A] text-white px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider animate-pulse">
-                Save €
-              </span>
-            </button>
-          </div>
-
-          {/* Active Exchange Details summary */}
-          {purchaseMode === "exchange" && activeExchange && (
-            <div className="mt-4 p-4 rounded-2xl border border-emerald-100 bg-emerald-50/20 flex flex-col gap-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-800">Selected Trade-in</h4>
-                  <p className="text-sm font-bold text-slate-950 mt-1">
-                    {activeExchange.brand} {activeExchange.model} ({activeExchange.condition})
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Estimated Credit: <span className="font-extrabold text-[#16A34A]">{formatPrice(activeExchange.estimatedValueCents)}</span>
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setWizardOpen(true)}
-                    className="text-xs font-bold text-[#16A34A] hover:underline cursor-pointer"
-                  >
-                    Edit
-                  </button>
-                  <span className="text-slate-300">|</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveExchange(null);
-                      setPurchaseMode("buy");
-                    }}
-                    className="text-xs font-bold text-red-500 hover:underline cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Stock & SKU Info */}
           <div className="mt-3 flex items-center gap-3 text-sm">
@@ -366,8 +293,42 @@ export function VariantConfigurator({
               selectedOptions={selectedOptions}
               variantSku={sku}
               variantPriceCents={priceCents}
-              tradeIn={purchaseMode === "exchange" ? activeExchange : null}
             />
+          </div>
+
+          {/* Trade-in — a separate, manually priced request rather than an
+              instant discount on this product. */}
+          <div className="mt-4 rounded-2xl border border-emerald-200/70 bg-emerald-50/40 p-4">
+            {tradeInRef ? (
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-[#16A34A]">
+                  <Check className="size-4 stroke-[3]" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-extrabold text-slate-900">Trade-in request submitted</p>
+                  <p className="mt-0.5 text-xs font-medium text-slate-600">
+                    Reference <span className="font-mono font-bold text-slate-900">{tradeInRef}</span>. Our
+                    team will review your device and contact you with an offer.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-extrabold text-slate-900">Have an old device?</p>
+                  <p className="mt-0.5 text-xs font-medium text-slate-600">
+                    Send us the details and our team will come back with an offer.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setWizardOpen(true)}
+                  className="min-h-11 shrink-0 rounded-xl border border-[#16A34A]/40 bg-white px-4 py-2.5 text-xs font-extrabold text-[#16A34A] transition-colors hover:bg-emerald-50 cursor-pointer"
+                >
+                  Start a trade-in
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Render Exchange Wizard Modal */}
@@ -375,55 +336,33 @@ export function VariantConfigurator({
             <ExchangeWizard
               productId={product.id}
               productName={product.name}
-              productPriceCents={priceCents}
-              onClose={() => {
-                setWizardOpen(false);
-                if (!activeExchange) setPurchaseMode("buy");
-              }}
-              onComplete={(data) => {
-                setActiveExchange(data);
-                setPurchaseMode("exchange");
-                setWizardOpen(false);
-              }}
+              submitting={submittingTradeIn}
+              onClose={() => setWizardOpen(false)}
+              onComplete={handleTradeInSubmit}
             />
           )}
 
           {/* Mobile Fixed Sticky Action Bar */}
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-card/95 border-t border-slate-200/90 dark:border-border p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-xl flex items-center justify-between gap-2 lg:hidden">
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</span>
-              <span className="text-base font-black text-slate-900 dark:text-white truncate">
-                {formatPrice(purchaseMode === "exchange" && activeExchange
-                  ? Math.max(priceCents - activeExchange.estimatedValueCents, 0)
-                  : priceCents
-                )}
+          <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-slate-200/90 bg-white/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:hidden dark:border-border dark:bg-card/95">
+            <div className="flex min-w-0 flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                {ts(stock.tone, { count: stock.count })}
+              </span>
+              <span className="truncate text-base font-black text-slate-900 dark:text-white">
+                {formatPrice(priceCents)}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setPurchaseMode("exchange");
-                  setWizardOpen(true);
-                }}
-                className="flex items-center gap-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/40 px-3 py-2.5 text-xs font-extrabold text-[#16A34A] cursor-pointer"
-              >
-                <span>Exchange</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  // Direct Buy Trigger / Add to Cart
-                  const btn = document.querySelector("#add-to-cart-trigger") as HTMLButtonElement;
-                  if (btn) btn.click();
-                }}
-                className="flex items-center gap-1.5 rounded-xl bg-[#2E6F40] px-4 py-2.5 text-xs font-extrabold text-white shadow-md cursor-pointer"
-              >
-                <span>Buy Now</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                document.querySelector<HTMLButtonElement>("#add-to-cart-trigger")?.click();
+              }}
+              disabled={stockCount <= 0}
+              className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl bg-[#2E6F40] px-5 py-2.5 text-sm font-extrabold text-white shadow-md transition-opacity disabled:opacity-50 cursor-pointer"
+            >
+              <span>{stockCount > 0 ? "Add to cart" : "Out of stock"}</span>
+            </button>
           </div>
 
           {/* Guarantee Badges */}

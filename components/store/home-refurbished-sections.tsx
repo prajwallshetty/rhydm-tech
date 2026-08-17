@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Link } from "@/i18n/navigation";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
@@ -28,6 +30,7 @@ export function HomeRefurbishedSections({
     avatarUrl: string | null;
   }>;
 }) {
+  const [brokenAvatars, setBrokenAvatars] = useState<Set<string>>(new Set());
   const t = useTranslations("store.home");
 
   // Category Image Mapping
@@ -164,12 +167,20 @@ export function HomeRefurbishedSections({
                     hasSideImage ? "sm:flex-row" : ""
                   )}
                 >
-                  {/* Left Image Section */}
-                  {hasSideImage && (
-                    <div className="w-full sm:w-[42%] shrink-0 relative min-h-[220px] sm:min-h-auto">
+                  {/* Left Image Section. CMS-supplied URLs can rot (a deleted
+                      upload, a renamed file), so a failed load collapses the
+                      panel rather than leaving a broken-image icon. */}
+                  {hasSideImage && !brokenAvatars.has(tm.id) && (
+                    <div className="relative min-h-[220px] w-full shrink-0 bg-slate-100 sm:min-h-auto sm:w-[42%]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={tm.avatarUrl!}
-                        alt={tm.author}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        onError={() =>
+                          setBrokenAvatars((prev) => new Set(prev).add(tm.id))
+                        }
                         className="absolute inset-0 size-full object-cover"
                       />
                     </div>

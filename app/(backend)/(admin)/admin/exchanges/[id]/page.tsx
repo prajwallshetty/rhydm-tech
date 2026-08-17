@@ -50,6 +50,8 @@ export default async function AdminExchangeDetailPage({
     ...exchange,
     createdAt: exchange.createdAt.toISOString(),
     updatedAt: exchange.updatedAt.toISOString(),
+    offerSentAt: exchange.offerSentAt?.toISOString() ?? null,
+    customerContactedAt: exchange.customerContactedAt?.toISOString() ?? null,
     activities: exchange.activities.map((a) => ({
       ...a,
       createdAt: a.createdAt.toISOString(),

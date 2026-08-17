@@ -136,8 +136,10 @@ export default async function AccountPage() {
     model: ex.model,
     customModel: ex.customModel,
     condition: ex.condition,
-    estimatedValueCents: ex.estimatedValueCents,
+    // Deliberately omitted: `estimatedValueCents` (legacy automatic figure)
+    // and `notes` (internal admin notes) never leave the server.
     finalValueCents: ex.finalValueCents,
+    offerSentAt: ex.offerSentAt ? new Date(ex.offerSentAt).toLocaleDateString(locale) : null,
     images: ex.images,
     description: ex.description,
     serialNumber: ex.serialNumber,

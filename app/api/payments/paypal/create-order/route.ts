@@ -111,36 +111,12 @@ export async function POST(request: Request) {
     );
     const totals = calculateTotals({ subtotalCents, delivery });
 
-    // Handle trade-in credit verification
-    let exchangeCreditCents = 0;
-    const firstLineWithTradeIn = lines.find((l) => l.tradeIn);
-
-    if (firstLineWithTradeIn && firstLineWithTradeIn.tradeIn) {
-      const { getExchangeRules } = await import("@/lib/repositories/exchange");
-      const { calculateValuation } = await import("@/lib/services/valuation");
-
-      const rules = await getExchangeRules();
-      const ti = firstLineWithTradeIn.tradeIn;
-      
-      const computedValuation = calculateValuation({
-        deviceType: ti.deviceType,
-        brand: ti.brand,
-        purchaseYear: ti.purchaseYear ?? undefined,
-        configRam: ti.configRam,
-        configStorage: ti.configStorage,
-        configCpu: ti.configCpu,
-        condition: ti.condition,
-        checklist: ti.checklist,
-      }, rules);
-
-      exchangeCreditCents = computedValuation;
-    }
-
     // Generate a unique order number that will be matched on capture
     const orderNumber = generateOrderNumber();
 
-    // Call PayPal API to create order for net remaining amount
-    const amountEUR = (Math.max(totals.totalCents - exchangeCreditCents, 0) / 100).toFixed(2);
+    // Trade-ins never discount an order: they are valued manually by the Rhydm
+    // team after the device is inspected, so the customer is charged in full.
+    const amountEUR = (totals.totalCents / 100).toFixed(2);
     const orderID = await createPayPalOrder(amountEUR, orderNumber);
 
     return NextResponse.json({ orderID });

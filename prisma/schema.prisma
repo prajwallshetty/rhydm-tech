@@ -841,10 +841,29 @@ model ExchangeRequest {
   checklist           Json             // checklist results as json
   images              String[]         // front, back, etc.
   description         String?          @db.Text
-  estimatedValueCents Int
-  finalValueCents     Int?             // set by admin
-  status              String           // PENDING, UNDER_REVIEW, APPROVED, REJECTED, PICKUP_SCHEDULED, RECEIVED, INSPECTION, COMPLETED, CANCELLED
-  notes               String?          @db.Text
+
+  // How to reach the customer. Collected in the wizard so guest submissions
+  // are actionable — before this existed only logged-in requests could be
+  // followed up on.
+  contactName         String?
+  contactEmail        String?
+  contactPhone        String?
+
+  /// Legacy automatic valuation. The customer-facing flow no longer produces
+  /// one (Rhydm prices every device by hand), so new rows are 0; historical
+  /// rows keep their value for admin reference only and are never shown to
+  /// the customer.
+  estimatedValueCents Int              @default(0)
+
+  // ---- Manual offer, entered by an admin after reviewing device + photos ----
+  finalValueCents     Int?             // the offer amount
+  offerMethod         String?          // WhatsApp, Email, Phone, Other
+  offerNotes          String?          @db.Text
+  offerSentAt         DateTime?
+  customerContactedAt DateTime?
+
+  status              String           // PENDING(=New), UNDER_REVIEW, INFO_REQUIRED, OFFER_SENT, APPROVED(=Customer Accepted), REJECTED(=Customer Declined), PICKUP_SCHEDULED, RECEIVED, INSPECTION, COMPLETED, CANCELLED
+  notes               String?          @db.Text // internal admin notes — never exposed to the customer
   pickupOption        String?          // Pickup, Drop-off, Courier
   pickupSchedule      Json?            // date, time, address
   createdAt           DateTime         @default(now())

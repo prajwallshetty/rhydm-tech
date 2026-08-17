@@ -77,17 +77,21 @@ let prismaInstance: PrismaClient;
 if (isBuildPhase && !hasDbUrl) {
   prismaInstance = createMockClient();
 } else {
-  // If it's runtime (or build phase with a DB URL), we initialize the real client.
-  // Note: we defer initialization of the real client to avoid crashing at top-level import
-  // if DATABASE_URL is missing but this module is imported.
-  prismaInstance = new Proxy({} as any, {
-    get(target, prop, receiver) {
-      const actualClient = globalForPrisma.prisma ?? createClient();
-      if (process.env.NODE_ENV !== "production") {
-        globalForPrisma.prisma = actualClient;
-      }
+  // Construction is deferred behind a proxy so merely importing this module
+  // cannot throw when DATABASE_URL is absent — the error surfaces on first use.
+  //
+  // The resolved client is then memoised **unconditionally**. It previously
+  // cached only outside production, which meant every property access on `db`
+  // (`db.post`, `db.order`, …) built a fresh PrismaClient and a fresh pg
+  // connection pool that was never closed. In production that is a connection
+  // leak per query; during `next build` it exhausted the Neon pooler partway
+  // through prerendering and failed the build with "Connection terminated
+  // unexpectedly". The globalThis copy additionally survives dev hot reloads.
+  prismaInstance = new Proxy({} as PrismaClient, {
+    get(_target, prop, receiver) {
+      const actualClient = (globalForPrisma.prisma ??= createClient());
       return Reflect.get(actualClient, prop, receiver);
-    }
+    },
   }) as PrismaClient;
 }
 

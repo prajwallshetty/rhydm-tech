@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { Division } from "@/lib/generated/prisma/enums";
-import { DEFAULT_EXCHANGE_RULES, ExchangeRules, calculateValuation } from "@/lib/services/valuation";
+import { DEFAULT_EXCHANGE_RULES, ExchangeRules } from "@/lib/services/valuation";
 import { Prisma } from "@/lib/generated/prisma/client";
 
 /**
@@ -194,16 +194,20 @@ export async function createExchangeRequestInDb(data: {
   configRam: string;
   configStorage: string;
   configCpu: string;
-  configGpu?: string;
-  configGeneration?: string;
-  serialNumber?: string;
-  serviceTag?: string;
-  purchaseYear?: number;
+  configGpu?: string | null;
+  configGeneration?: string | null;
+  serialNumber?: string | null;
+  serviceTag?: string | null;
+  purchaseYear?: number | null;
   condition: string;
   checklist: any;
   images: string[];
-  description?: string;
-  estimatedValueCents: number;
+  description?: string | null;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  pickupOption?: string | null;
+  pickupSchedule?: any;
 }) {
   const referenceNumber = generateExchangeReference();
 
@@ -230,7 +234,13 @@ export async function createExchangeRequestInDb(data: {
         checklist: data.checklist,
         images: data.images,
         description: data.description || null,
-        estimatedValueCents: data.estimatedValueCents,
+        contactName: data.contactName,
+        contactEmail: data.contactEmail,
+        contactPhone: data.contactPhone,
+        pickupOption: data.pickupOption || null,
+        pickupSchedule: data.pickupSchedule ?? undefined,
+        // No automatic valuation: the offer is set by an admin, by hand.
+        estimatedValueCents: 0,
         status: "PENDING",
       },
     });
@@ -241,7 +251,7 @@ export async function createExchangeRequestInDb(data: {
         userId: data.userId || null,
         action: "REQUEST_CREATED",
         toStatus: "PENDING",
-        details: "Exchange request submitted.",
+        details: "Exchange request submitted. Awaiting manual review and valuation.",
       },
     });
 
@@ -264,6 +274,11 @@ export async function updateExchangeStatusInDb(
     pickupOption?: string;
     pickupSchedule?: any;
     images?: string[];
+    /** Manual-offer bookkeeping, set when an admin records an offer. */
+    offerMethod?: string;
+    offerNotes?: string;
+    offerSentAt?: Date;
+    customerContactedAt?: Date;
   }
 ) {
   return db.$transaction(async (tx) => {
@@ -293,6 +308,18 @@ export async function updateExchangeStatusInDb(
     if (options.images !== undefined) {
       // Append or replace images
       updateData.images = [...request.images, ...options.images];
+    }
+    if (options.offerMethod !== undefined) {
+      updateData.offerMethod = options.offerMethod;
+    }
+    if (options.offerNotes !== undefined) {
+      updateData.offerNotes = options.offerNotes;
+    }
+    if (options.offerSentAt !== undefined) {
+      updateData.offerSentAt = options.offerSentAt;
+    }
+    if (options.customerContactedAt !== undefined) {
+      updateData.customerContactedAt = options.customerContactedAt;
     }
 
     const updated = await tx.exchangeRequest.update({

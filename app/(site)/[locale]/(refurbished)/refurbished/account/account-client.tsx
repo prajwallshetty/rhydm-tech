@@ -34,6 +34,12 @@ import {
 import { ProductThumb } from "@/components/store/product-thumb";
 import { useToast } from "@/components/ui/toast";
 import { formatPriceExact } from "@/lib/format";
+import {
+  EXCHANGE_TONE_CLASSES,
+  exchangeStatusLabel,
+  exchangeStatusTone,
+  isOfferVisibleToCustomer,
+} from "@/lib/data/exchange-status";
 import { cn } from "@/lib/utils";
 import {
   addAddressAction,
@@ -497,9 +503,9 @@ export function AccountClient({
           </div>
 
           <div class="total-box">
-            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Total Estimated Exchange Value</div>
-            <div class="total-value">${formatPriceExact(exch.finalValueCents ?? exch.estimatedValueCents)}</div>
-            <div style="font-size: 11px; color: #888; margin-top: 10px;">Subject to physical inspection at our depot center. Quotation valid for 14 days.</div>
+            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Offer From Rhydm Technologies</div>
+            <div class="total-value">${exch.finalValueCents != null ? formatPriceExact(exch.finalValueCents) : "Pending review"}</div>
+            <div style="font-size: 11px; color: #888; margin-top: 10px;">Offers are made by our review team and remain subject to physical inspection at our depot. Valid for 14 days from the date sent.</div>
           </div>
 
           <div class="no-print" style="margin-top: 40px; text-align: center;">
@@ -863,7 +869,8 @@ export function AccountClient({
                   ) : (
                     exchanges.map((exch) => {
                       const isExpanded = expandedExchangeId === exch.id;
-                      const hasCounter = exch.status === "COUNTER_OFFER";
+                      const offerVisible = isOfferVisibleToCustomer(exch.status, exch.finalValueCents);
+                      const awaitingResponse = exch.status === "OFFER_SENT" && exch.finalValueCents != null;
                       const canSchedule = exch.status === "APPROVED" && !exch.pickupOption;
                       const hasScheduled = !!exch.pickupOption;
 
@@ -882,30 +889,32 @@ export function AccountClient({
                                 Submitted on {exch.createdAtStr} · {exch.brand} {exch.model}
                               </p>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                               <span className={cn(
-                                "rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border",
-                                exch.status === "PENDING" && "bg-slate-50 text-slate-600 border-slate-200",
-                                exch.status === "COUNTER_OFFER" && "bg-amber-50 text-amber-700 border-amber-200 animate-pulse",
-                                exch.status === "APPROVED" && "bg-emerald-50 text-emerald-700 border-emerald-200",
-                                exch.status === "REJECTED" && "bg-red-50 text-red-705 border-red-200",
-                                exch.status === "PICKUP_SCHEDULED" && "bg-blue-50 text-blue-700 border-blue-200",
-                                exch.status === "RECEIVED" && "bg-violet-50 text-violet-700 border-violet-200",
-                                exch.status === "COMPLETED" && "bg-[#E8F5E9] text-[#1B5E20] border-emerald-250"
+                                "rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
+                                EXCHANGE_TONE_CLASSES[exchangeStatusTone(exch.status)],
                               )}>
-                                {exch.status.replace("_", " ")}
+                                {exchangeStatusLabel(exch.status)}
                               </span>
-                              <span className="text-sm font-black text-slate-900">
-                                {formatPriceExact(exch.finalValueCents ?? exch.estimatedValueCents)}
-                              </span>
+                              {/* A figure appears only once our team has made an
+                                  offer — never an automatic estimate. */}
+                              {offerVisible ? (
+                                <span className="text-sm font-black text-slate-900">
+                                  {formatPriceExact(exch.finalValueCents)}
+                                </span>
+                              ) : (
+                                <span className="text-xs font-semibold text-slate-500">
+                                  Awaiting our offer
+                                </span>
+                              )}
                             </div>
                           </header>
 
                           {/* Quick Specs Overview */}
                           <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
                             <div className="flex flex-wrap gap-4 text-slate-600 font-medium">
-                              <div>Type: <span className="font-bold text-slate-850">{exch.deviceType}</span></div>
-                              <div>Condition: <span className="font-bold text-slate-850">{exch.condition}</span></div>
+                              <div>Type: <span className="font-bold text-slate-800">{exch.deviceType}</span></div>
+                              <div>Condition: <span className="font-bold text-slate-800">{exch.condition}</span></div>
                               {exch.linkedProduct && (
                                 <div className="text-emerald-700 font-bold">
                                   Linked to: <Link href={`/refurbished/products/${exch.linkedProduct.slug}`} className="hover:underline">{exch.linkedProduct.name}</Link>
@@ -961,10 +970,16 @@ export function AccountClient({
                               )}
 
                               {/* Print Quote Invoice block */}
-                              <div className="p-4 border border-slate-200/60 bg-slate-50/55 rounded-2xl flex items-center justify-between gap-4">
+                              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/60 bg-slate-50/55 p-4">
                                 <div className="space-y-1">
-                                  <h4 className="text-sm font-bold text-slate-900">Official Valuation Quote</h4>
-                                  <p className="text-xs text-slate-500">Download or print the legal trade-in quotation sheet.</p>
+                                  <h4 className="text-sm font-bold text-slate-900">
+                                    {offerVisible ? "Official offer summary" : "Request summary"}
+                                  </h4>
+                                  <p className="text-xs text-slate-500">
+                                    {offerVisible
+                                      ? "Print or save the trade-in offer sheet."
+                                      : "Print the details you submitted. The value appears once our team sends your offer."}
+                                  </p>
                                 </div>
                                 <button
                                   type="button"
@@ -977,15 +992,17 @@ export function AccountClient({
                               </div>
 
                               {/* Customer Counter Offer Decision panel */}
-                              {hasCounter && (
-                                <div className="p-5 border border-amber-250 bg-amber-50/20 rounded-2xl space-y-4">
+                              {awaitingResponse && (
+                                <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/30 p-5">
                                   <div className="flex gap-3">
-                                    <AlertTriangle className="h-5 w-5 text-amber-605 shrink-0 mt-0.5" />
+                                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                                     <div>
-                                      <h4 className="text-sm font-bold text-slate-900">Counter-Offer Proposed by Administrator</h4>
-                                      <p className="text-xs text-slate-600 leading-relaxed mt-1">
-                                        After reviewing your device description and images, our technicians proposed a counter-offer valuation of <span className="font-extrabold text-[#16A34A]">{formatPriceExact(exch.finalValueCents ?? 0)}</span>.
-                                        You can accept this counter offer for instant store credit, or reject it to cancel and get your hardware back.
+                                      <h4 className="text-sm font-bold text-slate-900">Our offer for your device</h4>
+                                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                                        After reviewing your device details and photos, our team is offering{" "}
+                                        <span className="font-extrabold text-[#16A34A]">{formatPriceExact(exch.finalValueCents ?? 0)}</span>
+                                        {exch.offerSentAt ? ` (sent ${exch.offerSentAt})` : ""}. Accept to arrange
+                                        collection, or decline and we will close the request — no obligation either way.
                                       </p>
                                     </div>
                                   </div>

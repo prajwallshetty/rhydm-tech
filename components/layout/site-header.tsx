@@ -32,7 +32,7 @@ export function SiteHeader({ division }: { division: Division }) {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-6 px-6">
         <Link href={meta.href} className="shrink-0 rounded-md">
-          <Logo />
+          <Logo variant="auto" priority alt="" className="lg:h-12" />
           <span className="sr-only">{t("homeLink", { name: meta.name })}</span>
         </Link>
 
@@ -105,7 +105,7 @@ export function SiteHeader({ division }: { division: Division }) {
             >
               <div>
                 <div className="flex items-center justify-between border-b border-border/60 pb-4">
-                  <Logo />
+                  <Logo variant="lockup" className="h-9" />
                   <button
                     onClick={() => setOpen(false)}
                     className="grid size-9 place-items-center rounded-lg border border-border/70 text-muted-foreground"

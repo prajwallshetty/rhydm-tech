@@ -281,11 +281,9 @@ export default function CheckoutPage() {
   );
   const totals = calculateTotals({ subtotalCents, delivery: form.delivery });
 
-  const totalExchangeCreditCents = lines.reduce(
-    (total, line) => total + (line.tradeIn?.estimatedValueCents || 0) * line.quantity,
-    0,
-  );
-  const netTotalCents = Math.max(totals.totalCents - totalExchangeCreditCents, 0);
+  // Trade-ins never discount an order — Rhydm prices each device by hand and
+  // contacts the customer with an offer after review.
+  const netTotalCents = totals.totalCents;
 
   function validateStep(current: number) {
     const next: Record<string, string> = {};
@@ -798,14 +796,6 @@ export default function CheckoutPage() {
                 label={t("tax")}
                 value={formatPriceExact(totals.taxCents)}
               />
-              {totalExchangeCreditCents > 0 && (
-                <div className="text-[#16A34A] font-semibold">
-                  <SummaryRow
-                    label="Trade-In Credit"
-                    value={`−${formatPriceExact(totalExchangeCreditCents)}`}
-                  />
-                </div>
-              )}
               <div className="border-t border-border pt-3">
                 <div className="flex justify-between">
                   <span className="font-medium">{t("total")}</span>

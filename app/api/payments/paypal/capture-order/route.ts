@@ -173,31 +173,15 @@ export async function POST(request: Request) {
         }
       }
 
-      // Handle trade-in credit verification and creation inside order transaction
+      // Trade-ins are valued by hand after inspection, so they never reduce
+      // what is charged. Device details riding along on a legacy cart line are
+      // still recorded as an exchange request for the team to follow up on.
       let exchangeRequestId: string | null = null;
-      let exchangeCreditCents = 0;
+      const exchangeCreditCents = 0;
       const firstLineWithTradeIn = lines.find((l) => l.tradeIn);
 
-      if (firstLineWithTradeIn && firstLineWithTradeIn.tradeIn) {
-        const { getExchangeRules } = await import("@/lib/repositories/exchange");
-        const { calculateValuation } = await import("@/lib/services/valuation");
-
-        const rules = await getExchangeRules();
+      if (firstLineWithTradeIn?.tradeIn) {
         const ti = firstLineWithTradeIn.tradeIn;
-        
-        const computedValuation = calculateValuation({
-          deviceType: ti.deviceType,
-          brand: ti.brand,
-          purchaseYear: ti.purchaseYear ?? undefined,
-          configRam: ti.configRam,
-          configStorage: ti.configStorage,
-          configCpu: ti.configCpu,
-          condition: ti.condition,
-          checklist: ti.checklist,
-        }, rules);
-
-        exchangeCreditCents = computedValuation;
-
         const matchedProduct = products.find((p) => p.slug === firstLineWithTradeIn.slug);
         const referenceNumber = `EXCH-${Math.floor(100000 + Math.random() * 900000)}`;
         
@@ -222,7 +206,11 @@ export async function POST(request: Request) {
             checklist: ti.checklist,
             images: ti.images,
             description: ti.description || null,
-            estimatedValueCents: computedValuation,
+            contactName: shipping.fullName,
+            contactEmail: email,
+            contactPhone: phone || null,
+            // No automatic valuation — an admin prices this by hand.
+            estimatedValueCents: 0,
             status: "PENDING",
           },
         });
@@ -244,7 +232,7 @@ export async function POST(request: Request) {
         await notifyAdminNewRequest(referenceNumber, `${ti.brand} ${ti.model}`);
       }
 
-      const finalTotalCents = Math.max(totals.totalCents - exchangeCreditCents, 0);
+      const finalTotalCents = totals.totalCents;
 
       // Create Order
       const newOrder = await tx.order.create({

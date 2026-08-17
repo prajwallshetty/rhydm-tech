@@ -228,7 +228,7 @@ async function main() {
       role: "Verified Buyer",
       company: "Dell Latitude 7440 Workstation - €749.00",
       rating: 5,
-      avatarUrl: "/developer_setup.png",
+      avatarUrl: "/workspace_setup.png",
     },
   ];
 

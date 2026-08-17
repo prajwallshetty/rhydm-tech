@@ -1,10 +1,9 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { z } from "zod";
+
 import { getSession } from "@/lib/auth/session";
 import { isCloudinaryConfigured, signUpload } from "@/lib/media/cloudinary";
-import { calculateValuation } from "@/lib/services/valuation";
-import { getExchangeRules } from "@/lib/repositories/exchange";
 import { createExchangeRequestInDb } from "@/lib/repositories/exchange";
 import { notifyAdminNewRequest } from "@/lib/services/notifications";
 
@@ -20,79 +19,93 @@ export async function signExchangeUploadAction() {
   return { upload: signUpload("rhydm/exchanges") };
 }
 
-export type EstimateInput = {
-  deviceType: string;
-  brand: string;
-  purchaseYear?: number;
-  configRam?: string;
-  configStorage?: string;
-  configCpu?: string;
-  condition: string;
-  checklist?: any;
-};
+/**
+ * Shape accepted from the exchange wizard.
+ *
+ * Validated server-side because the wizard is a public surface — guests submit
+ * without a session, so nothing upstream has already checked these values.
+ * Free-text fields are length-capped to keep a scripted submission from
+ * writing unbounded data, and `images` only accepts URLs on our own media
+ * host so the admin panel can never be pointed at an arbitrary remote image.
+ */
+const CLOUDINARY_IMAGE = /^https:\/\/res\.cloudinary\.com\/[\w.-]+\/image\/upload\//;
+
+const submitSchema = z.object({
+  productId: z.string().max(64).nullish(),
+  deviceType: z.string().min(1).max(60),
+  brand: z.string().min(1).max(60),
+  model: z.string().min(1).max(120),
+  customModel: z.boolean().optional(),
+  configRam: z.string().max(60),
+  configStorage: z.string().max(60),
+  configCpu: z.string().max(60),
+  configGpu: z.string().max(120).nullish(),
+  configGeneration: z.string().max(60).nullish(),
+  serialNumber: z.string().max(120).nullish(),
+  serviceTag: z.string().max(120).nullish(),
+  purchaseYear: z.number().int().min(1990).max(new Date().getFullYear()).nullish(),
+  condition: z.string().min(1).max(40),
+  checklist: z.record(z.string(), z.boolean()).default({}),
+  images: z.array(z.string().url().regex(CLOUDINARY_IMAGE)).min(1).max(10),
+  description: z.string().max(4000).nullish(),
+
+  contactName: z.string().min(2, "Please enter your name.").max(120),
+  contactEmail: z.email("Please enter a valid email address.").max(190),
+  contactPhone: z.string().min(5, "Please enter a phone number.").max(40),
+  pickupOption: z.enum(["Pickup", "Drop-off", "Courier"]).nullish(),
+  pickupAddress: z.string().max(500).nullish(),
+});
+
+export type SubmitExchangeInput = z.input<typeof submitSchema>;
 
 /**
- * Calculates estimated valuation of a device based on active rules.
+ * Submits an exchange request for manual review.
+ *
+ * Deliberately returns **no valuation**: Rhydm prices every trade-in by hand
+ * after inspecting the device details and photos, so the customer receives a
+ * reference number and a promise of contact, never an automatic number.
  */
-export async function calculateExchangeEstimateAction(specs: EstimateInput) {
-  const rules = await getExchangeRules();
-  const estimateCents = calculateValuation(specs, rules);
-  return { estimateCents };
-}
+export async function submitExchangeRequestAction(payload: SubmitExchangeInput) {
+  const parsed = submitSchema.safeParse(payload);
+  if (!parsed.success) {
+    return {
+      success: false as const,
+      error:
+        parsed.error.issues[0]?.message ??
+        "Some of the details were incomplete. Please review the form and try again.",
+    };
+  }
+  const data = parsed.data;
 
-/**
- * Submits an exchange request. If the user is logged in, associates it with their account.
- */
-export async function submitExchangeRequestAction(payload: {
-  productId?: string | null;
-  deviceType: string;
-  brand: string;
-  model: string;
-  customModel?: boolean;
-  configRam: string;
-  configStorage: string;
-  configCpu: string;
-  configGpu?: string;
-  configGeneration?: string;
-  serialNumber?: string;
-  serviceTag?: string;
-  purchaseYear?: number;
-  condition: string;
-  checklist: any;
-  images: string[];
-  description?: string;
-}) {
   const session = await getSession();
-  const userId = session?.id || null;
 
-  // Recalculate value server-side to guarantee integrity
-  const rules = await getExchangeRules();
-  const estimatedValueCents = calculateValuation({
-    deviceType: payload.deviceType,
-    brand: payload.brand,
-    purchaseYear: payload.purchaseYear,
-    configRam: payload.configRam,
-    configStorage: payload.configStorage,
-    configCpu: payload.configCpu,
-    condition: payload.condition,
-    checklist: payload.checklist,
-  }, rules);
+  try {
+    const request = await createExchangeRequestInDb({
+      ...data,
+      userId: session?.id ?? null,
+      pickupSchedule: data.pickupAddress ? { address: data.pickupAddress } : null,
+    });
 
-  const request = await createExchangeRequestInDb({
-    ...payload,
-    userId,
-    estimatedValueCents,
-  });
+    // Best-effort: a failed admin notification must not lose the request the
+    // customer just submitted.
+    try {
+      await notifyAdminNewRequest(request.referenceNumber, `${data.brand} ${data.model}`);
+    } catch (error) {
+      console.error("Exchange admin notification failed", error);
+    }
 
-  // Notify admin of the new request
-  await notifyAdminNewRequest(request.referenceNumber, `${payload.brand} ${payload.model}`);
-
-  return {
-    success: true,
-    exchangeId: request.id,
-    referenceNumber: request.referenceNumber,
-    estimatedValueCents: request.estimatedValueCents,
-  };
+    return {
+      success: true as const,
+      exchangeId: request.id,
+      referenceNumber: request.referenceNumber,
+    };
+  } catch (error) {
+    console.error("Exchange request submission failed", error);
+    return {
+      success: false as const,
+      error: "We could not submit your request just now. Please try again.",
+    };
+  }
 }
 
 export async function customerRespondToCounterAction(id: string, accept: boolean) {

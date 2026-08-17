@@ -25,7 +25,7 @@ export default function GatewayPage() {
 
       <div className="relative w-full max-w-5xl">
         <FadeIn className="flex justify-center">
-          <Logo />
+          <Logo className="h-12 sm:h-14" priority />
         </FadeIn>
 
         <FadeIn delay={0.1} className="mt-12 text-center sm:mt-14">

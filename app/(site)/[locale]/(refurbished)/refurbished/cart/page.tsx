@@ -64,10 +64,6 @@ export default function CartPage() {
     (total, line) => total + line.product.priceCents * line.quantity,
     0,
   );
-  const totalExchangeCreditCents = lines.reduce(
-    (total, line) => total + (line.tradeIn?.estimatedValueCents || 0) * line.quantity,
-    0,
-  );
   // A previously-applied coupon is re-clamped whenever the cart changes, so an
   // edited cart can never carry a stale over-discount.
   const discountCents = applied ? Math.min(applied.discountCents, subtotalCents) : 0;
@@ -198,16 +194,19 @@ export default function CartPage() {
                       {tp("warrantyBadge", { count: line.product.warrantyMonths })}
                     </p>
                     {line.tradeIn && (
-                      <div className="mt-2 text-xs text-slate-500 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/60 flex flex-col gap-0.5 max-w-sm">
-                        <div className="font-extrabold text-[#2E6F40] uppercase tracking-wider text-[9px] flex items-center gap-1">
+                      <div className="mt-2 flex max-w-sm flex-col gap-0.5 rounded-xl border border-emerald-100/60 bg-emerald-50/50 p-2.5 text-xs text-slate-500">
+                        <div className="flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider text-[#2E6F40]">
                           <Sparkles className="h-3 w-3" />
-                          <span>Trade-in Device attached</span>
+                          <span>Trade-in device attached</span>
                         </div>
                         <div className="mt-1 font-semibold text-slate-800">
                           {line.tradeIn.brand} {line.tradeIn.model} ({line.tradeIn.condition})
                         </div>
-                        <div className="text-[10px] text-slate-400 font-medium">
-                          Serial: {line.tradeIn.serialNumber || "N/A"} · Est. Credit: <span className="font-bold text-[#16A34A]">{formatPriceExact(line.tradeIn.estimatedValueCents)}</span>
+                        {/* No figure here: our team prices every trade-in by
+                            hand and contacts the customer with the offer. */}
+                        <div className="text-[10px] font-medium text-slate-500">
+                          We&rsquo;ll review this device and email you an offer separately —
+                          it does not change this order&rsquo;s total.
                         </div>
                       </div>
                     )}
@@ -301,18 +300,10 @@ export default function CartPage() {
                 label={t("tax")}
                 value={formatPriceExact(totals.taxCents)}
               />
-              {totalExchangeCreditCents > 0 && (
-                <div className="text-[#16A34A] font-semibold">
-                  <Row
-                    label="Trade-In Credit"
-                    value={`−${formatPriceExact(totalExchangeCreditCents)}`}
-                  />
-                </div>
-              )}
               <div className="border-t border-border pt-3">
                 <Row
                   label={t("total")}
-                  value={formatPriceExact(Math.max(totals.totalCents - totalExchangeCreditCents, 0))}
+                  value={formatPriceExact(totals.totalCents)}
                   emphasis
                 />
               </div>

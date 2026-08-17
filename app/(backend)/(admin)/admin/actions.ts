@@ -587,11 +587,18 @@ export async function updateExchangeStatusAction(
   newStatus: string,
   options: {
     details?: string;
+    /** The offer amount, in cents — always decided by a human. */
     finalValueCents?: number;
     notes?: string;
     pickupOption?: string;
     pickupSchedule?: any;
-  }
+    offerMethod?: string;
+    offerNotes?: string;
+    /** Stamps offerSentAt and switches the audit entry to OFFER_SENT. */
+    markOfferSent?: boolean;
+    /** Stamps customerContactedAt without changing the offer. */
+    markContacted?: boolean;
+  } = {},
 ) {
   const admin = await requireAdmin();
   const { updateExchangeStatusInDb, getExchangeRequestById } = await import("@/lib/repositories/exchange");
@@ -600,18 +607,31 @@ export async function updateExchangeStatusAction(
   const request = await getExchangeRequestById(id);
   if (!request) throw new Error("Request not found.");
 
-  let action = "STATUS_UPDATED";
-  let details = options.details || `Status changed to ${newStatus}`;
+  if (
+    options.finalValueCents !== undefined &&
+    (!Number.isInteger(options.finalValueCents) || options.finalValueCents < 0)
+  ) {
+    throw new Error("Offer amount must be a positive number.");
+  }
 
-  if (newStatus === "APPROVED") {
-    action = "OFFER_APPROVED";
-    details = `Offer approved by admin. Value set to €${((options.finalValueCents ?? request.estimatedValueCents) / 100).toFixed(2)}`;
+  const now = new Date();
+  let action = "STATUS_UPDATED";
+  let details = options.details || `Status changed to ${newStatus}.`;
+
+  if (options.markOfferSent && options.finalValueCents !== undefined) {
+    action = "OFFER_SENT";
+    details = [
+      `Offer of €${(options.finalValueCents / 100).toFixed(2)} recorded by ${admin.email}`,
+      options.offerMethod ? `sent via ${options.offerMethod}` : null,
+    ]
+      .filter(Boolean)
+      .join(", ") + ".";
+  } else if (newStatus === "APPROVED") {
+    action = "OFFER_ACCEPTED";
+    details = options.details || "Customer accepted the offer.";
   } else if (newStatus === "REJECTED") {
-    action = "OFFER_REJECTED";
-    details = "Offer rejected by admin.";
-  } else if (options.finalValueCents !== undefined && options.finalValueCents !== request.estimatedValueCents) {
-    action = "COUNTER_OFFER_MADE";
-    details = `Admin proposed counter offer of €${(options.finalValueCents / 100).toFixed(2)}.`;
+    action = "OFFER_DECLINED";
+    details = options.details || "Customer declined the offer.";
   }
 
   const updated = await updateExchangeStatusInDb(id, newStatus, {
@@ -622,19 +642,31 @@ export async function updateExchangeStatusAction(
     notes: options.notes,
     pickupOption: options.pickupOption,
     pickupSchedule: options.pickupSchedule,
+    offerMethod: options.offerMethod,
+    offerNotes: options.offerNotes,
+    offerSentAt: options.markOfferSent ? now : undefined,
+    customerContactedAt: options.markOfferSent || options.markContacted ? now : undefined,
   });
 
-  // Trigger email notifications
-  if (request.user?.email) {
-    if (action === "COUNTER_OFFER_MADE" && options.finalValueCents !== undefined) {
-      await notifyCustomerCounterOffer(request.user.email, request.referenceNumber, options.finalValueCents);
-    } else {
-      await notifyCustomerStatusChange(request.user.email, request.referenceNumber, newStatus, details);
+  // Notify the customer. Internal notes are deliberately not forwarded — only
+  // the status and, once an offer exists, the amount they were quoted.
+  const notifyEmail = request.contactEmail || request.user?.email;
+  if (notifyEmail) {
+    try {
+      if (action === "OFFER_SENT" && options.finalValueCents !== undefined) {
+        await notifyCustomerCounterOffer(notifyEmail, request.referenceNumber, options.finalValueCents);
+      } else {
+        await notifyCustomerStatusChange(notifyEmail, request.referenceNumber, newStatus, details);
+      }
+    } catch (error) {
+      // A failed notification must not roll back a recorded decision.
+      console.error("Exchange customer notification failed", error);
     }
   }
 
   revalidatePath("/admin/exchanges");
   revalidatePath(`/admin/exchanges/${id}`);
+  revalidatePath("/refurbished/account");
   return updated;
 }
 

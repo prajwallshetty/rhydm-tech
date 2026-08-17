@@ -1,5 +1,68 @@
 # Build Progress
 
+> **2026-08-17 — manual trade-in valuation, brand assets, DB connection leak.**
+>
+> **Exchange is now manually priced (business rule change).** Customers no
+> longer receive any automatic number. `calculateValuation()` was deleted;
+> `lib/services/valuation.ts` keeps only `ExchangeRules` as *internal* guidance
+> (`/admin/settings/exchange` relabelled accordingly). The wizard's step 9
+> ("Estimate") became **Contact & collection** — name, email, phone, collection
+> method and address, which guests previously never supplied at all, so guest
+> submissions used to be unreachable. Submission returns a reference number and
+> "our team will review and contact you with an offer", nothing more.
+> The trade-in-as-checkout-discount path is gone: cart, checkout and **both
+> PayPal routes** no longer subtract an exchange credit (they charged a
+> machine-computed discount before). A cart persisted in localStorage from
+> before the change still has its device details turned into a real exchange
+> request — the order is simply charged in full.
+> Admin `/admin/exchanges/[id]` gained a **manual offer panel** (amount, method
+> WhatsApp/Email/Phone/Other, offer notes) plus mailto/tel/wa.me contact links
+> and an internal-notes box that is explicitly never sent to the client. The
+> customer sees a figure only via `isOfferVisibleToCustomer()` — i.e. after an
+> admin records one. Statuses now cover the full lifecycle via the shared
+> `lib/data/exchange-status.ts` (adds `INFO_REQUIRED`, `OFFER_SENT`; historical
+> codes kept verbatim so no row needed rewriting).
+> Migration `20260817000000_exchange_manual_offer` **applied to Neon**: seven
+> nullable columns (`contactName/Email/Phone`, `offerMethod`, `offerNotes`,
+> `offerSentAt`, `customerContactedAt`) + `estimatedValueCents DEFAULT 0`. No
+> drops, no data rewrite; verified 9 orders / 10 products / 8 users intact.
+>
+> **`lib/db.ts` was leaking a connection pool per property access.** The
+> globalThis memo was guarded by `NODE_ENV !== "production"`, so in production —
+> and during `next build` — every `db.post` / `db.order` built a brand-new
+> `PrismaClient` + pg pool that was never closed. This is what made builds die
+> partway through prerendering with "Connection terminated unexpectedly"
+> (2 of 4 attempts). Memoising unconditionally fixed it: **static generation
+> went 4.3 min → 57s** and the failures stopped.
+>
+> **Brand assets.** `public/favicon.svg` was a 2.1 MB base64 raster in an SVG
+> wrapper, served on every page *and* used as the collapsed sidebar logo;
+> `public/logo.png` was 753 KB at 2172×724 rendered through a raw `<img>` at
+> 36 px. Measured the artwork's real alpha bounds and generated trimmed assets
+> (`scripts/build-brand-assets.mjs`, re-run only when `logo.png` changes):
+> 75 KB lockup + 19 KB emblem + 2–55 KB icons. `Logo` now uses `next/image`
+> with intrinsic dimensions, and `variant="auto"` swaps the emblem in below the
+> new `xs` (400 px) breakpoint, where the "Technologies" line would otherwise be
+> ~8 px tall. ~4.2 MB of dead/duplicate icon files deleted.
+>
+> **Bugs found and fixed along the way:** the footer used the locale-aware
+> `Link` for `/login`, `/signup`, `/forgot-password`, which live *outside* the
+> `[locale]` segment — every page was prefetching three 404s and the links were
+> broken on click. `/feed.xml` and `/opensearch.xml` were advertised in
+> `<head>` but had no route (now real). `site.webmanifest` still said
+> "MyWebSite". 18 invalid Tailwind classes (`text-slate-850`, `border-amber-250`,
+> `text-red-705`, …) rendered no style at all. Seeded testimonial pointed at a
+> nonexistent `/developer_setup.png`.
+>
+> **Still open:** `lib/services/notifications.ts` has **no email provider** —
+> every notification is logged and dropped. It now `console.warn`s loudly and is
+> the single swap-in point. Until then the trade-in workflow depends on staff
+> watching `/admin/exchanges`. ESLint still reports ~131 pre-existing
+> `no-explicit-any` errors repo-wide (untouched, they predate this pass).
+> `scripts/responsive-audit.mjs` is now cross-platform (was hardcoded to a macOS
+> Chrome path); `/en`, `/en/refurbished`, `/en/refurbished/{shop,cart,exchange,
+> wishlist}`, `/en/disposal`, `/en/blog`, `/en/about` are clean at 320–1440.
+
 > **2026-07-24 — admin notification center + audit pass.** The header bell is
 > now a real feed: `getAdminNotifications()` aggregates live actionable counts
 > (orders to process, reviews to moderate, new enquiries, low stock) into a

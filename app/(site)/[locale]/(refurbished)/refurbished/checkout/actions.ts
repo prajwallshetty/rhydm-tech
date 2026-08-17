@@ -149,33 +149,19 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
     );
     const totals = calculateTotals({ subtotalCents, delivery });
 
-    // Handle trade-in credit verification and creation
+    // Trade-ins are priced by hand by the Rhydm team, so they never discount
+    // an order. A cart persisted before that change can still carry device
+    // details: rather than dropping them, record a normal exchange request the
+    // team can follow up on, and charge the order in full.
     let exchangeRequestId: string | null = null;
-    let exchangeCreditCents = 0;
+    const exchangeCreditCents = 0;
     const firstLineWithTradeIn = lines.find((l) => l.tradeIn);
 
-    if (firstLineWithTradeIn && firstLineWithTradeIn.tradeIn) {
-      const { getExchangeRules, createExchangeRequestInDb } = await import("@/lib/repositories/exchange");
-      const { calculateValuation } = await import("@/lib/services/valuation");
-
-      const rules = await getExchangeRules();
+    if (firstLineWithTradeIn?.tradeIn) {
+      const { createExchangeRequestInDb } = await import("@/lib/repositories/exchange");
       const ti = firstLineWithTradeIn.tradeIn;
-      
-      const computedValuation = calculateValuation({
-        deviceType: ti.deviceType,
-        brand: ti.brand,
-        purchaseYear: ti.purchaseYear ?? undefined,
-        configRam: ti.configRam,
-        configStorage: ti.configStorage,
-        configCpu: ti.configCpu,
-        condition: ti.condition,
-        checklist: ti.checklist,
-      }, rules);
-
-      exchangeCreditCents = computedValuation;
-
       const matchedProduct = products.find((p) => p.slug === firstLineWithTradeIn.slug);
-      
+
       const exchangeRequest = await createExchangeRequestInDb({
         userId: userId || null,
         productId: matchedProduct?.id || null,
@@ -186,16 +172,24 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
         configRam: ti.configRam,
         configStorage: ti.configStorage,
         configCpu: ti.configCpu,
-        configGpu: ti.configGpu ?? undefined,
-        configGeneration: ti.configGeneration ?? undefined,
-        serialNumber: ti.serialNumber ?? undefined,
-        serviceTag: ti.serviceTag ?? undefined,
-        purchaseYear: ti.purchaseYear ?? undefined,
+        configGpu: ti.configGpu ?? null,
+        configGeneration: ti.configGeneration ?? null,
+        serialNumber: ti.serialNumber ?? null,
+        serviceTag: ti.serviceTag ?? null,
+        purchaseYear: ti.purchaseYear ?? null,
         condition: ti.condition,
         checklist: ti.checklist,
         images: ti.images,
-        description: ti.description ?? undefined,
-        estimatedValueCents: computedValuation,
+        description: ti.description ?? null,
+        contactName: shipping.fullName,
+        contactEmail: email,
+        contactPhone: phone || "",
+        pickupOption: "Pickup",
+        pickupSchedule: {
+          address: [shipping.line1, shipping.line2, shipping.postalCode, shipping.city, shipping.country]
+            .filter(Boolean)
+            .join(", "),
+        },
       });
 
       exchangeRequestId = exchangeRequest.id;
@@ -210,7 +204,7 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
         subtotalCents: totals.subtotalCents,
         shippingCents: totals.shippingCents,
         taxCents: totals.taxCents,
-        totalCents: Math.max(totals.totalCents - exchangeCreditCents, 0),
+        totalCents: totals.totalCents,
         exchangeCreditCents,
         exchangeRequestId,
         shippingAddress: { ...shipping, phone: phone || null, company: company || null },

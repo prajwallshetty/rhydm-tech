@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useId, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Upload, X, ChevronRight, ChevronLeft, Search, Plus, Check,
-  AlertCircle, Info, Sparkles, Laptop, Monitor, Cpu, Layers,
-  Wifi, Tv, Activity, FileText, Camera, CheckSquare, Trash, ShieldCheck
+  X, ChevronRight, ChevronLeft, Search, Check, Loader2,
+  AlertCircle, Laptop, Monitor, Cpu, Layers,
+  Wifi, Activity, Camera, Trash, ShieldCheck
 } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { signExchangeUploadAction, calculateExchangeEstimateAction } from "@/app/actions/exchange";
-import { formatPriceExact } from "@/lib/format";
+import {
+  signExchangeUploadAction,
+  type SubmitExchangeInput,
+} from "@/app/actions/exchange";
 import { cn } from "@/lib/utils";
 
 // Step types and configurations
@@ -18,8 +19,11 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 interface ExchangeWizardProps {
   productId?: string | null;
   productName?: string;
-  productPriceCents?: number;
-  onComplete: (data: any) => void;
+  /** Prefilled from the session so signed-in customers do not retype. */
+  defaultContact?: { name?: string; email?: string; phone?: string };
+  /** Drives the submit button's loading state; also blocks double submission. */
+  submitting?: boolean;
+  onComplete: (data: SubmitExchangeInput) => void;
   onClose: () => void;
 }
 
@@ -35,6 +39,59 @@ const DEVICE_TYPES = [
 
 const BRANDS = ["Dell", "HP", "Lenovo", "Apple", "Cisco", "IBM", "Fujitsu", "Acer", "ASUS", "MSI", "Other"];
 
+const MAX_IMAGES = 10;
+/** Pre-compression ceiling. Anything larger is almost certainly a mistake. */
+const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
+
+/** What the review team needs to see to price a device accurately. */
+const PHOTO_GUIDE = [
+  "Front", "Back", "Screen (powered on)", "Keyboard",
+  "Ports", "Serial / service tag", "Any damage", "Accessories",
+];
+
+const PICKUP_OPTIONS = [
+  { id: "Pickup", label: "Free courier pickup", desc: "We collect the device from your address." },
+  { id: "Drop-off", label: "Drop-off", desc: "You drop it at a parcel point or our facility." },
+  { id: "Courier", label: "Prepaid shipping label", desc: "We email a label; you post the device." },
+] as const;
+
+type PickupOption = (typeof PICKUP_OPTIONS)[number]["id"];
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** 16px text avoids iOS Safari's zoom-on-focus; min-h keeps the tap target big. */
+const INPUT_CLASS =
+  "w-full min-h-11 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/20";
+
+function Field({
+  id, label, required, className, children,
+}: {
+  id: string;
+  label: string;
+  required?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <label htmlFor={id} className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+        {label}
+        {required && <span className="ml-1 text-red-500" aria-hidden>*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-3 border-b border-slate-200/70 py-1 last:border-0">
+      <dt className="shrink-0 font-medium text-slate-500">{label}</dt>
+      <dd className="min-w-0 truncate text-right font-bold text-slate-800">{value}</dd>
+    </div>
+  );
+}
+
 const POPULAR_MODELS: Record<string, string[]> = {
   Laptop: ["Latitude 7420", "EliteBook 840 G8", "ThinkPad T14", "MacBook Pro 14\"", "MacBook Air M2", "ThinkPad X1 Carbon"],
   Desktop: ["OptiPlex 7080", "ProDesk 600 G6", "ThinkCentre M70q", "iMac 27\" 5K"],
@@ -48,12 +105,13 @@ const POPULAR_MODELS: Record<string, string[]> = {
 export function ExchangeWizard({
   productId = null,
   productName,
-  productPriceCents = 0,
+  defaultContact,
+  submitting = false,
   onComplete,
   onClose,
 }: ExchangeWizardProps) {
   const [step, setStep] = useState<Step>(1);
-  const t = useTranslations("store.product");
+  const fieldId = useId();
 
   // Wizard State
   const [deviceType, setDeviceType] = useState("");
@@ -96,14 +154,20 @@ export function ExchangeWizard({
   const [images, setImages] = useState<string[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [imageError, setImageError] = useState("");
 
   // Step 8 Description
   const [description, setDescription] = useState("");
 
-  // Step 9 Estimate
-  const [estimatedValueCents, setEstimatedValueCents] = useState(0);
-  const [calculatingEstimate, setCalculatingEstimate] = useState(false);
+  // Step 9 Contact & collection. Rhydm's team reviews every request by hand,
+  // so these are what actually make a submission actionable.
+  const [contactName, setContactName] = useState(defaultContact?.name ?? "");
+  const [contactEmail, setContactEmail] = useState(defaultContact?.email ?? "");
+  const [contactPhone, setContactPhone] = useState(defaultContact?.phone ?? "");
+  const [pickupOption, setPickupOption] = useState<PickupOption>("Pickup");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [contactError, setContactError] = useState("");
 
   // Load Model Options dynamically
   const modelOptions = deviceType ? POPULAR_MODELS[deviceType] || [] : [];
@@ -127,57 +191,43 @@ export function ExchangeWizard({
     { id: "accessoriesIncluded", label: "Other Original Accessories Included" },
   ];
 
-  // Calculate valuation on step 9 entrance
-  useEffect(() => {
-    if (step === 9) {
-      setCalculatingEstimate(true);
-      calculateExchangeEstimateAction({
-        deviceType,
-        brand,
-        purchaseYear,
-        configRam: ram,
-        configStorage: storage,
-        configCpu: cpu,
-        condition,
-        checklist,
-      })
-        .then((res) => {
-          setEstimatedValueCents(res.estimateCents);
-          setCalculatingEstimate(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setCalculatingEstimate(false);
-        });
-    }
-  }, [step, deviceType, brand, purchaseYear, ram, storage, cpu, condition, checklist]);
-
   // Image direct compression & Cloudinary upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const input = e.target;
+    const files = Array.from(input.files ?? []);
+    // Reset immediately so re-picking the same file still fires onChange.
+    input.value = "";
+    if (files.length === 0) return;
 
-    if (images.length + files.length > 10) {
-      setImageError("Maximum of 10 images allowed.");
+    if (images.length + files.length > MAX_IMAGES) {
+      setImageError(`You can upload up to ${MAX_IMAGES} photos.`);
+      return;
+    }
+
+    const rejected = files.find(
+      (f) => !f.type.startsWith("image/") || f.size > MAX_IMAGE_BYTES,
+    );
+    if (rejected) {
+      setImageError(
+        rejected.type.startsWith("image/")
+          ? `"${rejected.name}" is larger than 15 MB. Please choose a smaller photo.`
+          : `"${rejected.name}" is not an image file.`,
+      );
       return;
     }
 
     setUploadingImage(true);
+    setUploadProgress({ done: 0, total: files.length });
     setImageError("");
 
     try {
       const signRes = await signExchangeUploadAction();
-      if ("error" in signRes) {
-        throw new Error(signRes.error);
-      }
+      if ("error" in signRes) throw new Error(signRes.error);
 
       const uploadInfo = signRes.upload;
-      if (!uploadInfo) throw new Error("Signature failed.");
+      if (!uploadInfo) throw new Error("Could not start the upload. Please try again.");
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-
-        // Compress image using HTML Canvas
+      for (const [index, file] of files.entries()) {
         const compressedBlob = await compressImage(file);
 
         const formData = new FormData();
@@ -192,17 +242,18 @@ export function ExchangeWizard({
           { method: "POST", body: formData }
         );
 
-        if (!res.ok) throw new Error("Upload request failed.");
+        if (!res.ok) throw new Error("Upload failed. Please check your connection and try again.");
 
         const json = await res.json();
         setImages((prev) => [...prev, json.secure_url]);
         setImagePreviews((prev) => [...prev, json.secure_url]);
+        setUploadProgress({ done: index + 1, total: files.length });
       }
     } catch (err: any) {
-      console.error(err);
-      setImageError(err.message || "Failed to upload image. Please try again.");
+      setImageError(err?.message || "Failed to upload photo. Please try again.");
     } finally {
       setUploadingImage(false);
+      setUploadProgress(null);
     }
   };
 
@@ -254,7 +305,7 @@ export function ExchangeWizard({
     if (step === 3 && !model && !isCustomModelActive) return;
     if (step === 3 && isCustomModelActive && !customModel) return;
     if (step === 7 && images.length === 0) {
-      setImageError("Please upload at least 1 image of your device.");
+      setImageError("Please add at least one photo of your device.");
       return;
     }
     setStep((s) => (s + 1) as Step);
@@ -264,12 +315,31 @@ export function ExchangeWizard({
     setStep((s) => (s - 1) as Step);
   };
 
+  /** Returns the first problem with the contact step, or null when it is valid. */
+  const contactProblem = () => {
+    if (contactName.trim().length < 2) return "Please enter your full name.";
+    if (!EMAIL_PATTERN.test(contactEmail.trim())) return "Please enter a valid email address.";
+    if (contactPhone.trim().length < 5) return "Please enter a phone number we can reach you on.";
+    if (pickupOption === "Pickup" && pickupAddress.trim().length < 8) {
+      return "Please enter the address we should collect the device from.";
+    }
+    return null;
+  };
+
   const handleComplete = () => {
-    const finalModel = isCustomModelActive ? customModel : model;
+    if (submitting) return; // guards against a double tap on slow connections
+    const problem = contactProblem();
+    if (problem) {
+      setContactError(problem);
+      return;
+    }
+    setContactError("");
+
     onComplete({
+      productId,
       deviceType,
       brand,
-      model: finalModel,
+      model: isCustomModelActive ? customModel : model,
       customModel: isCustomModelActive,
       configRam: ram,
       configStorage: storage,
@@ -282,8 +352,12 @@ export function ExchangeWizard({
       condition,
       checklist,
       images,
-      description,
-      estimatedValueCents,
+      description: description || null,
+      contactName: contactName.trim(),
+      contactEmail: contactEmail.trim(),
+      contactPhone: contactPhone.trim(),
+      pickupOption,
+      pickupAddress: pickupAddress.trim() || null,
     });
   };
 
@@ -296,15 +370,18 @@ export function ExchangeWizard({
         {/* Modal Header */}
         <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-1.5">
-              <Sparkles className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-[#16A34A] animate-pulse" />
-              <span>Refurbished Exchange Wizard</span>
+            <h2 id="exchange-wizard-title" className="text-sm sm:text-lg font-bold text-slate-900">
+              Trade-in request
             </h2>
-            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Evaluate your old hardware for store credit</p>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              Tell us about your device — our team replies with an offer
+            </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+            aria-label="Close trade-in request"
+            className="grid size-10 shrink-0 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -319,7 +396,7 @@ export function ExchangeWizard({
             />
           </div>
           <div className="flex items-center gap-2 overflow-x-auto px-4 py-2 text-[10px] font-bold text-slate-400 no-scrollbar">
-            {["Type", "Brand", "Model", "Specs", "Condition", "Checklist", "Photos", "Notes", "Estimate"].map((label, idx) => (
+            {["Type", "Brand", "Model", "Specs", "Condition", "Checklist", "Photos", "Notes", "Contact"].map((label, idx) => (
               <span
                 key={label}
                 className={cn(
@@ -579,14 +656,28 @@ export function ExchangeWizard({
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase">Purchase Year</label>
+                      <label htmlFor={`${fieldId}-tag`} className="text-xs font-bold text-slate-700 uppercase">Service Tag (Optional)</label>
                       <input
+                        id={`${fieldId}-tag`}
+                        type="text"
+                        placeholder="Dell/HP asset tag"
+                        value={serviceTag}
+                        onChange={(e) => setServiceTag(e.target.value)}
+                        className={INPUT_CLASS}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor={`${fieldId}-year`} className="text-xs font-bold text-slate-700 uppercase">Purchase Year</label>
+                      <input
+                        id={`${fieldId}-year`}
                         type="number"
-                        min={2010}
+                        inputMode="numeric"
+                        min={1990}
                         max={new Date().getFullYear()}
                         value={purchaseYear}
                         onChange={(e) => setPurchaseYear(Number(e.target.value))}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#16A34A]"
+                        className={INPUT_CLASS}
                       />
                     </div>
                   </div>
@@ -675,25 +766,40 @@ export function ExchangeWizard({
               {step === 7 && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-extrabold text-slate-900">Upload Device Photos</h3>
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">Photos of your device</h3>
                     <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                      Upload at least 1 image (up to 10 max). Please include photos of: Front, Back, Left, Right, Screen, and Serial Sticker.
+                      Clear photos are what let our team price accurately. At least one is
+                      required, up to {MAX_IMAGES}. On a phone you can shoot straight from the camera.
                     </p>
+                    <ul className="mt-3 flex flex-wrap gap-1.5">
+                      {PHOTO_GUIDE.map((item) => (
+                        <li
+                          key={item}
+                          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
+                        >
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-                    {/* Upload button */}
-                    {imagePreviews.length < 10 && (
-                      <label className="relative aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl hover:border-[#16A34A] hover:bg-slate-50 transition-colors cursor-pointer bg-white">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+                    {/* Upload tile */}
+                    {imagePreviews.length < MAX_IMAGES && (
+                      <label className="relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white p-2 text-center transition-colors hover:border-[#16A34A] hover:bg-slate-50 focus-within:border-[#16A34A] focus-within:ring-2 focus-within:ring-[#16A34A]/20">
                         {uploadingImage ? (
-                          <div className="flex flex-col items-center gap-2 text-slate-400 text-xs font-medium">
-                            <span className="animate-spin text-[#16A34A]">•</span>
-                            <span>Uploading...</span>
-                          </div>
+                          <>
+                            <Loader2 className="h-7 w-7 animate-spin text-[#16A34A]" />
+                            <span className="text-[11px] font-bold text-slate-500">
+                              {uploadProgress
+                                ? `Uploading ${uploadProgress.done + 1} of ${uploadProgress.total}…`
+                                : "Uploading…"}
+                            </span>
+                          </>
                         ) : (
                           <>
-                            <Camera className="h-8 w-8 text-slate-400" />
-                            <span className="text-xs font-bold text-slate-500 mt-2">Add Photo</span>
+                            <Camera className="h-7 w-7 text-slate-400" />
+                            <span className="text-xs font-bold text-slate-500">Add photo</span>
                           </>
                         )}
                         <input
@@ -702,19 +808,24 @@ export function ExchangeWizard({
                           accept="image/*"
                           onChange={handleImageUpload}
                           disabled={uploadingImage}
-                          className="hidden"
+                          className="sr-only"
                         />
                       </label>
                     )}
 
                     {/* Previews */}
                     {imagePreviews.map((url, index) => (
-                      <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 group shadow-xs">
-                        <img src={url} alt="Device Preview" className="h-full w-full object-cover" />
+                      <div key={url} className="group relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-xs">
+                        {/* Cloudinary previews are already compressed and are
+                            never rendered above ~200px, so a plain img avoids a
+                            round trip through the optimizer for throwaway UI. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt={`Device photo ${index + 1}`} className="h-full w-full object-cover" loading="lazy" />
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 size-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md transition-colors"
+                          aria-label={`Remove photo ${index + 1}`}
+                          className="absolute right-1.5 top-1.5 grid size-8 place-items-center rounded-full bg-red-500/95 text-white shadow-md transition-colors hover:bg-red-600 cursor-pointer"
                         >
                           <Trash className="h-3.5 w-3.5" />
                         </button>
@@ -722,9 +833,13 @@ export function ExchangeWizard({
                     ))}
                   </div>
 
+                  <p aria-live="polite" className="sr-only">
+                    {images.length} of {MAX_IMAGES} photos added.
+                  </p>
+
                   {imageError && (
-                    <p className="text-xs text-red-500 font-semibold flex items-center gap-1">
-                      <AlertCircle className="h-4 w-4" />
+                    <p role="alert" className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
                       <span>{imageError}</span>
                     </p>
                   )}
@@ -749,54 +864,138 @@ export function ExchangeWizard({
                 </div>
               )}
 
-              {/* STEP 9: ESTIMATED EXCHANGED VALUE */}
+              {/* STEP 9: CONTACT & COLLECTION */}
               {step === 9 && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-extrabold text-slate-900">Your Trade-In Evaluation Summary</h3>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
+                      How should we reach you?
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 font-medium leading-relaxed">
+                      Our team reviews your device details and photos by hand, then contacts
+                      you with an offer. No automatic quote is generated.
+                    </p>
+                  </div>
 
-                  {calculatingEstimate ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-3">
-                      <span className="animate-spin text-[#16A34A] text-2xl">•</span>
-                      <p className="text-sm font-semibold text-slate-500">Calculating estimated valuation...</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <div className="rounded-3xl border border-slate-100 bg-[#E8F5E9]/50 p-6 flex flex-col items-center justify-center text-center">
-                        <p className="text-xs font-bold text-[#16A34A] uppercase tracking-widest flex items-center gap-1.5">
-                          <Sparkles className="h-4 w-4" />
-                          <span>Estimated Trade-in Credit</span>
-                        </p>
-                        <p className="text-4xl font-black text-slate-900 tracking-tight mt-3">
-                          {formatPriceExact(estimatedValueCents)}
-                        </p>
-                        
-                        <div className="mt-4 flex items-center gap-1 text-[11px] font-bold text-slate-500">
-                          <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
-                          <span>Not Final · Final Inspection Required</span>
-                        </div>
-                      </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Field id={`${fieldId}-name`} label="Full name" required className="sm:col-span-2">
+                      <input
+                        id={`${fieldId}-name`}
+                        type="text"
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        autoComplete="name"
+                        placeholder="Jane Schmidt"
+                        className={INPUT_CLASS}
+                      />
+                    </Field>
 
-                      {/* Financial breakdown if linked to buying a product */}
-                      {productId && productName && productPriceCents > 0 && (
-                        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 space-y-3.5 text-sm">
-                          <h4 className="font-extrabold text-slate-950 pb-2 border-b border-slate-100 uppercase text-xs tracking-wider">Purchase breakdown</h4>
-                          <div className="flex justify-between font-medium">
-                            <span className="text-slate-500">{productName}</span>
-                            <span className="text-slate-900">{formatPriceExact(productPriceCents)}</span>
-                          </div>
-                          <div className="flex justify-between font-medium text-[#16A34A]">
-                            <span>Estimated Exchange Deduction</span>
-                            <span>-{formatPriceExact(estimatedValueCents)}</span>
-                          </div>
-                          <div className="border-t border-slate-100 pt-3.5 flex justify-between">
-                            <span className="font-extrabold text-slate-950">You Pay Remaining</span>
-                            <span className="text-base font-black text-[#16A34A]">
-                              {formatPriceExact(Math.max(productPriceCents - estimatedValueCents, 0))}
+                    <Field id={`${fieldId}-email`} label="Email" required>
+                      <input
+                        id={`${fieldId}-email`}
+                        type="email"
+                        inputMode="email"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        autoComplete="email"
+                        placeholder="jane@company.de"
+                        className={INPUT_CLASS}
+                      />
+                    </Field>
+
+                    <Field id={`${fieldId}-phone`} label="Phone" required>
+                      <input
+                        id={`${fieldId}-phone`}
+                        type="tel"
+                        inputMode="tel"
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
+                        autoComplete="tel"
+                        placeholder="+49 30 1234567"
+                        className={INPUT_CLASS}
+                      />
+                    </Field>
+                  </div>
+
+                  <fieldset className="space-y-3">
+                    <legend className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      How would you like to send the device?
+                    </legend>
+                    <div className="grid grid-cols-1 gap-3">
+                      {PICKUP_OPTIONS.map((opt) => {
+                        const isSelected = pickupOption === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            aria-pressed={isSelected}
+                            onClick={() => setPickupOption(opt.id)}
+                            className={cn(
+                              "flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-all cursor-pointer",
+                              isSelected
+                                ? "border-[#16A34A] bg-emerald-50/70 ring-2 ring-[#16A34A]/25"
+                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                            )}
+                          >
+                            <span className={cn(
+                              "mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border",
+                              isSelected ? "border-[#16A34A] bg-[#16A34A] text-white" : "border-slate-300"
+                            )}>
+                              {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                             </span>
-                          </div>
-                        </div>
-                      )}
+                            <span className="min-w-0">
+                              <span className="block text-sm font-extrabold text-slate-900">{opt.label}</span>
+                              <span className="block text-xs text-slate-500 mt-0.5">{opt.desc}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
+                  </fieldset>
+
+                  {pickupOption === "Pickup" && (
+                    <Field id={`${fieldId}-address`} label="Collection address" required>
+                      <textarea
+                        id={`${fieldId}-address`}
+                        rows={3}
+                        value={pickupAddress}
+                        onChange={(e) => setPickupAddress(e.target.value)}
+                        autoComplete="street-address"
+                        placeholder="Street and number, postcode, city"
+                        className={cn(INPUT_CLASS, "resize-none")}
+                      />
+                    </Field>
+                  )}
+
+                  {/* What is being sent for review */}
+                  <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5 space-y-2.5">
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                      Summary
+                    </h4>
+                    <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-xs sm:grid-cols-2">
+                      <SummaryRow label="Device" value={`${brand} ${isCustomModelActive ? customModel : model}`} />
+                      <SummaryRow label="Type" value={deviceType} />
+                      <SummaryRow label="Configuration" value={`${ram} · ${storage} · ${cpu}`} />
+                      <SummaryRow label="Condition" value={condition} />
+                      <SummaryRow label="Purchase year" value={String(purchaseYear)} />
+                      <SummaryRow label="Photos" value={`${images.length} uploaded`} />
+                      {productName && <SummaryRow label="Interested in" value={productName} />}
+                    </dl>
+                  </div>
+
+                  <p className="flex items-start gap-2 rounded-2xl border border-slate-200/80 bg-white p-3.5 text-[11px] font-medium leading-relaxed text-slate-500">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#16A34A]" />
+                    <span>
+                      Your details are used only to assess this trade-in and contact you about
+                      it. Every device we receive is data-wiped and certified.
+                    </span>
+                  </p>
+
+                  {contactError && (
+                    <p role="alert" className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{contactError}</span>
+                    </p>
                   )}
                 </div>
               )}
@@ -836,11 +1035,23 @@ export function ExchangeWizard({
             <button
               type="button"
               onClick={handleComplete}
-              disabled={calculatingEstimate}
-              className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-[#16A34A] text-xs font-bold text-white hover:bg-[#159342] shadow-md shadow-[#16A34A]/25 transition-all cursor-pointer animate-pulse"
+              disabled={submitting || uploadingImage}
+              aria-busy={submitting}
+              // Fixed min-width so swapping the label for the spinner does not
+              // resize the footer mid-submit.
+              className="flex min-h-11 min-w-[11rem] items-center justify-center gap-1.5 rounded-xl bg-[#16A34A] px-6 py-3 text-xs font-bold text-white shadow-md shadow-[#16A34A]/25 transition-colors hover:bg-[#159342] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
-              <Check className="h-4.5 w-4.5 stroke-[2.5]" />
-              <span>{productId ? "Apply to Purchase" : "Submit Valuation Request"}</span>
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  <span>Submitting…</span>
+                </>
+              ) : (
+                <>
+                  <Check className="h-4.5 w-4.5 shrink-0 stroke-[2.5]" />
+                  <span>Submit request</span>
+                </>
+              )}
             </button>
           )}
         </div>

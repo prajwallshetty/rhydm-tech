@@ -58,7 +58,7 @@ export function DisposalFloatingNav() {
         >
           {/* Logo */}
           <Link href="/disposal" className="flex items-center gap-3 shrink-0 group py-2 -my-2">
-            <Logo showShield={false} />
+            <Logo variant="auto" priority className="lg:h-12" />
           </Link>
 
           {/* Desktop Nav Links */}
@@ -137,7 +137,7 @@ export function DisposalFloatingNav() {
             >
               <div>
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <Logo showShield={false} />
+                  <Logo variant="lockup" className="h-9" />
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
