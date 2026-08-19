@@ -28,6 +28,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   SUPER_ADMIN: ["ALL"],
   ADMIN: [
     "MANAGE_USERS",
+    "SYSTEM_SETTINGS",
     "PRODUCTS_READ",
     "PRODUCTS_WRITE",
     "PRODUCTS_DELETE",

@@ -5,7 +5,6 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { isCloudinaryConfigured, signUpload } from "@/lib/media/cloudinary";
 import { createExchangeRequestInDb } from "@/lib/repositories/exchange";
-import { notifyAdminNewRequest } from "@/lib/services/notifications";
 
 /**
  * Signs a Cloudinary upload request for exchange device images.
@@ -86,12 +85,47 @@ export async function submitExchangeRequestAction(payload: SubmitExchangeInput) 
       pickupSchedule: data.pickupAddress ? { address: data.pickupAddress } : null,
     });
 
-    // Best-effort: a failed admin notification must not lose the request the
-    // customer just submitted.
+    // Both emails are best-effort: a mailbox problem must never lose the
+    // request the customer just submitted. Failures are recorded in EmailLog.
+    const { EmailService } = await import("@/lib/email/service");
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+
     try {
-      await notifyAdminNewRequest(request.referenceNumber, `${data.brand} ${data.model}`);
+      await EmailService.sendExchangeAdminNotification({
+        referenceNumber: request.referenceNumber,
+        contactName: data.contactName ?? null,
+        contactEmail: data.contactEmail ?? null,
+        contactPhone: data.contactPhone ?? null,
+        deviceType: data.deviceType,
+        brand: data.brand,
+        model: data.model,
+        configuration: [data.configCpu, data.configRam, data.configStorage]
+          .filter(Boolean)
+          .join(" / "),
+        condition: data.condition,
+        description: data.description ?? null,
+        images: data.images ?? [],
+        submittedAt: new Date(),
+        adminUrl: `${siteUrl}/admin/exchanges/${request.id}`,
+      });
     } catch (error) {
       console.error("Exchange admin notification failed", error);
+    }
+
+    // Customer acknowledgement. Carries a reference number and a promise of
+    // contact — never a figure, because nobody has priced the device yet.
+    if (data.contactEmail) {
+      try {
+        await EmailService.sendExchangeReceived({
+          to: data.contactEmail,
+          name: data.contactName || data.contactEmail.split("@")[0],
+          referenceNumber: request.referenceNumber,
+          device: `${data.brand} ${data.model}`,
+          userId: session?.id ?? null,
+        });
+      } catch (error) {
+        console.error("Exchange customer acknowledgement failed", error);
+      }
     }
 
     return {

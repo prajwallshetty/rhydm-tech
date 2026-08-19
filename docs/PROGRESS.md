@@ -1,5 +1,79 @@
 # Build Progress
 
+> **2026-08-19 — email system: Gmail OAuth, order/reset/marketing mail.**
+>
+> **Mail actually sends now.** `lib/services/notifications.ts` was a mock that
+> console.logged and delivered nothing; it is now a thin adapter over the new
+> `lib/email/` stack, so every existing call site works unchanged and delivers.
+>
+> **Transport.** Gmail REST API over `fetch` — no nodemailer, no googleapis.
+> Those two would add megabytes and a large transitive tree to ship what is one
+> authenticated POST of a MIME string. `lib/email/gmail.ts` builds
+> multipart/alternative by hand (RFC 2047 encoded-word subjects, base64 bodies,
+> CRLF), refuses CR/LF in a recipient address (open-relay vector), and retries a
+> 401 exactly once with a fresh token. `lib/email/oauth.ts` caches the access
+> token process-wide and shares one in-flight refresh, so a 50-message batch on
+> a cold start performs one refresh rather than 50.
+>
+> **Two Google OAuth flows now exist and must not be confused.**
+> `lib/auth/google.ts` = "Sign in with Google" (visitor, profile scopes, no
+> stored token). `lib/email/oauth.ts` = "send as Rhydm" (company, `gmail.send`
+> only, one long-lived refresh token). They may share one Cloud OAuth client —
+> add **both** redirect URIs to it. Login was not touched.
+>
+> **The refresh token is never put in a URL.** The obvious implementation hands
+> it back on the callback redirect for the admin to copy; that writes a
+> long-lived mailbox credential into browser history, the Referer header and
+> every access log on the path. Instead it is sealed with AES-256-GCM (key via
+> scrypt from `AUTH_SECRET`) into `EmailCredential`. Env wins when set, so a
+> 12-factor deploy never touches the table and `GOOGLE_REFRESH_TOKEN` is never
+> overwritten. Rotating `AUTH_SECRET` invalidates it by design — reconnect.
+>
+> **Password reset was an account-takeover hole.** `forgotPasswordAction`
+> returned the reset token to the caller and `forgot-password/page.tsx`
+> rendered it as a clickable link: typing *any* address into the form granted a
+> working reset for that account. It also stored tokens in plaintext and leaked
+> account existence. Now: token returned to nobody, only a SHA-256 hash stored,
+> 60-minute expiry, single use, and byte-identical responses for known and
+> unknown addresses. Existing rows are plaintext and will simply never match —
+> outstanding links die, which is the safe direction.
+>
+> **Order confirmation is idempotent by conditional update.** `updateMany`
+> filtered on `confirmationEmailSentAt: null` is atomic, so of N concurrent
+> calls exactly one may send (verified: 1 of 3 wins). A *retryable* failure
+> releases the claim so an outage cannot permanently suppress the email; a
+> permanent one keeps it. Fired after commit and not awaited — a slow mailbox
+> must never turn a captured payment into an error.
+>
+> **Campaigns are batched and resumable.** Sending inside the request that
+> clicks Send would hit the platform timeout and leave no record of who was
+> already mailed. The audience is snapshotted into `CampaignRecipient` at queue
+> time, drained 25 at a time, each recipient claimed `QUEUED -> SENDING` by
+> conditional update. A claim older than 10 minutes is reclaimed, so a crashed
+> worker cannot strand anyone. `remaining` counts in-flight rows too, or a
+> campaign would finalise with someone never mailed.
+>
+> **Consent is never assumed.** `User.marketingConsent` defaults false; signup
+> has a separate unticked checkbox (bundling it with the terms would not be
+> valid consent). There is deliberately no "everyone" audience. Every marketing
+> message carries a token unsubscribe link plus `List-Unsubscribe` headers, and
+> `/unsubscribe` works with no login — one that required signing in gets
+> ignored, and ignored unsubscribes become spam complaints.
+>
+> **Admin HTML is allow-list sanitised** on save *and* again at send, and the
+> preview renders in `sandbox=""` iframe. 13 injection vectors covered
+> (`javascript:`, tab-padded schemes, `data:`, `onerror`, `expression()`,
+> `url()`, iframes).
+>
+> **Verified:** 13 sanitiser + 10 MIME + 6 idempotency + 11 consent/unsubscribe
+> + 8 campaign assertions, all against the live database with test rows removed
+> afterwards. Build clean, 327/327 pages.
+>
+> **Still open:** Gmail is not connected yet, so nothing delivers until an admin
+> completes Admin → Settings → Email. Campaign draining runs in-process, which
+> suits a single long-lived server but would need a real queue on a serverless
+> host where the function can be frozen mid-drain.
+
 > **2026-08-17 — manual trade-in valuation, brand assets, DB connection leak.**
 >
 > **Exchange is now manually priced (business rule change).** Customers no

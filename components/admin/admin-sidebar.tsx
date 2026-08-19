@@ -19,6 +19,7 @@ import {
   MessageSquareQuote,
   FileText,
   UserCheck,
+  Megaphone,
   Settings,
   LogOut,
   MoreVertical,
@@ -77,6 +78,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "SYSTEM",
     items: [
+      { name: "Marketing", href: "/admin/marketing", icon: Megaphone },
       { name: "Users", href: "/admin/users", icon: UserCheck },
       { name: "Settings", href: "/admin/settings", icon: Settings },
     ],

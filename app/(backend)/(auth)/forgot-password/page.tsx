@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, ArrowLeft, ShieldCheck, Loader2, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { forgotPasswordAction } from "@/app/(backend)/(auth)/actions";
 
@@ -11,7 +11,6 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [resetToken, setResetToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,14 +22,13 @@ export default function ForgotPasswordPage() {
     const res = await forgotPasswordAction(null, formData);
 
     setLoading(false);
-    if (res?.error) {
+    if ("error" in res) {
       setError(res.error);
-    } else if (res?.message) {
-      setMessage(res.message);
-      if (res.resetToken) {
-        setResetToken(res.resetToken);
-      }
+      return;
     }
+    // The same confirmation shows whether or not the address has an account:
+    // anything else would turn this form into an account-enumeration oracle.
+    setMessage(res.message);
   };
 
   return (
@@ -51,7 +49,7 @@ export default function ForgotPasswordPage() {
             Reset your password
           </h1>
           <p className="text-xs font-semibold text-muted-foreground">
-            Enter your account email and we&rsquo;ll generate a secure 15-minute reset token.
+            Enter your account email and we&rsquo;ll send you a secure reset link.
           </p>
         </div>
 
@@ -65,20 +63,10 @@ export default function ForgotPasswordPage() {
                 {message}
               </p>
 
-              {resetToken && (
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30 text-left space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-extrabold text-[#2E6F40]">
-                    <KeyRound className="size-4" />
-                    <span>Security Reset Token Active (Expires in 15 mins)</span>
-                  </div>
-                  <Link
-                    href={`/reset-password?token=${resetToken}`}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#2E6F40] py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#255833] transition-colors"
-                  >
-                    Proceed to Reset Password
-                  </Link>
-                </div>
-              )}
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                The link expires in 60 minutes and can only be used once. If it
+                does not arrive, check your spam folder.
+              </p>
 
               <Link
                 href="/login"
@@ -121,7 +109,7 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    <span>Generating token...</span>
+                    <span>Sending link...</span>
                   </>
                 ) : (
                   <span>Send Password Reset Link</span>

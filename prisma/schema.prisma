@@ -65,6 +65,12 @@ model User {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
+  /// Marketing opt-in. Defaults to false: consent must be given, never assumed.
+  marketingConsent   Boolean   @default(false)
+  marketingConsentAt DateTime?
+  /// Opaque token so an unsubscribe link works without signing in.
+  unsubscribeToken   String?   @unique
+
   accounts                Account[]
   sessions                Session[]
   addresses               Address[]
@@ -81,6 +87,7 @@ model User {
   @@index([role])
   @@index([status])
   @@index([email])
+  @@index([marketingConsent])
 }
 
 model Account {
@@ -327,19 +334,22 @@ enum SubmissionStatus {
 }
 
 model ContactSubmission {
-  id       String   @id @default(cuid())
-  division Division @default(DISPOSAL)
-  name     String
-  email    String
-  phone    String?
-  company  String?
+  id        String           @id @default(cuid())
+  division  Division         @default(DISPOSAL)
+  name      String
+  email     String
+  phone     String?
+  company   String?
   /// Which CTA produced the enquiry, e.g. "pickup" or "consultation".
   topic     String?
   message   String           @db.Text
   status    SubmissionStatus @default(NEW)
   createdAt DateTime         @default(now())
 
+  notificationSentAt DateTime?
+
   @@index([status, createdAt])
+  @@index([email, createdAt])
 }
 
 // ---------------------------------------------------------------------------
@@ -364,16 +374,16 @@ model Brand {
 }
 
 model Category {
-  id          String  @id @default(cuid())
-  slug        String  @unique
-  name        String
-  description String? @db.Text
-  imageUrl    String?
-  bannerUrl   String?
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  name         String
+  description  String? @db.Text
+  imageUrl     String?
+  bannerUrl    String?
   thumbnailUrl String?
-  iconUrl     String?
-  parentId    String?
-  position    Int     @default(0)
+  iconUrl      String?
+  parentId     String?
+  position     Int     @default(0)
 
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("CategoryTree")
@@ -417,17 +427,17 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  brand          Brand?           @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  category       Category         @relation(fields: [categoryId], references: [id])
-  images         ProductImage[]
-  specs          ProductSpec[]
-  reviews        Review[]
-  orderItems     OrderItem[]
-  wishlistItems  WishlistItem[]
-  recentlyViewed RecentlyViewed[]
-  options        ProductOption[]
-  variants       ProductVariant[]
-  stockMovements StockMovement[]
+  brand            Brand?            @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  category         Category          @relation(fields: [categoryId], references: [id])
+  images           ProductImage[]
+  specs            ProductSpec[]
+  reviews          Review[]
+  orderItems       OrderItem[]
+  wishlistItems    WishlistItem[]
+  recentlyViewed   RecentlyViewed[]
+  options          ProductOption[]
+  variants         ProductVariant[]
+  stockMovements   StockMovement[]
   exchangeRequests ExchangeRequest[]
 
   @@index([categoryId, status])
@@ -444,20 +454,20 @@ enum ReviewStatus {
 }
 
 model Review {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   productId String
   userId    String?
   author    String
   rating    Int
   title     String?
-  body      String   @db.Text
+  body      String       @db.Text
   /// Set when the reviewer's order for this product is confirmed.
-  verified  Boolean  @default(false)
+  verified  Boolean      @default(false)
   /// Moderation state. New submissions default to PENDING; only APPROVED
   /// reviews are shown on the storefront. (Rows that predate this column are
   /// backfilled to APPROVED by the migration so nothing disappears.)
   status    ReviewStatus @default(PENDING)
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -498,13 +508,13 @@ model ProductImage {
 }
 
 model ProductSpec {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   productId String
   /// Grouping label, e.g. "Processor" or "Memory".
-  group    String?
-  name     String
-  value    String
-  position Int     @default(0)
+  group     String?
+  name      String
+  value     String
+  position  Int     @default(0)
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -567,15 +577,19 @@ model Order {
   notes           String? @db.Text
 
   paymentMethod       String?
-  paymentStatus       String?      @default("UNPAID")
-  paypalOrderId       String?      @unique
-  paypalTransactionId String?      @unique
+  paymentStatus       String?   @default("UNPAID")
+  paypalOrderId       String?   @unique
+  paypalTransactionId String?   @unique
   paidAt              DateTime?
-  currency            String       @default("EUR")
+  currency            String    @default("EUR")
   payment             Payment?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  /// Set once the confirmation email is accepted by Gmail. Presence of a
+  /// timestamp is what makes the send idempotent across retries and refreshes.
+  confirmationEmailSentAt DateTime?
 
   user  User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   items OrderItem[]
@@ -599,7 +613,7 @@ model Payment {
   amountCents         Int
   currency            String   @default("EUR")
   paymentMethod       String   @default("PayPal")
-  status              String   // e.g. "COMPLETED"
+  status              String // e.g. "COMPLETED"
   createdAt           DateTime @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -662,26 +676,26 @@ enum DiscountType {
 /// Modelled for the admin panel; the cart applies coupons in the UI only until
 /// payments are integrated.
 model Coupon {
-  id            String       @id @default(cuid())
-  code          String       @unique
-  type          DiscountType @default(PERCENT)
-  value         Int
-  minSpendCents Int?
-  active        Boolean      @default(true)
-  expiresAt     DateTime?
+  id              String       @id @default(cuid())
+  code            String       @unique
+  type            DiscountType @default(PERCENT)
+  value           Int
+  minSpendCents   Int?
+  active          Boolean      @default(true)
+  expiresAt       DateTime?
   /// Redemption cap across all customers (null = unlimited) and the running
   /// count. `oncePerCustomer` limits a code to one use per customer email.
   usageLimit      Int?
-  usageCount      Int      @default(0)
-  oncePerCustomer Boolean  @default(false)
+  usageCount      Int          @default(0)
+  oncePerCustomer Boolean      @default(false)
   /// One-time redemption ledger (customer emails). Kept as a scalar list
   /// rather than a join table since it is only ever read/appended wholesale.
-  redeemedBy      String[] @default([])
+  redeemedBy      String[]     @default([])
   /// Optional scoping: when non-empty, the coupon only applies to carts that
   /// contain at least one matching product / category. Empty = whole cart.
-  productIds    String[] @default([])
-  categoryIds   String[] @default([])
-  createdAt     DateTime     @default(now())
+  productIds      String[]     @default([])
+  categoryIds     String[]     @default([])
+  createdAt       DateTime     @default(now())
 }
 
 // ---------------------------------------------------------------------------
@@ -821,58 +835,58 @@ model ProductVariantImage {
 }
 
 model ExchangeRequest {
-  id                  String           @id @default(cuid())
-  referenceNumber     String           @unique
-  userId              String?
-  productId           String?          // The product they purchase, if linked
-  deviceType          String           // Laptop, Desktop, etc.
-  brand               String           // Dell, Apple, etc.
-  model               String
-  customModel         Boolean          @default(false)
-  configRam           String
-  configStorage       String
-  configCpu           String
-  configGpu           String?
-  configGeneration    String?
-  serialNumber        String?
-  serviceTag          String?
-  purchaseYear        Int?
-  condition           String           // Excellent, Good, Fair, Damaged, Non Working
-  checklist           Json             // checklist results as json
-  images              String[]         // front, back, etc.
-  description         String?          @db.Text
+  id               String   @id @default(cuid())
+  referenceNumber  String   @unique
+  userId           String?
+  productId        String? // The product they purchase, if linked
+  deviceType       String // Laptop, Desktop, etc.
+  brand            String // Dell, Apple, etc.
+  model            String
+  customModel      Boolean  @default(false)
+  configRam        String
+  configStorage    String
+  configCpu        String
+  configGpu        String?
+  configGeneration String?
+  serialNumber     String?
+  serviceTag       String?
+  purchaseYear     Int?
+  condition        String // Excellent, Good, Fair, Damaged, Non Working
+  checklist        Json // checklist results as json
+  images           String[] // front, back, etc.
+  description      String?  @db.Text
 
   // How to reach the customer. Collected in the wizard so guest submissions
   // are actionable — before this existed only logged-in requests could be
   // followed up on.
-  contactName         String?
-  contactEmail        String?
-  contactPhone        String?
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
 
   /// Legacy automatic valuation. The customer-facing flow no longer produces
   /// one (Rhydm prices every device by hand), so new rows are 0; historical
   /// rows keep their value for admin reference only and are never shown to
   /// the customer.
-  estimatedValueCents Int              @default(0)
+  estimatedValueCents Int @default(0)
 
   // ---- Manual offer, entered by an admin after reviewing device + photos ----
-  finalValueCents     Int?             // the offer amount
-  offerMethod         String?          // WhatsApp, Email, Phone, Other
-  offerNotes          String?          @db.Text
+  finalValueCents     Int? // the offer amount
+  offerMethod         String? // WhatsApp, Email, Phone, Other
+  offerNotes          String?   @db.Text
   offerSentAt         DateTime?
   customerContactedAt DateTime?
 
-  status              String           // PENDING(=New), UNDER_REVIEW, INFO_REQUIRED, OFFER_SENT, APPROVED(=Customer Accepted), REJECTED(=Customer Declined), PICKUP_SCHEDULED, RECEIVED, INSPECTION, COMPLETED, CANCELLED
-  notes               String?          @db.Text // internal admin notes — never exposed to the customer
-  pickupOption        String?          // Pickup, Drop-off, Courier
-  pickupSchedule      Json?            // date, time, address
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+  status         String // PENDING(=New), UNDER_REVIEW, INFO_REQUIRED, OFFER_SENT, APPROVED(=Customer Accepted), REJECTED(=Customer Declined), PICKUP_SCHEDULED, RECEIVED, INSPECTION, COMPLETED, CANCELLED
+  notes          String?  @db.Text // internal admin notes — never exposed to the customer
+  pickupOption   String? // Pickup, Drop-off, Courier
+  pickupSchedule Json? // date, time, address
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user                User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  product             Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
-  order               Order?
-  activities          ExchangeActivity[]
+  user       User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product    Product?           @relation(fields: [productId], references: [id], onDelete: SetNull)
+  order      Order?
+  activities ExchangeActivity[]
 
   @@index([userId])
   @@index([status])
@@ -880,17 +894,188 @@ model ExchangeRequest {
 }
 
 model ExchangeActivity {
-  id                String           @id @default(cuid())
+  id                String   @id @default(cuid())
   exchangeRequestId String
   userId            String?
-  action            String           // e.g. "REQUEST_CREATED", "STATUS_UPDATED", "COUNTER_OFFER_MADE", "IMAGES_UPLOADED", "PICKUP_SCHEDULED", etc.
+  action            String // e.g. "REQUEST_CREATED", "STATUS_UPDATED", "COUNTER_OFFER_MADE", "IMAGES_UPLOADED", "PICKUP_SCHEDULED", etc.
   fromStatus        String?
   toStatus          String?
-  details           String?          @db.Text
-  createdAt         DateTime         @default(now())
+  details           String?  @db.Text
+  createdAt         DateTime @default(now())
 
-  exchangeRequest   ExchangeRequest  @relation(fields: [exchangeRequestId], references: [id], onDelete: Cascade)
-  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  exchangeRequest ExchangeRequest @relation(fields: [exchangeRequestId], references: [id], onDelete: Cascade)
+  user            User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([exchangeRequestId])
+}
+
+// ---------------------------------------------------------------------------
+// Email system
+//
+// Outbound mail goes through a single Gmail API transport (lib/email). These
+// models cover three concerns: an audit trail of every send, opt-in state for
+// marketing, and campaign bookkeeping so a large send can be batched and
+// resumed rather than run inside one HTTP request.
+// ---------------------------------------------------------------------------
+
+enum EmailType {
+  ORDER_CONFIRMATION
+  PASSWORD_RESET
+  EXCHANGE_RECEIVED
+  EXCHANGE_ADMIN_NOTIFICATION
+  CONTACT_NOTIFICATION
+  CONTACT_ACKNOWLEDGEMENT
+  ADMIN_NOTIFICATION
+  MARKETING
+  TEST
+}
+
+enum EmailStatus {
+  QUEUED
+  /// Claimed by a worker and in flight. Prevents a second worker double-sending.
+  SENDING
+  SENT
+  FAILED
+  /// Terminal: the address is invalid, so retrying can never succeed.
+  BOUNCED
+}
+
+/// One row per send attempt. Deliberately stores no credentials and no message
+/// body — only what is needed to answer "did this person get this email?".
+model EmailLog {
+  id        String      @id @default(cuid())
+  recipient String
+  type      EmailType
+  subject   String
+  status    EmailStatus @default(QUEUED)
+  /// Provider-side message id, useful when tracing a delivery complaint.
+  messageId String?
+  error     String?     @db.Text
+  attempts  Int         @default(0)
+
+  userId     String?
+  orderId    String?
+  campaignId String?
+
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  campaign EmailCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([recipient])
+  @@index([type, status])
+  @@index([orderId])
+  @@index([campaignId])
+  @@index([createdAt])
+}
+
+enum CampaignStatus {
+  DRAFT
+  QUEUED
+  SENDING
+  SENT
+  PARTIAL
+  FAILED
+  CANCELLED
+}
+
+enum CampaignAudience {
+  ALL_OPTED_IN
+  NEWSLETTER_SUBSCRIBERS
+  CUSTOMERS_WITH_ORDERS
+}
+
+model EmailCampaign {
+  id          String           @id @default(cuid())
+  name        String
+  subject     String
+  /// Inbox preview line. Rendered as hidden preheader text.
+  previewText String?
+  /// Admin-authored HTML. Sanitised on save and again before send.
+  bodyHtml    String           @db.Text
+  /// Plain-text alternative, derived from bodyHtml when the admin leaves it blank.
+  bodyText    String?          @db.Text
+  audience    CampaignAudience @default(ALL_OPTED_IN)
+  /// Product ids featured as cards beneath the body copy.
+  productIds  String[]         @default([])
+  status      CampaignStatus   @default(DRAFT)
+
+  totalRecipients Int @default(0)
+  sentCount       Int @default(0)
+  failedCount     Int @default(0)
+
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  recipients CampaignRecipient[]
+  emailLogs  EmailLog[]
+
+  @@index([status, createdAt])
+}
+
+/// Materialised recipient list. Snapshotting the audience at queue time means a
+/// resumed or retried send targets exactly who it was meant to, and gives an
+/// exactly-once guarantee per address via the unique constraint.
+model CampaignRecipient {
+  id         String      @id @default(cuid())
+  campaignId String
+  email      String
+  name       String?
+  userId     String?
+  status     EmailStatus @default(QUEUED)
+  error      String?     @db.Text
+  attempts   Int         @default(0)
+  sentAt     DateTime?
+  /// When a worker claimed this row. A claim older than the stale window is
+  /// reclaimed, so a crash mid-send cannot strand a recipient in SENDING.
+  claimedAt  DateTime?
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, email])
+  @@index([campaignId, status])
+}
+
+/// Marketing opt-in for people who are not registered users.
+model NewsletterSubscriber {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  consent          Boolean   @default(true)
+  /// Opaque token for one-click unsubscribe without a login.
+  unsubscribeToken String    @unique
+  source           String?
+  createdAt        DateTime  @default(now())
+  unsubscribedAt   DateTime?
+
+  @@index([consent])
+}
+
+/// Encrypted storage for the Gmail refresh token.
+///
+/// The OAuth connect flow has to put the token *somewhere* between Google
+/// issuing it and the mailbox being usable. A redirect URL would leak it into
+/// browser history, the Referer header and every access log in the path, so it
+/// is sealed with AES-256-GCM and written here instead. The environment
+/// variable still wins when set, keeping a pure 12-factor deployment possible.
+model EmailCredential {
+  /// Single-row table; always "gmail".
+  id String @id
+
+  /// AES-256-GCM payload. Never a plaintext token.
+  ciphertext String @db.Text
+  iv         String
+  authTag    String
+
+  /// Which mailbox this was issued for, so a changed GOOGLE_EMAIL invalidates it.
+  senderEmail String
+  scope       String?
+
+  connectedById String?
+  connectedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

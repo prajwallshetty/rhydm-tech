@@ -15,7 +15,8 @@ const CORE = [
   "/admin-manifest.webmanifest",
   "/icons/admin-192.png",
   "/icons/admin-512.png",
-  "/favicon.svg",
+  "/favicon-96x96.png",
+  "/favicon.ico",
 ];
 
 self.addEventListener("install", (event) => {
@@ -48,7 +49,8 @@ function isStaticAsset(url) {
   return (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
-    url.pathname === "/favicon.svg" ||
+    url.pathname === "/favicon-96x96.png" ||
+    url.pathname === "/favicon.ico" ||
     url.pathname === "/admin-manifest.webmanifest"
   );
 }

@@ -11,6 +11,21 @@ import { Role, UserStatus } from "@/lib/generated/prisma/enums";
 // Password complexity regex: 8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
+/** Reset links stay valid for an hour: long enough to find the email, short enough to matter. */
+const RESET_TOKEN_TTL_MINUTES = 60;
+
+/**
+ * Hashes a reset token for storage.
+ *
+ * Plain SHA-256 with no salt is correct here, unlike for passwords: the token
+ * is 256 bits of CSPRNG output, so there is no dictionary to attack and the
+ * hash must be deterministic to be looked up. What this buys is that a leaked
+ * database yields no usable reset links.
+ */
+function hashResetToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
 export async function signupAction(prevState: unknown, formData: FormData) {
   try {
     const firstName = formData.get("firstName") as string;
@@ -19,6 +34,9 @@ export async function signupAction(prevState: unknown, formData: FormData) {
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
     const acceptTerms = formData.get("acceptTerms");
+    // Opt-in only, and separate from accepting the terms. A single combined
+    // checkbox would not be meaningful consent under GDPR.
+    const marketingConsent = formData.get("marketingConsent") === "on";
 
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
       return { error: "All fields are required." };
@@ -60,6 +78,9 @@ export async function signupAction(prevState: unknown, formData: FormData) {
           role: Role.CUSTOMER,
           status: UserStatus.ACTIVE,
           emailVerified: new Date(),
+          marketingConsent,
+          marketingConsentAt: marketingConsent ? new Date() : null,
+          unsubscribeToken: crypto.randomBytes(32).toString("base64url"),
         },
       });
     } catch {
@@ -195,39 +216,79 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   }
 }
 
+/**
+ * Password-reset request.
+ *
+ * Three properties this must hold, all of which the previous version broke:
+ *
+ *  1. The token is never returned to the caller. It used to be handed straight
+ *     back and rendered as a clickable link, which meant typing any address
+ *     into the form granted a working reset for that account.
+ *  2. Only a hash of the token is stored. A database read (backup, log, dump)
+ *     must not yield usable reset links.
+ *  3. The response is identical whether or not the account exists, so the form
+ *     cannot be used to enumerate customers.
+ */
 export async function forgotPasswordAction(prevState: unknown, formData: FormData) {
+  // Same wording on success path for valid/invalid accounts to prevent enumeration.
+  const neutralResponse = {
+    success: true as const,
+    message:
+      "If an account exists for this email, we have sent a password reset link. Please check your inbox.",
+  };
+
+  const genericErrorResponse = {
+    error: "We couldn't process the request right now. Please try again later.",
+  };
+
   try {
     const email = (formData.get("email") as string)?.toLowerCase().trim();
     if (!email) {
       return { error: "Please enter your email address." };
     }
 
+    const { EmailService } = await import("@/lib/email/service");
+    const configured = await EmailService.isConfigured();
+
+    if (!configured) {
+      console.error("[GMAIL_SEND] Password reset requested but Gmail is not connected.");
+
+      // In local development, generate and log the reset link so testing works without OAuth setup
+      if (process.env.NODE_ENV !== "production") {
+        const user = await db.user.findUnique({ where: { email } });
+        if (user) {
+          await db.passwordResetToken.deleteMany({ where: { email } });
+          const token = crypto.randomBytes(32).toString("base64url");
+          const tokenHash = hashResetToken(token);
+          const expires = new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000);
+          await db.passwordResetToken.create({
+            data: { userId: user.id, email: user.email, token: tokenHash, expires },
+          });
+          const resetUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
+          console.log(`[auth] [DEV FALLBACK] Reset link for ${email}: ${resetUrl}`);
+        }
+      }
+
+      return genericErrorResponse;
+    }
+
     const user = await db.user.findUnique({ where: { email } });
     if (!user) {
-      return { success: true, message: "If an account exists for this email, password reset instructions have been generated." };
+      // Deliberately indistinguishable from the success path.
+      return neutralResponse;
     }
 
-    try {
-      await db.passwordResetToken.deleteMany({ where: { email } });
-    } catch {
-      // Ignore if table not created
-    }
+    // Any outstanding token for this address is invalidated first, so a reset
+    // request always leaves exactly one live token.
+    await db.passwordResetToken.deleteMany({ where: { email } });
 
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 15 * 60 * 1000);
+    const token = crypto.randomBytes(32).toString("base64url");
+    const tokenHash = hashResetToken(token);
+    const expires = new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000);
 
-    try {
-      await db.passwordResetToken.create({
-        data: {
-          userId: user.id,
-          email: user.email,
-          token,
-          expires,
-        },
-      });
-    } catch {
-      // Token creation fallback
-    }
+    await db.passwordResetToken.create({
+      data: { userId: user.id, email: user.email, token: tokenHash, expires },
+    });
 
     await recordAuditLog({
       userId: user.id,
@@ -235,14 +296,28 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
       action: "PASSWORD_RESET_REQUEST",
     });
 
-    return {
-      success: true,
-      message: "A password reset token has been generated. Use the link below to reset your password.",
-      resetToken: token,
-    };
+    const resetUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
+
+    const sent = await EmailService.sendPasswordReset({
+      to: user.email,
+      name: user.firstName || user.name || user.email.split("@")[0],
+      resetUrl,
+      expiresInMinutes: RESET_TOKEN_TTL_MINUTES,
+      userId: user.id,
+    });
+
+    if (!sent.ok) {
+      console.error("[GMAIL_SEND] Password reset email failed:", sent.error);
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`[auth] [DEV FALLBACK] Reset link for ${email}: ${resetUrl}`);
+      }
+      return genericErrorResponse;
+    }
+
+    return neutralResponse;
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Forgot password error.";
-    return { error: msg };
+    console.error("[auth] forgotPasswordAction failed:", err);
+    return genericErrorResponse;
   }
 }
 
@@ -267,15 +342,15 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
       };
     }
 
-    let resetToken = null;
-    try {
-      resetToken = await db.passwordResetToken.findUnique({ where: { token } });
-    } catch {
-      // Ignore if model missing
-    }
+    // Look up by hash: the plaintext token exists only in the emailed link.
+    const resetToken = await db.passwordResetToken.findUnique({
+      where: { token: hashResetToken(token) },
+    });
 
     if (!resetToken || Date.now() > resetToken.expires.getTime()) {
-      return { error: "Invalid or expired password reset token. Please request a new one." };
+      // One message for "never existed", "already used" and "expired" — each
+      // is equally unhelpful to an attacker and equally actionable for a user.
+      return { error: "This password reset link is invalid or has expired. Please request a new one." };
     }
 
     const passwordHash = await hashPassword(newPassword);
@@ -284,11 +359,9 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
       data: { passwordHash },
     });
 
-    try {
-      await db.passwordResetToken.deleteMany({ where: { email: resetToken.email } });
-    } catch {
-      // Ignore
-    }
+    // Single use: consume every token for this address, so the link cannot be
+    // replayed and any parallel request is invalidated too.
+    await db.passwordResetToken.deleteMany({ where: { email: resetToken.email } });
 
     await recordAuditLog({
       userId: resetToken.userId || undefined,

@@ -15,7 +15,16 @@ export type AuditAction =
   | "ROLE_CHANGE"
   | "USER_SUSPENDED"
   | "USER_ACTIVATED"
-  | "USER_DELETED";
+  | "USER_DELETED"
+  // Email system. Connecting the sending mailbox rebinds where all outbound
+  // mail originates, so it belongs in the same trail as role changes.
+  | "GMAIL_OAUTH_CONNECTED"
+  | "GMAIL_OAUTH_DISCONNECTED"
+  | "EMAIL_TEST_SENT"
+  | "CAMPAIGN_CREATED"
+  | "CAMPAIGN_UPDATED"
+  | "CAMPAIGN_SENT"
+  | "CAMPAIGN_CANCELLED";
 
 export async function recordAuditLog({
   userId,

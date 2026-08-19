@@ -244,6 +244,24 @@ export default function SignupPage() {
               </label>
             </div>
 
+            {/* Separate, unticked and optional. Bundling marketing consent into
+                the terms checkbox would not be freely given consent. */}
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                id="marketingConsent"
+                name="marketingConsent"
+                className="mt-0.5 size-4 rounded border-slate-300 text-[#2E6F40] focus:ring-[#2E6F40]"
+              />
+              <label
+                htmlFor="marketingConsent"
+                className="cursor-pointer select-none text-xs font-bold text-slate-600 dark:text-muted-foreground"
+              >
+                Email me occasional product news and offers.{" "}
+                <span className="font-medium text-slate-400">Optional — unsubscribe anytime.</span>
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}

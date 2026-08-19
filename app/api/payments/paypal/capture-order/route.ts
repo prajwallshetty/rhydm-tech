@@ -7,6 +7,7 @@ import { OrderStatus, PublishStatus } from "@/lib/generated/prisma/enums";
 import { calculateTotals } from "@/lib/store/totals";
 import { capturePayPalOrder } from "@/lib/services/paypal";
 import { addressSchema } from "@/lib/validation/checkout";
+import { EmailService } from "@/lib/email/service";
 
 const captureOrderSchema = z.object({
   orderID: z.string().min(1),
@@ -44,6 +45,22 @@ const captureOrderSchema = z.object({
     ).min(1),
   }),
 });
+
+/** What the admin needs to start reviewing a trade-in that rode in on a cart. */
+interface ExchangeNotificationPayload {
+  referenceNumber: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  deviceType: string;
+  brand: string;
+  model: string;
+  configuration: string;
+  condition: string;
+  description: string | null;
+  images: string[];
+  submittedAt: Date;
+}
 
 export async function POST(request: Request) {
   try {
@@ -160,7 +177,11 @@ export async function POST(request: Request) {
       ? referenceOrderNumber
       : `RH-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
-    const order = await db.$transaction(async (tx) => {
+    // The transaction returns the notification payload rather than assigning to
+    // an outer variable: a closure assignment defeats TypeScript's narrowing,
+    // and returning it keeps "what happened in the transaction" in one place.
+    const { order, exchangeNotification } = await db.$transaction(async (tx) => {
+      let exchangeNotification: ExchangeNotificationPayload | null = null;
       // Re-verify inventory inside the transaction for locking safety (prevent overselling)
       for (const item of items) {
         const prod = await tx.product.findUnique({
@@ -227,9 +248,23 @@ export async function POST(request: Request) {
 
         exchangeRequestId = exchangeRequest.id;
 
-        // Mock notify admin
-        const { notifyAdminNewRequest } = await import("@/lib/services/notifications");
-        await notifyAdminNewRequest(referenceNumber, `${ti.brand} ${ti.model}`);
+        // Admin alert is queued outside the transaction: an email call inside
+        // one holds a database connection open for the length of an HTTP
+        // round-trip, and a mail failure would roll back a captured payment.
+        exchangeNotification = {
+          referenceNumber,
+          contactName: shipping.fullName,
+          contactEmail: email,
+          contactPhone: phone || null,
+          deviceType: ti.deviceType,
+          brand: ti.brand,
+          model: ti.model,
+          configuration: [ti.configCpu, ti.configRam, ti.configStorage].filter(Boolean).join(" / "),
+          condition: ti.condition,
+          description: ti.description || null,
+          images: ti.images ?? [],
+          submittedAt: new Date(),
+        };
       }
 
       const finalTotalCents = totals.totalCents;
@@ -308,7 +343,7 @@ export async function POST(request: Request) {
         });
       }
 
-      return newOrder;
+      return { order: newOrder, exchangeNotification };
     });
 
     // Update user contact info if empty
@@ -325,6 +360,21 @@ export async function POST(request: Request) {
         // Ignore user update fail
       }
     }
+
+    // Both sends happen after the transaction commits and PayPal has reported
+    // COMPLETED, and neither is awaited into the response: a slow or failing
+    // mailbox must never turn a captured payment into an error for the
+    // customer. The order confirmation is idempotent, so a retry is safe.
+    if (exchangeNotification) {
+      void EmailService.sendExchangeAdminNotification({
+        ...exchangeNotification,
+        adminUrl: `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "")}/admin/exchanges`,
+      }).catch((err: unknown) => console.error("[checkout] exchange alert failed:", err));
+    }
+
+    void EmailService.sendOrderConfirmation(order.id).catch((err: unknown) => {
+      console.error("[checkout] order confirmation email failed:", err);
+    });
 
     // Generate secure invoice download token using the PayPal client secret as salt
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET || "default-secret";

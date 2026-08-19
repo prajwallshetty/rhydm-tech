@@ -14,6 +14,9 @@ const BACKEND_PREFIXES = [
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+  // Unsubscribe must resolve without a locale: the link is embedded in emails
+  // that outlive any locale prefix, and it must never require a session.
+  "/unsubscribe",
   "/api",
 ];
 
