@@ -31,7 +31,7 @@ export async function SiteFooter({ division }: { division: Division }) {
             </p>
 
             <p className="text-xs text-slate-400 font-medium pt-1">
-              {t("copyright", { company: "Rhydm Tech", year: new Date().getFullYear() })}
+              {t("copyright", { company: "Rhydm Technologies", year: new Date().getFullYear() })}
             </p>
           </div>
 
@@ -82,6 +82,16 @@ export async function SiteFooter({ division }: { division: Division }) {
                 {t("socials")}
               </h3>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
+                <li>
+                  <a
+                    href="https://wa.me/4915166196889"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-[#16A34A] transition-colors font-semibold text-[#16A34A]"
+                  >
+                    WhatsApp (+49 1516 6196889)
+                  </a>
+                </li>
                 {settings.socials.map((social) => (
                   <li key={social.label}>
                     <a
@@ -180,7 +190,7 @@ export async function SiteFooter({ division }: { division: Division }) {
         {/* Giant Bottom Brand Watermark — Soft Light Watermark in Plain White Theme */}
         <div className="mt-16 sm:mt-20 border-t border-slate-100 pt-6 pb-2 text-center overflow-hidden select-none">
           <span aria-hidden className="block text-[10vw] sm:text-[11vw] font-bold tracking-tight text-slate-200/70 leading-none whitespace-nowrap">
-            Rhydm Tech
+            Rhydm Technologies
           </span>
         </div>
       </div>

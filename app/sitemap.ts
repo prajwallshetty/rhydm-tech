@@ -48,9 +48,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/compliance",
   ];
 
-  // Fetch all published posts to include in the sitemap index
+  const storeRoutes = [
+    { path: "/refurbished/shop", priority: 0.8 },
+    { path: "/refurbished/categories", priority: 0.8 },
+    { path: "/refurbished/brands", priority: 0.8 },
+    { path: "/refurbished/deals", priority: 0.8 },
+    { path: "/refurbished/exchange", priority: 0.8 },
+    { path: "/refurbished/trade-in", priority: 0.8 },
+    { path: "/refurbished/sell-your-device", priority: 0.8 },
+    { path: "/refurbished/support", priority: 0.7 },
+  ];
+
+  // Fetch all published posts
   const posts = await db.post.findMany({
     where: { status: PublishStatus.PUBLISHED },
+    select: { slug: true, updatedAt: true },
+  });
+
+  // Fetch all products
+  const products = await db.product.findMany({
+    select: { slug: true, updatedAt: true },
+  });
+
+  // Fetch all brands
+  const brands = await db.brand.findMany({
     select: { slug: true },
   });
 
@@ -62,12 +83,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority,
       alternates: alternates(path),
     })),
+    ...storeRoutes.map(({ path, priority }) => ({
+      url: url(path, locale),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority,
+      alternates: alternates(path),
+    })),
     ...posts.map((post) => ({
       url: url(`/blog/${post.slug}`, locale),
-      lastModified: now,
+      lastModified: post.updatedAt || now,
       changeFrequency: "weekly" as const,
       priority: 0.6,
       alternates: alternates(`/blog/${post.slug}`),
+    })),
+    ...products.map((product) => ({
+      url: url(`/refurbished/products/${product.slug}`, locale),
+      lastModified: product.updatedAt || now,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+      alternates: alternates(`/refurbished/products/${product.slug}`),
+    })),
+    ...brands.map((brand) => ({
+      url: url(`/refurbished/brands/${brand.slug}`, locale),
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      alternates: alternates(`/refurbished/brands/${brand.slug}`),
     })),
     ...SERVICES.map((service) => ({
       url: url(`/disposal/services/${service.slug}`, locale),

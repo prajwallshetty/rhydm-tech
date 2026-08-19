@@ -115,6 +115,14 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
               <span>Start a trade-in</span>
               <ArrowRight className="h-4 w-4" />
             </button>
+            <a
+              href={`https://wa.me/4915166196889?text=${encodeURIComponent("Hello Rhydm Technologies, I would like to enquire about exchanging my device.")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-3.5 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-400 font-bold rounded-xl flex items-center gap-2 border border-emerald-500/30 transition-all text-sm"
+            >
+              <span>Enquire on WhatsApp</span>
+            </a>
           </div>
         </div>
       </section>

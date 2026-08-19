@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { Check, ShieldCheck, Award, Truck, RotateCcw } from "lucide-react";
+import { Check, ShieldCheck, Award, Truck, RotateCcw, MessageCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { ProductGallery } from "@/components/store/product-gallery";
@@ -320,13 +320,24 @@ export function VariantConfigurator({
                     Send us the details and our team will come back with an offer.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setWizardOpen(true)}
-                  className="min-h-11 shrink-0 rounded-xl border border-[#16A34A]/40 bg-white px-4 py-2.5 text-xs font-extrabold text-[#16A34A] transition-colors hover:bg-emerald-50 cursor-pointer"
-                >
-                  Start a trade-in
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setWizardOpen(true)}
+                    className="min-h-11 shrink-0 rounded-xl border border-[#16A34A]/40 bg-white px-4 py-2.5 text-xs font-extrabold text-[#16A34A] transition-colors hover:bg-emerald-50 cursor-pointer"
+                  >
+                    Start a trade-in
+                  </button>
+                  <a
+                    href={`https://wa.me/4915166196889?text=${encodeURIComponent(`Hello Rhydm Technologies, I have a question about ${product.name} (SKU: ${sku}).`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-emerald-600/30 bg-white px-4 py-2.5 text-xs font-extrabold text-emerald-700 transition-colors hover:bg-emerald-50"
+                  >
+                    <MessageCircle className="size-4 text-[#25D366]" />
+                    <span>Ask on WhatsApp</span>
+                  </a>
+                </div>
               </div>
             )}
           </div>

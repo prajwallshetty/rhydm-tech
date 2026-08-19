@@ -85,12 +85,12 @@ export const DIVISION_LIST: DivisionMeta[] = DIVISIONS.map(
 );
 
 export const COMPANY = {
-  name: "Rhydm Tech",
-  legalName: "Rhydm Tech",
+  name: "Rhydm Technologies",
+  legalName: "Rhydm Technologies",
   description:
-    "Rhydm Tech is a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, IT equipment recycling, trade-in/value recovery, and circular IT solutions.",
+    "Rhydm Technologies is a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, IT equipment recycling, trade-in/value recovery, and circular IT solutions.",
   email: "hello@rhydm.tech",
-  phone: "+4915560765557",
+  phone: "+49 1516 6196889",
   address: {
     street: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage",
     city: "Berlin",
@@ -104,6 +104,15 @@ export const COMPANY = {
   },
   openingHours: "Mo-Fr 09:00-18:00",
   foundingDate: "2024",
+} as const;
+
+export const WHATSAPP = {
+  number: "+49 1516 6196889",
+  cleanNumber: "4915166196889",
+  getUrl: (message?: string) => {
+    const base = "https://wa.me/4915166196889";
+    return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+  },
 } as const;
 
 /** Used by metadata, sitemap and JSON-LD. Override in production via env. */

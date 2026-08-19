@@ -8,8 +8,21 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // The admin panel and cart/checkout flows carry no SEO value.
-        disallow: ["/admin", "/api", "/private", "/refurbished/cart", "/refurbished/checkout"],
+        // The admin panel, private accounts, auth, and cart/checkout flows carry no search index value.
+        disallow: [
+          "/admin",
+          "/api",
+          "/private",
+          "/refurbished/cart",
+          "/refurbished/checkout",
+          "/refurbished/account",
+          "/account",
+          "/login",
+          "/signup",
+          "/forgot-password",
+          "/reset-password",
+          "/verify-email",
+        ],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

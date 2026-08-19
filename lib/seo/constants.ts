@@ -11,25 +11,28 @@
 // ---------------------------------------------------------------------------
 
 export const KEYWORDS_GLOBAL = [
-  "Rhydm Tech",
+  "Rhydm Technologies",
   "Rhydm",
-  "IT Asset Disposal",
-  "Refurbished IT Equipment",
-  "ITAD",
+  "Rhydm Tech",
+  "Rhydm Technologies Germany",
+  "IT Asset Disposal Germany",
+  "IT Asset Disposal Berlin",
+  "ITAD Berlin",
+  "Refurbished IT Equipment Germany",
   "Certified Refurbished",
-  "Secure Data Destruction",
-  "E-Waste Recycling",
-  "Berlin IT Services",
+  "Secure Data Destruction Berlin",
+  "E-Waste Recycling Germany",
 ] as const;
 
 export const KEYWORDS_DISPOSAL = [
-  "IT Asset Disposal",
+  "IT Asset Disposal Berlin",
   "IT Asset Disposition",
-  "ITAD",
+  "ITAD Berlin",
+  "ITAD Germany",
   "Secure Data Wiping",
   "Hard Drive Destruction",
-  "Data Destruction",
-  "E-Waste Recycling",
+  "Data Destruction Berlin",
+  "E-Waste Recycling Germany",
   "Corporate IT Disposal",
   "Enterprise ITAD",
   "Certified Data Destruction",
@@ -37,20 +40,22 @@ export const KEYWORDS_DISPOSAL = [
   "Asset Recovery",
   "NIST 800-88",
   "GDPR Compliant Disposal",
+  "Rhydm Technologies",
   "Rhydm Tech",
 ] as const;
 
 export const KEYWORDS_REFURBISHED = [
-  "Refurbished Laptops",
-  "Refurbished IT Equipment",
-  "Certified Refurbished",
+  "Refurbished Laptops Berlin",
+  "Refurbished IT Equipment Germany",
+  "Certified Refurbished Laptops",
   "Refurbished Desktops",
   "Refurbished Servers",
   "Refurbished Networking Equipment",
-  "Used Business Hardware",
+  "Used Business Hardware Germany",
   "Warranty Refurbished",
   "Grade A Refurbished",
   "Enterprise Refurbished Equipment",
+  "Rhydm Technologies",
   "Rhydm Tech",
 ] as const;
 

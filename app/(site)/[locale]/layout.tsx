@@ -7,6 +7,7 @@ import { setRequestLocale, getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme-provider";
 import { BackToTop } from "@/components/layout/back-to-top";
 import { CookieBanner } from "@/components/layout/cookie-banner";
+import { FloatingWhatsApp } from "@/components/common/floating-whatsapp";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Analytics } from "@/components/seo/analytics";
 import { routing } from "@/i18n/routing";
@@ -55,9 +56,11 @@ export const metadata: Metadata = {
     type: "website",
     siteName: COMPANY.name,
     locale: "en_US",
+    images: [{ url: `${SITE_URL}/brand/rhydm-logo.png`, width: 1200, height: 370, alt: COMPANY.name }],
   },
   twitter: {
     card: "summary_large_image",
+    images: [`${SITE_URL}/brand/rhydm-logo.png`],
   },
   robots: {
     index: true,
@@ -146,6 +149,7 @@ export default async function SiteLocaleLayout({
             {children}
             <CookieBanner />
             <BackToTop />
+            <FloatingWhatsApp />
           </ThemeProvider>
         </NextIntlClientProvider>
         <Analytics />

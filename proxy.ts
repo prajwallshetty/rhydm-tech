@@ -33,6 +33,15 @@ function stripLocale(pathname: string) {
 }
 
 export function proxy(request: NextRequest) {
+  const host = request.headers.get("host");
+  if (process.env.NODE_ENV === "production" && host && host.startsWith("www.")) {
+    const canonicalHost = host.replace(/^www\./, "");
+    return NextResponse.redirect(
+      new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, `https://${canonicalHost}`),
+      301,
+    );
+  }
+
   const { pathname, searchParams } = request.nextUrl;
   const adminSessionToken = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   const customerSessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
