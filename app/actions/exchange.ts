@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { isCloudinaryConfigured, signUpload } from "@/lib/media/cloudinary";
 import { createExchangeRequestInDb } from "@/lib/repositories/exchange";
+import { SITE_URL } from "@/lib/business";
 
 /**
  * Signs a Cloudinary upload request for exchange device images.
@@ -88,7 +89,7 @@ export async function submitExchangeRequestAction(payload: SubmitExchangeInput) 
     // Both emails are best-effort: a mailbox problem must never lose the
     // request the customer just submitted. Failures are recorded in EmailLog.
     const { EmailService } = await import("@/lib/email/service");
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+    const siteUrl = SITE_URL.replace(/\/+$/, "");
 
     try {
       await EmailService.sendExchangeAdminNotification({

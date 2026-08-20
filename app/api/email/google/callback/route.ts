@@ -10,6 +10,7 @@ import {
   GMAIL_SEND_SCOPE,
   readGmailConfig,
 } from "@/lib/email/oauth";
+import { SITE_URL } from "@/lib/business";
 
 /**
  * Completes the Gmail sending authorisation.
@@ -23,7 +24,7 @@ export const dynamic = "force-dynamic";
 const STATE_COOKIE = "rhydm_gmail_oauth_state";
 
 function settingsRedirect(params: Record<string, string>) {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const base = SITE_URL;
   const url = new URL("/admin/settings/email", base);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   return NextResponse.redirect(url);

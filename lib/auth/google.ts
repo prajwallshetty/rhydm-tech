@@ -1,10 +1,11 @@
 import { db } from "@/lib/db";
 import { createSession } from "@/lib/auth/session";
 import { recordAuditLog } from "@/lib/auth/audit";
+import { SITE_URL } from "@/lib/business";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
-const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/google/callback`;
+const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL || SITE_URL}/api/auth/google/callback`;
 
 export function getGoogleAuthUrl(): string {
   if (!GOOGLE_CLIENT_ID) {

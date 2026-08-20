@@ -176,14 +176,14 @@ export function createServiceMetadata(service: {
   summary: string;
 }): Metadata {
   return createPageMetadata({
-    title: `${service.title} — Rhydm Tech ITAD`,
+    title: `${service.title} — Rhydm Technologies ITAD`,
     description: service.summary.slice(0, 160),
     path: `/disposal/services/${service.slug}`,
     keywords: [
       service.title,
       "IT Asset Disposal",
       "ITAD",
-      "Rhydm Tech",
+      "Rhydm Technologies",
     ],
   });
 }

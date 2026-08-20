@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { getAdminSession } from "@/lib/auth/admin";
 import { hasPermission } from "@/lib/auth/rbac";
 import { buildGmailConsentUrl, EmailConfigError } from "@/lib/email/oauth";
+import { SITE_URL } from "@/lib/business";
 
 /**
  * Starts the one-time Gmail sending authorisation.
@@ -34,7 +35,7 @@ export async function GET() {
       return NextResponse.redirect(
         new URL(
           `/admin/settings/email?error=${encodeURIComponent(err.message)}`,
-          process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          SITE_URL,
         ),
       );
     }

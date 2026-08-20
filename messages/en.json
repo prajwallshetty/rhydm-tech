@@ -1,7 +1,7 @@
 {
   "gateway": {
-    "title": "Rhydm Tech — Circular IT Solutions",
-    "brandDescription": "Rhydm Tech is a Berlin-based technology company specializing in IT asset disposition, secure data destruction, circular IT solutions, and premium refurbished technology.",
+    "title": "Rhydm Technologies — Circular IT Solutions",
+    "brandDescription": "Rhydm Technologies is a Berlin-based technology company specializing in IT asset disposition, secure data destruction, circular IT solutions, and premium refurbished technology.",
     "subtitle": "We provide secure IT asset disposal services and premium refurbished electronics.",
     "switchNote": "You can switch between services at any time from the top navigation header.",
     "disposal": {
@@ -82,8 +82,8 @@
     "signUp": "Sign Up",
     "login": "Login",
     "forgotPassword": "Forgot Password",
-    "copyright": "© {year} Rhydm Tech. All rights reserved.",
-    "brandDescription": "Rhydm Tech — Circular IT solutions, secure IT asset disposal and refurbished technology."
+    "copyright": "© {year} Rhydm Technologies. All rights reserved.",
+    "brandDescription": "Rhydm Technologies — Circular IT solutions, secure IT asset disposal and refurbished technology."
   },
   "common": {
     "loading": "Loading…",

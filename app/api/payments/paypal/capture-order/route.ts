@@ -8,6 +8,7 @@ import { calculateTotals } from "@/lib/store/totals";
 import { capturePayPalOrder } from "@/lib/services/paypal";
 import { addressSchema } from "@/lib/validation/checkout";
 import { EmailService } from "@/lib/email/service";
+import { SITE_URL } from "@/lib/business";
 
 const captureOrderSchema = z.object({
   orderID: z.string().min(1),
@@ -368,7 +369,7 @@ export async function POST(request: Request) {
     if (exchangeNotification) {
       void EmailService.sendExchangeAdminNotification({
         ...exchangeNotification,
-        adminUrl: `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "")}/admin/exchanges`,
+        adminUrl: `${SITE_URL.replace(/\/+$/, "")}/admin/exchanges`,
       }).catch((err: unknown) => console.error("[checkout] exchange alert failed:", err));
     }
 

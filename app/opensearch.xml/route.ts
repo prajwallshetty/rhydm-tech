@@ -28,7 +28,7 @@ export function GET() {
   <ShortName>${xmlEscape(COMPANY.name)}</ShortName>
   <Description>${xmlEscape(`Search refurbished IT equipment at ${COMPANY.name}`)}</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="96" height="96" type="image/png">${xmlEscape(`${SITE_URL}/brand/icon-96.png`)}</Image>
+  <Image width="96" height="96" type="image/png">${xmlEscape(`${SITE_URL}/favicon/favicon-96x96.png`)}</Image>
   <Url type="text/html" method="get" template="${xmlEscape(searchUrl)}" />
   <moz:SearchForm xmlns:moz="http://www.mozilla.org/2006/browser/search/">${xmlEscape(`${SITE_URL}/${routing.defaultLocale}/refurbished/search`)}</moz:SearchForm>
 </OpenSearchDescription>`;

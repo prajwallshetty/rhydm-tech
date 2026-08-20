@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { recordAuditLog } from "@/lib/auth/audit";
 import { hasPermission } from "@/lib/auth/rbac";
 import { db } from "@/lib/db";
+import { SITE_URL } from "@/lib/business";
 import {
   drainCampaign,
   loadCampaignProducts,
@@ -189,7 +190,7 @@ export async function sendCampaignTestAction(
     bodyHtml: parsed.data.bodyHtml,
     bodyText: parsed.data.bodyText ?? null,
     products,
-    unsubscribeUrl: `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "")}/unsubscribe`,
+    unsubscribeUrl: `${SITE_URL.replace(/\/+$/, "")}/unsubscribe`,
   });
 
   return result.ok ? { ok: true } : { ok: false, error: result.error ?? "Test send failed." };

@@ -116,5 +116,16 @@ export const WHATSAPP = {
 } as const;
 
 /** Used by metadata, sitemap and JSON-LD. Override in production via env. */
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+export const SITE_URL = (() => {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const isProd = process.env.NODE_ENV === "production";
+  
+  if (isProd) {
+    if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+      return envUrl;
+    }
+    return "https://rhydm-tech.com";
+  }
+  
+  return envUrl ?? "http://localhost:3000";
+})();

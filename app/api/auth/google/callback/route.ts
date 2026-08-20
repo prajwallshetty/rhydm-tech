@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processGoogleUser } from "@/lib/auth/google";
 import { Role } from "@/lib/generated/prisma/enums";
+import { SITE_URL } from "@/lib/business";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID || "",
         client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/google/callback`,
+        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL || SITE_URL}/api/auth/google/callback`,
         grant_type: "authorization_code",
       }),
     });

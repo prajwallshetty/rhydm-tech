@@ -1,7 +1,7 @@
 {
   "gateway": {
-    "title": "Rhydm Tech — Circular IT Solutions",
-    "brandDescription": "Rhydm Tech ist ein in Berlin ansässiges Technologieunternehmen, das sich auf IT-Asset-Disposition (ITAD), sichere Datenvernichtung, zirkuläre IT-Lösungen und hochwertige generalüberholte IT-Geräte spezialisiert hat.",
+    "title": "Rhydm Technologies — Circular IT Solutions",
+    "brandDescription": "Rhydm Technologies ist ein in Berlin ansässiges Technologieunternehmen, das sich auf IT-Asset-Disposition (ITAD), sichere Datenvernichtung, zirkuläre IT-Lösungen und hochwertige generalüberholte IT-Geräte spezialisiert hat.",
     "subtitle": "Wir bieten sichere IT-Asset-Entsorgung und hochwertige generalüberholte Elektronik.",
     "switchNote": "Sie können jederzeit über die Navigation zwischen den Services wechseln.",
     "disposal": {
@@ -82,8 +82,8 @@
     "signUp": "Registrieren",
     "login": "Anmelden",
     "forgotPassword": "Passwort vergessen",
-    "copyright": "© {year} Rhydm Tech. Alle Rechte vorbehalten.",
-    "brandDescription": "Rhydm Tech — Zirkuläre IT-Lösungen, sichere IT-Asset-Entsorgung und generalüberholte Technologie."
+    "copyright": "© {year} Rhydm Technologies. Alle Rechte vorbehalten.",
+    "brandDescription": "Rhydm Technologies — Zirkuläre IT-Lösungen, sichere IT-Asset-Entsorgung und generalüberholte Technologie."
   },
   "common": {
     "loading": "Wird geladen…",

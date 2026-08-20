@@ -1242,7 +1242,7 @@ export async function getAdminSiteSettings(): Promise<SiteSettings> {
     linkedinUrl: "https://linkedin.com/company/rhydmtech",
     githubUrl: "https://github.com/rhydmtech",
     logoUrl: "/logo.svg",
-    faviconUrl: "/favicon.ico",
+    faviconUrl: "/favicon/favicon.ico",
   }) as SiteSettings;
 }
 

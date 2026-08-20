@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { SITE_URL } from "@/lib/business";
 import { hashPassword, comparePassword } from "@/lib/auth/bcrypt";
 import { createSession, destroySession, getSession } from "@/lib/auth/session";
 import { recordAuditLog } from "@/lib/auth/audit";
@@ -264,7 +265,7 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
           await db.passwordResetToken.create({
             data: { userId: user.id, email: user.email, token: tokenHash, expires },
           });
-          const resetUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
+          const resetUrl = `${SITE_URL.replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
           console.log(`[auth] [DEV FALLBACK] Reset link for ${email}: ${resetUrl}`);
         }
       }
@@ -296,7 +297,7 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
       action: "PASSWORD_RESET_REQUEST",
     });
 
-    const resetUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
+    const resetUrl = `${SITE_URL.replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
 
     const sent = await EmailService.sendPasswordReset({
       to: user.email,

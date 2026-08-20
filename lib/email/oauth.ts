@@ -1,5 +1,7 @@
 import "server-only";
 
+import { SITE_URL } from "@/lib/business";
+
 /**
  * Gmail sending OAuth — deliberately separate from lib/auth/google.ts.
  *
@@ -236,7 +238,7 @@ export function invalidateAccessToken() {
 
 /** Absolute callback URL. Must match a redirect URI registered in Google Cloud. */
 export function getGmailRedirectUri(): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const base = SITE_URL.replace(/\/+$/, "");
   return `${base}/api/email/google/callback`;
 }
 
