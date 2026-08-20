@@ -132,6 +132,23 @@ export async function saveCampaignAction(
   }
 }
 
+/** Saves a campaign draft and immediately queues it for sending in one click. */
+export async function saveAndSendCampaignAction(
+  input: CampaignInput & { id?: string },
+): Promise<{ ok: true; id: string; total: number } | { ok: false; error: string }> {
+  const saveResult = await saveCampaignAction(input);
+  if (!saveResult.ok) {
+    return saveResult;
+  }
+
+  const sendResult = await sendCampaignAction(saveResult.id);
+  if (!sendResult.ok) {
+    return sendResult;
+  }
+
+  return { ok: true, id: saveResult.id, total: sendResult.total };
+}
+
 /** How many people a given audience currently resolves to. */
 export async function countAudienceAction(
   audience: CampaignInput["audience"],

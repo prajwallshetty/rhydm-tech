@@ -19,6 +19,7 @@ import {
   countAudienceAction,
   previewCampaignAction,
   saveCampaignAction,
+  saveAndSendCampaignAction,
   sendCampaignTestAction,
   type CampaignInput,
 } from "@/app/(backend)/(admin)/admin/marketing/actions";
@@ -66,6 +67,7 @@ export function CampaignEditor({
   const [saving, startSaving] = useTransition();
   const [previewing, startPreviewing] = useTransition();
   const [testing, startTesting] = useTransition();
+  const [sendingDirectly, startSendingDirectly] = useTransition();
 
   // Keep the audience size live so the admin always knows the blast radius
   // before they commit to sending.
@@ -107,6 +109,19 @@ export function CampaignEditor({
       setFeedback({ kind: "ok", message: "Draft saved." });
       if (!campaignId) router.replace(`/admin/marketing/${result.id}`);
       else router.refresh();
+    });
+  };
+
+  const handleSaveAndSend = () => {
+    setFeedback(null);
+    startSendingDirectly(async () => {
+      const result = await saveAndSendCampaignAction({ ...form, id: campaignId });
+      if (!result.ok) {
+        setFeedback({ kind: "error", message: result.error });
+        return;
+      }
+      setFeedback({ kind: "ok", message: `Campaign sent to ${result.total} recipients!` });
+      setTimeout(() => router.replace("/admin/marketing"), 1200);
     });
   };
 
@@ -353,8 +368,17 @@ export function CampaignEditor({
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
+              onClick={handleSaveAndSend}
+              disabled={sendingDirectly || saving || testing}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#16A34A] px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              {sendingDirectly ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              <span>{sendingDirectly ? "Sending…" : "Save & Send Now"}</span>
+            </button>
+            <button
+              type="button"
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || sendingDirectly}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}

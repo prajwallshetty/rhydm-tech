@@ -61,10 +61,11 @@ export interface OrderEmailInput {
 }
 
 function orderItemRow(item: OrderEmailItem): string {
-  const thumb = item.imageUrl
-    ? `<img src="${esc(item.imageUrl)}" width="56" height="56" alt=""
-           style="display:block;width:56px;height:56px;border-radius:8px;border:1px solid ${BRAND.hairline};object-fit:cover;">`
-    : `<div style="width:56px;height:56px;border-radius:8px;background:${BRAND.surface};border:1px solid ${BRAND.hairline};"></div>`;
+  const rawUrl = item.imageUrl || "/brand/rhydm-mark.png";
+  const imageUrl = rawUrl.startsWith("http") ? rawUrl : emailUrl(rawUrl);
+
+  const thumb = `<img src="${esc(imageUrl)}" width="56" height="56" alt="${esc(item.name)}"
+         style="display:block;width:56px;height:56px;border-radius:8px;border:1px solid ${BRAND.hairline};object-fit:cover;">`;
 
   return `
   <tr>
