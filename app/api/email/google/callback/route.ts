@@ -53,9 +53,14 @@ export async function GET(request: Request) {
     return response;
   };
 
+  const errorDescription = url.searchParams.get("error_description");
+
   if (oauthError) {
+    console.error(`[GMAIL_OAUTH_CALLBACK] Google returned error "${oauthError}": ${errorDescription || "No description provided"}`);
     return clearState(
-      settingsRedirect({ error: `Google returned "${oauthError}". Nothing was changed.` }),
+      settingsRedirect({
+        error: `Google returned "${oauthError}"${errorDescription ? `: ${errorDescription}` : ""}. Nothing was changed.`,
+      }),
     );
   }
 
