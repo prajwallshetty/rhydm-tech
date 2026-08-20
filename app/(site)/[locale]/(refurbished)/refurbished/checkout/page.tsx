@@ -78,7 +78,7 @@ export default function CheckoutPage() {
       }
     });
 
-    getCartProducts(cart.map((l) => l.slug)).then((resolved) => {
+    getCartProducts(cart.map((l) => ({ slug: l.slug, variantId: l.variantId }))).then((resolved) => {
       if (!cancelled) {
         setProducts(resolved);
         setLoading(false);
@@ -176,6 +176,7 @@ export default function CheckoutPage() {
                 lines: cart.map((line) => ({
                   slug: line.slug,
                   quantity: line.quantity,
+                  variantId: line.variantId || null,
                   tradeIn: line.tradeIn || null,
                 })),
               }),
@@ -214,6 +215,7 @@ export default function CheckoutPage() {
                   lines: cart.map((line) => ({
                     slug: line.slug,
                     quantity: line.quantity,
+                    variantId: line.variantId || null,
                     tradeIn: line.tradeIn || null,
                   })),
                 },
@@ -270,7 +272,11 @@ export default function CheckoutPage() {
 
   const lines = cart
     .map((line) => {
-      const product = products.find((p) => p.slug === line.slug);
+      const product = products.find(
+        (p) =>
+          p.slug === line.slug &&
+          (p.variantId || null) === (line.variantId || null)
+      );
       return product ? { ...line, product } : null;
     })
     .filter((l): l is NonNullable<typeof l> => l !== null);
@@ -321,6 +327,7 @@ export default function CheckoutPage() {
       lines: cart.map((line) => ({
         slug: line.slug,
         quantity: line.quantity,
+        variantId: line.variantId || null,
         tradeIn: line.tradeIn || null,
       })),
     };

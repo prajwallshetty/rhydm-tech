@@ -112,6 +112,9 @@ export default async function SiteLocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
+  const { getGlobalLogoUrl, LogoProvider } = await import("@/components/brand/logo-provider");
+  const logoUrl = await getGlobalLogoUrl();
+
   return (
     // `suppressHydrationWarning` is required by next-themes, which writes the
     // theme class onto <html> before React hydrates.
@@ -145,7 +148,9 @@ export default async function SiteLocaleLayout({
             forcedTheme="light"
             disableTransitionOnChange
           >
-            {children}
+            <LogoProvider logoUrl={logoUrl}>
+              {children}
+            </LogoProvider>
             <CookieBanner />
             <BackToTop />
             <FloatingWhatsApp />

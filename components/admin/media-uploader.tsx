@@ -39,10 +39,14 @@ export function MediaUploader({
   folder,
   onUploaded,
   compact = false,
+  accept,
+  maxBytes,
 }: {
   folder: MediaFolder;
   onUploaded?: (asset: UploadedAsset) => void;
   compact?: boolean;
+  accept?: string;
+  maxBytes?: number;
 }) {
   const [items, setItems] = useState<UploadItem[]>([]);
   const [dragOver, setDragOver] = useState(false);
@@ -129,8 +133,25 @@ export function MediaUploader({
 
   const addFiles = useCallback(
     (files: FileList | File[]) => {
+      const limitBytes = maxBytes || MAX_BYTES;
+      const isAccepted = (file: File) => {
+        if (!accept) return true;
+        const types = accept.split(",").map((t) => t.trim().toLowerCase());
+        const fileType = file.type.toLowerCase();
+        const fileName = file.name.toLowerCase();
+        return types.some((type) => {
+          if (type.startsWith(".")) {
+            return fileName.endsWith(type);
+          }
+          if (type.endsWith("/*")) {
+            return fileType.startsWith(type.slice(0, -2));
+          }
+          return fileType === type;
+        });
+      };
+
       for (const file of Array.from(files)) {
-        if (file.size > MAX_BYTES) {
+        if (!isAccepted(file)) {
           setItems((prev) => [
             ...prev,
             {
@@ -138,7 +159,21 @@ export function MediaUploader({
               file,
               progress: 0,
               status: "error",
-              error: "File exceeds the 50MB limit.",
+              error: "Invalid file format.",
+            },
+          ]);
+          continue;
+        }
+        if (file.size > limitBytes) {
+          const mb = (limitBytes / (1024 * 1024)).toFixed(0);
+          setItems((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              file,
+              progress: 0,
+              status: "error",
+              error: `File exceeds the ${mb}MB limit.`,
             },
           ]);
           continue;
@@ -153,7 +188,7 @@ export function MediaUploader({
         void uploadOne(item);
       }
     },
-    [uploadOne],
+    [uploadOne, accept, maxBytes],
   );
 
   return (
@@ -192,13 +227,15 @@ export function MediaUploader({
           Drop files here or click to upload
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Images, video (MP4/MOV/WEBM), PDF, DOCX · to /{folder} · max 50MB
+          {accept
+            ? "Allowed formats: " + accept.split(",").map((f) => f.replace("image/", "")).join(", ")
+            : "Images, video (MP4/MOV/WEBM), PDF, DOCX"} · to /{folder} · max {((maxBytes || MAX_BYTES) / (1024 * 1024)).toFixed(0)}MB
         </p>
         <input
           ref={inputRef}
           type="file"
           multiple
-          accept={ACCEPT}
+          accept={accept || ACCEPT}
           className="hidden"
           onChange={(e) => {
             if (e.target.files) addFiles(e.target.files);

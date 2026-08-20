@@ -111,6 +111,8 @@ export interface LayoutOptions {
   previewText?: string;
   /** Adds an unsubscribe line. Marketing only — never on transactional mail. */
   unsubscribeUrl?: string;
+  /** Custom site logo URL */
+  logoUrl?: string | null;
 }
 
 /**
@@ -120,8 +122,8 @@ export interface LayoutOptions {
  * message stays small and Gmail's proxy can cache it.
  */
 export function renderLayout(bodyHtml: string, options: LayoutOptions = {}): string {
-  const { previewText, unsubscribeUrl } = options;
-  const logo = emailUrl("/brand/rhydm-logo.png");
+  const { previewText, unsubscribeUrl, logoUrl } = options;
+  const logo = logoUrl || emailUrl("/brand/rhydm-logo.png");
   const year = new Date().getFullYear();
 
   // Hidden preheader. The trailing entities stop clients from pulling body copy

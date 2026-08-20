@@ -280,7 +280,7 @@ export async function GET(
   <div class="container">
     <div class="header">
       <div class="logo-container">
-        <h1>Rhydm Tech</h1>
+        <h1>Rhydm Technologies</h1>
         <p>Premium Refurbished Business Hardware</p>
       </div>
       <div class="invoice-meta">
@@ -298,7 +298,7 @@ export async function GET(
     <div class="address-grid">
       <div class="address-block">
         <h3>Vendor</h3>
-        <p class="name">Rhydm Tech GmbH</p>
+        <p class="name">Rhydm Technologies GmbH</p>
         <p>Humboldtstraße 120</p>
         <p>22083 Hamburg, Germany</p>
         <p>Email: support@rhydm.tech</p>
@@ -386,7 +386,7 @@ export async function GET(
     </div>
 
     <div class="footer-note">
-      <p>Thank you for choosing Rhydm Tech. For questions or support, contact support@rhydm.tech</p>
+      <p>Thank you for choosing Rhydm Technologies. For questions or support, contact support@rhydm.tech</p>
     </div>
   </div>
 </body>

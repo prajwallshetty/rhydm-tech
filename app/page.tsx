@@ -18,15 +18,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GatewayPage() {
-  return (
-    <main className="relative flex min-h-dvh flex-1 flex-col items-center justify-center overflow-hidden px-6 py-16 sm:py-20">
-      <GatewayBackdrop />
+export default async function GatewayPage() {
+  const { getGlobalLogoUrl, LogoProvider } = await import("@/components/brand/logo-provider");
+  const logoUrl = await getGlobalLogoUrl();
 
-      <div className="relative w-full max-w-5xl">
-        <FadeIn className="flex justify-center">
-          <Logo className="h-12 sm:h-14" priority />
-        </FadeIn>
+  return (
+    <LogoProvider logoUrl={logoUrl}>
+      <main className="relative flex min-h-dvh flex-1 flex-col items-center justify-center overflow-hidden px-6 py-16 sm:py-20">
+        <GatewayBackdrop />
+
+        <div className="relative w-full max-w-5xl">
+          <FadeIn className="flex justify-center">
+            <Logo className="h-12 sm:h-14" priority />
+          </FadeIn>
 
         <FadeIn delay={0.1} className="mt-12 text-center sm:mt-14">
           <h1 className="mx-auto max-w-2xl text-pretty text-4xl font-semibold tracking-tight sm:text-5xl md:text-[3.5rem] md:leading-[1.05]">
@@ -51,5 +55,6 @@ export default function GatewayPage() {
         </FadeIn>
       </div>
     </main>
+    </LogoProvider>
   );
 }

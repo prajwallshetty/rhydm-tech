@@ -44,6 +44,7 @@ export const checkoutSchema = z.object({
       z.object({
         slug: z.string().min(1),
         quantity: z.number().int().min(1).max(99),
+        variantId: z.string().optional().nullable(),
         /**
          * Legacy: trade-ins used to ride along on a cart line and discount the
          * order. Trade-ins are now a separate, manually priced request, so this

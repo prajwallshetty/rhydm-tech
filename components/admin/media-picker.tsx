@@ -22,12 +22,16 @@ export function MediaPicker({
   onSelect,
   triggerLabel = "Choose image",
   className,
+  accept,
+  maxBytes,
 }: {
   /** Where "Upload new" files land. */
   folder: MediaFolder;
   onSelect: (asset: PickedAsset) => void;
   triggerLabel?: string;
   className?: string;
+  accept?: string;
+  maxBytes?: number;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -49,6 +53,8 @@ export function MediaPicker({
         <PickerDialog
           folder={folder}
           onClose={() => setOpen(false)}
+          accept={accept}
+          maxBytes={maxBytes}
           onSelect={(asset) => {
             onSelect(asset);
             setOpen(false);
@@ -63,10 +69,14 @@ function PickerDialog({
   folder,
   onClose,
   onSelect,
+  accept,
+  maxBytes,
 }: {
   folder: MediaFolder;
   onClose: () => void;
   onSelect: (asset: PickedAsset) => void;
+  accept?: string;
+  maxBytes?: number;
 }) {
   const [tab, setTab] = useState<"library" | "upload">("library");
   const [assets, setAssets] = useState<PickerAsset[] | null>(null);
@@ -143,7 +153,7 @@ function PickerDialog({
 
         <div className="flex-1 overflow-y-auto p-5">
           {tab === "upload" ? (
-            <MediaUploader folder={folder} onUploaded={handleUploaded} compact />
+            <MediaUploader folder={folder} onUploaded={handleUploaded} accept={accept} maxBytes={maxBytes} compact />
           ) : (
             <>
               <div className="relative mb-4">

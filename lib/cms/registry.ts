@@ -381,6 +381,22 @@ export const SECTION_DEFS: SectionDef[] = [
     },
   },
   {
+    key: "site.logo",
+    division: "DISPOSAL",
+    label: "Logo Management",
+    renderedOn: "Header, Footer, and Emails",
+    fields: [
+      {
+        type: "text",
+        key: "logoUrl",
+        label: "Site Logo",
+      },
+    ],
+    defaults: {
+      logoUrl: "",
+    },
+  },
+  {
     key: "site.legal.privacy",
     division: "DISPOSAL",
     label: "Legal — Privacy Policy",

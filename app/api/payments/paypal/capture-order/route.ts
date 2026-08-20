@@ -23,6 +23,7 @@ const captureOrderSchema = z.object({
       z.object({
         slug: z.string().min(1),
         quantity: z.number().int().min(1).max(99),
+        variantId: z.string().optional().nullable(),
         tradeIn: z.object({
           deviceType: z.string(),
           brand: z.string(),
@@ -101,7 +102,46 @@ export async function POST(request: Request) {
       );
     }
 
-    const items: Array<{ productId: string; name: string; sku: string; priceCents: number; quantity: number }> = [];
+    const productIds = products.map((p) => p.id);
+    const variants = await db.productVariant.findMany({
+      where: {
+        productId: { in: productIds },
+        status: PublishStatus.PUBLISHED,
+      },
+      include: {
+        optionValues: {
+          include: {
+            optionValue: {
+              include: {
+                option: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const mappedVariants = variants.map((v) => {
+      const selectedOptions: Record<string, string> = {};
+      v.optionValues.forEach((ov) => {
+        selectedOptions[ov.optionValue.option.name] = ov.optionValue.value;
+      });
+      return {
+        ...v,
+        selectedOptions,
+      };
+    });
+
+    const items: Array<{
+      productId: string;
+      variantId: string | null;
+      variantSnapshot: any;
+      name: string;
+      sku: string;
+      priceCents: number;
+      quantity: number;
+    }> = [];
+
     for (const line of lines) {
       const product = products.find((p) => p.slug === line.slug);
       
@@ -112,18 +152,47 @@ export async function POST(request: Request) {
         );
       }
 
-      if (product.stock < line.quantity) {
+      let priceCents = product.priceCents;
+      let sku = product.sku;
+      let stock = product.stock;
+      let name = product.name;
+      let variantSnapshot: any = null;
+
+      if (line.variantId) {
+        const variant = mappedVariants.find((v) => v.id === line.variantId && v.productId === product.id);
+        if (variant) {
+          priceCents = variant.priceCents ?? priceCents;
+          sku = variant.sku || sku;
+          stock = variant.stock;
+          variantSnapshot = {
+            variantId: variant.id,
+            sku: variant.sku,
+            priceCents: variant.priceCents,
+            selectedOptions: variant.selectedOptions,
+          };
+          const optionsStr = Object.entries(variant.selectedOptions)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(", ");
+          if (optionsStr) {
+            name = `${product.name} (${optionsStr})`;
+          }
+        }
+      }
+
+      if (stock < line.quantity) {
         return NextResponse.json(
-          { error: `Overselling prevented: Only ${product.stock} units of ${product.name} are available.` },
+          { error: `Overselling prevented: Only ${stock} units of ${name} are available.` },
           { status: 400 }
         );
       }
 
       items.push({
         productId: product.id,
-        name: product.name,
-        sku: product.sku,
-        priceCents: product.priceCents,
+        variantId: line.variantId || null,
+        variantSnapshot: variantSnapshot,
+        name,
+        sku,
+        priceCents,
         quantity: line.quantity,
       });
     }
@@ -185,13 +254,22 @@ export async function POST(request: Request) {
       let exchangeNotification: ExchangeNotificationPayload | null = null;
       // Re-verify inventory inside the transaction for locking safety (prevent overselling)
       for (const item of items) {
-        const prod = await tx.product.findUnique({
-          where: { id: item.productId },
-          select: { stock: true, name: true },
-        });
-
-        if (!prod || prod.stock < item.quantity) {
-          throw new Error(`Inventory depleted for ${item.name} during capture process.`);
+        if (item.variantId) {
+          const varnt = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { stock: true },
+          });
+          if (!varnt || varnt.stock < item.quantity) {
+            throw new Error(`Inventory depleted for ${item.name} during capture process.`);
+          }
+        } else {
+          const prod = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true },
+          });
+          if (!prod || prod.stock < item.quantity) {
+            throw new Error(`Inventory depleted for ${item.name} during capture process.`);
+          }
         }
       }
 
@@ -294,6 +372,8 @@ export async function POST(request: Request) {
           items: {
             create: items.map((item) => ({
               productId: item.productId,
+              variantId: item.variantId,
+              variantSnapshot: item.variantSnapshot ? (item.variantSnapshot as any) : undefined,
               name: item.name,
               sku: item.sku,
               priceCents: item.priceCents,
@@ -321,27 +401,45 @@ export async function POST(request: Request) {
 
       // Reduce stock and create movements
       for (const item of items) {
-        const prod = await tx.product.findUnique({
-          where: { id: item.productId },
-          select: { stock: true },
-        });
-
-        const newStock = (prod?.stock ?? 0) - item.quantity;
-
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: newStock },
-        });
-
-        await tx.stockMovement.create({
-          data: {
-            productId: item.productId,
-            delta: -item.quantity,
-            balance: newStock,
-            reason: "Customer Purchase",
-            note: `Order ${orderNumber}`,
-          },
-        });
+        if (item.variantId) {
+          const varnt = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { stock: true },
+          });
+          const newStock = (varnt?.stock ?? 0) - item.quantity;
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: newStock },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId,
+              delta: -item.quantity,
+              balance: newStock,
+              reason: "Customer Purchase (Variant)",
+              note: `Order ${orderNumber} Variant ${item.variantId}`,
+            },
+          });
+        } else {
+          const prod = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true },
+          });
+          const newStock = (prod?.stock ?? 0) - item.quantity;
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: newStock },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId,
+              delta: -item.quantity,
+              balance: newStock,
+              reason: "Customer Purchase",
+              note: `Order ${orderNumber}`,
+            },
+          });
+        }
       }
 
       return { order: newOrder, exchangeNotification };

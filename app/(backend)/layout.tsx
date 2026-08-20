@@ -51,9 +51,12 @@ export const viewport: Viewport = {
  * under app/(site)/[locale] with their own root layout — Next.js allows one
  * root layout per top-level route group.
  */
-export default function BackendLayout({
+export default async function BackendLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { getGlobalLogoUrl, LogoProvider } = await import("@/components/brand/logo-provider");
+  const logoUrl = await getGlobalLogoUrl();
+
   return (
     <html
       lang="en"
@@ -69,7 +72,9 @@ export default function BackendLayout({
             forcedTheme="light"
             disableTransitionOnChange
           >
-            {children}
+            <LogoProvider logoUrl={logoUrl}>
+              {children}
+            </LogoProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

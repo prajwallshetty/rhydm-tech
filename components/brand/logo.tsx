@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -14,6 +16,8 @@ import { COMPANY } from "@/lib/business";
  * actions — `variant="auto"` swaps in the emblem instead of shrinking the
  * lockup into an unreadable smudge.
  */
+import { useLogo } from "./logo-provider";
+
 const LOCKUP = { src: "/brand/rhydm-logo.png", width: 1200, height: 370 };
 const MARK = { src: "/brand/rhydm-mark.png", width: 256, height: 256 };
 
@@ -41,6 +45,17 @@ export function Logo({
   priority = false,
   alt = COMPANY.name,
 }: LogoProps) {
+  const logoUrl = useLogo();
+
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt={alt}
+        className={cn("h-10 w-auto object-contain", className)}
+      />
+    );
+  }
 
   if (variant === "mark") {
     return (

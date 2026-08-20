@@ -61,7 +61,7 @@ export interface OrderEmailInput {
 }
 
 function orderItemRow(item: OrderEmailItem): string {
-  const rawUrl = item.imageUrl || "/brand/rhydm-mark.png";
+  const rawUrl = item.imageUrl || "/brand/placeholder-product.png";
   const imageUrl = rawUrl.startsWith("http") ? rawUrl : emailUrl(rawUrl);
 
   const thumb = `<img src="${esc(imageUrl)}" width="56" height="56" alt="${esc(item.name)}"
@@ -80,7 +80,7 @@ function orderItemRow(item: OrderEmailItem): string {
   </tr>`;
 }
 
-export function renderOrderConfirmation(input: OrderEmailInput): RenderedEmail {
+export function renderOrderConfirmation(input: OrderEmailInput, logoUrl?: string | null): RenderedEmail {
   const addr = input.shippingAddress;
   const dateLabel = new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
@@ -151,6 +151,7 @@ export function renderOrderConfirmation(input: OrderEmailInput): RenderedEmail {
 
   const html = renderLayout(body, {
     previewText: `Order ${input.orderNumber} confirmed — ${money(input.totalCents)}`,
+    logoUrl,
   });
 
   return {
@@ -168,7 +169,7 @@ export function renderPasswordReset(input: {
   name: string;
   resetUrl: string;
   expiresInMinutes: number;
-}): RenderedEmail {
+}, logoUrl?: string | null): RenderedEmail {
   const body = `
     ${h1("Reset your password")}
     ${p(`Hello ${esc(input.name)},`)}
@@ -180,7 +181,7 @@ export function renderPasswordReset(input: {
 
   return {
     subject: `Reset Your ${COMPANY.name} Password`,
-    html: renderLayout(body, { previewText: "Your password reset link" }),
+    html: renderLayout(body, { previewText: "Your password reset link", logoUrl }),
     // The URL is deliberately included in the text part too: it is the same
     // secret the button carries, and text-only clients need a usable link.
     text: `${htmlToText(body)}\n\nReset link: ${input.resetUrl}`,
@@ -201,7 +202,7 @@ export function renderExchangeReceived(input: {
   name: string;
   referenceNumber: string;
   device: string;
-}): RenderedEmail {
+}, logoUrl?: string | null): RenderedEmail {
   const body = `
     ${h1("Your trade-in request has been received.")}
     ${p(`Hello ${esc(input.name)}, thank you for sending us the details of your ${esc(input.device)}.`)}
@@ -222,7 +223,7 @@ export function renderExchangeReceived(input: {
 
   return {
     subject: `Trade-in request received — ${input.referenceNumber}`,
-    html: renderLayout(body, { previewText: "We have your device details" }),
+    html: renderLayout(body, { previewText: "We have your device details", logoUrl }),
     text: htmlToText(body),
   };
 }
@@ -242,7 +243,7 @@ export function renderExchangeAdminNotification(input: {
   images: string[];
   submittedAt: Date;
   adminUrl: string;
-}): RenderedEmail {
+}, logoUrl?: string | null): RenderedEmail {
   const photos = input.images.length
     ? input.images
         .map(
@@ -279,7 +280,7 @@ export function renderExchangeAdminNotification(input: {
 
   return {
     subject: `New Exchange Request — #${input.referenceNumber}`,
-    html: renderLayout(body, { previewText: `${input.brand} ${input.model} submitted for review` }),
+    html: renderLayout(body, { previewText: `${input.brand} ${input.model} submitted for review`, logoUrl }),
     text: htmlToText(body),
   };
 }
@@ -296,7 +297,7 @@ export function renderContactNotification(input: {
   topic: string | null;
   message: string;
   submittedAt: Date;
-}): RenderedEmail {
+}, logoUrl?: string | null): RenderedEmail {
   const body = `
     ${h1("New contact request")}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
@@ -318,13 +319,13 @@ export function renderContactNotification(input: {
 
   return {
     subject: `New Contact Request — ${COMPANY.name}`,
-    html: renderLayout(body, { previewText: `${input.name}: ${input.message.slice(0, 80)}` }),
+    html: renderLayout(body, { previewText: `${input.name}: ${input.message.slice(0, 80)}`, logoUrl }),
     text: htmlToText(body),
   };
 }
 
 /** Optional acknowledgement to the person who filled in the form. */
-export function renderContactAcknowledgement(input: { name: string }): RenderedEmail {
+export function renderContactAcknowledgement(input: { name: string }, logoUrl?: string | null): RenderedEmail {
   const body = `
     ${h1("Thanks for getting in touch.")}
     ${p(`Hello ${esc(input.name)}, we have received your enquiry and a member of our team will reply shortly.`)}
@@ -334,7 +335,7 @@ export function renderContactAcknowledgement(input: { name: string }): RenderedE
 
   return {
     subject: `We received your enquiry — ${COMPANY.name}`,
-    html: renderLayout(body, { previewText: "We will be in touch shortly" }),
+    html: renderLayout(body, { previewText: "We will be in touch shortly", logoUrl }),
     text: htmlToText(body),
   };
 }
@@ -349,7 +350,7 @@ export function renderAdminNotification(input: {
   ctaLabel?: string;
   ctaUrl?: string;
   intro?: string;
-}): RenderedEmail {
+}, logoUrl?: string | null): RenderedEmail {
   const body = `
     ${h1(input.title)}
     ${input.intro ? p(esc(input.intro)) : ""}
@@ -366,12 +367,12 @@ export function renderAdminNotification(input: {
 
   return {
     subject: `${input.title} — ${COMPANY.name}`,
-    html: renderLayout(body, { previewText: input.intro ?? input.title }),
+    html: renderLayout(body, { previewText: input.intro ?? input.title, logoUrl }),
     text: htmlToText(body),
   };
 }
 
-export function renderTestEmail(input: { senderEmail: string; triggeredBy: string }): RenderedEmail {
+export function renderTestEmail(input: { senderEmail: string; triggeredBy: string }, logoUrl?: string | null): RenderedEmail {
   const body = `
     ${h1("Email Configuration Test")}
     ${p(`This is a test email from the ${esc(COMPANY.name)} website.`)}
@@ -390,7 +391,7 @@ export function renderTestEmail(input: { senderEmail: string; triggeredBy: strin
 
   return {
     subject: `${COMPANY.name} — Email Configuration Test`,
-    html: renderLayout(body, { previewText: "This is a test email from the website." }),
+    html: renderLayout(body, { previewText: "This is a test email from the website.", logoUrl }),
     text: htmlToText(body),
   };
 }

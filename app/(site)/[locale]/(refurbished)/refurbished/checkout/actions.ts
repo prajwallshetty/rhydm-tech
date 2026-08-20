@@ -118,6 +118,36 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
       return { ok: false, error: "None of the items in your cart are available." };
     }
 
+    const productIds = products.map((p) => p.id);
+    const variants = await db.productVariant.findMany({
+      where: {
+        productId: { in: productIds },
+        status: PublishStatus.PUBLISHED,
+      },
+      include: {
+        optionValues: {
+          include: {
+            optionValue: {
+              include: {
+                option: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const mappedVariants = variants.map((v) => {
+      const selectedOptions: Record<string, string> = {};
+      v.optionValues.forEach((ov) => {
+        selectedOptions[ov.optionValue.option.name] = ov.optionValue.value;
+      });
+      return {
+        ...v,
+        selectedOptions,
+      };
+    });
+
     const items = [];
     for (const line of lines) {
       const product = products.find((p) => p.slug === line.slug);
@@ -127,18 +157,48 @@ export async function placeOrder(values: unknown): Promise<PlaceOrderResult> {
           error: "An item in your cart is no longer available. Please review your cart.",
         };
       }
-      if (product.stock < line.quantity) {
+
+      let priceCents = product.priceCents;
+      let sku = product.sku;
+      let stock = product.stock;
+      let name = product.name;
+      let variantSnapshot: any = null;
+
+      if (line.variantId) {
+        const variant = mappedVariants.find((v) => v.id === line.variantId && v.productId === product.id);
+        if (variant) {
+          priceCents = variant.priceCents ?? priceCents;
+          sku = variant.sku || sku;
+          stock = variant.stock;
+          variantSnapshot = {
+            variantId: variant.id,
+            sku: variant.sku,
+            priceCents: variant.priceCents,
+            selectedOptions: variant.selectedOptions,
+          };
+          const optionsStr = Object.entries(variant.selectedOptions)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(", ");
+          if (optionsStr) {
+            name = `${product.name} (${optionsStr})`;
+          }
+        }
+      }
+
+      if (stock < line.quantity) {
         return {
           ok: false,
-          error: `Only ${product.stock} of ${product.name} remain in stock.`,
+          error: `Only ${stock} of ${name} remain in stock.`,
         };
       }
 
       items.push({
         productId: product.id,
-        name: product.name,
-        sku: product.sku,
-        priceCents: product.priceCents,
+        variantId: line.variantId || null,
+        variantSnapshot: variantSnapshot ? (variantSnapshot as any) : undefined,
+        name,
+        sku,
+        priceCents,
         quantity: line.quantity,
       });
     }

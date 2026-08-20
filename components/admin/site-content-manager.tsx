@@ -192,20 +192,29 @@ function ScalarEditor({
           className={cn(shared, "resize-y")}
         />
       ) : (
-        <div className="flex gap-2">
-          <input
-            id={id}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className={shared}
-          />
-          {isImage && (
-            <MediaPicker
-              folder="hero"
-              onSelect={(asset) => onChange(asset.url)}
-              triggerLabel="Choose/Upload Image"
-              className="shrink-0 h-10 px-4 py-2 text-xs font-bold"
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              id={id}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className={shared}
             />
+            {isImage && (
+              <MediaPicker
+                folder="hero"
+                onSelect={(asset) => onChange(asset.url)}
+                triggerLabel="Choose/Upload Image"
+                className="shrink-0 h-10 px-4 py-2 text-xs font-bold"
+                accept={field.key.toLowerCase().includes("logo") ? "image/png,image/jpeg,image/webp,image/svg+xml,image/avif" : undefined}
+                maxBytes={field.key.toLowerCase().includes("logo") ? 2 * 1024 * 1024 : undefined}
+              />
+            )}
+          </div>
+          {isImage && value && value.trim().length > 0 && (
+            <div className="relative rounded-xl border border-border bg-muted/30 p-2 max-w-xs overflow-hidden">
+              <img src={value} alt="Preview" className="max-h-24 w-auto rounded-lg object-contain" />
+            </div>
           )}
         </div>
       )}

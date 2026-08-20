@@ -69,7 +69,7 @@ function productCard(product: MarketingProductCard): string {
   </table>`;
 }
 
-export function renderMarketingEmail(input: MarketingEmailInput): RenderedEmail {
+export function renderMarketingEmail(input: MarketingEmailInput, logoUrl?: string | null): RenderedEmail {
   // Sanitise at render time as well as at save time. This is the last point
   // before the HTML reaches an inbox, so it is the one that actually matters.
   const safeBody = sanitizeEmailHtml(input.bodyHtml);
@@ -93,6 +93,7 @@ export function renderMarketingEmail(input: MarketingEmailInput): RenderedEmail 
   const html = renderLayout(body, {
     previewText: input.previewText ?? undefined,
     unsubscribeUrl: input.unsubscribeUrl,
+    logoUrl,
   });
 
   const text =

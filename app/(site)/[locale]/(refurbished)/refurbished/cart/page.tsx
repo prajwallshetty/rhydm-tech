@@ -39,8 +39,9 @@ export default function CartPage() {
     let cancelled = false;
 
     async function load() {
-      const slugs = cart.map((line) => line.slug);
-      const resolved = await getCartProducts(slugs);
+      const resolved = await getCartProducts(
+        cart.map((line) => ({ slug: line.slug, variantId: line.variantId }))
+      );
       if (!cancelled) {
         setProducts(resolved);
         setLoading(false);
@@ -55,7 +56,11 @@ export default function CartPage() {
 
   const lines = cart
     .map((line) => {
-      const product = products.find((p) => p.slug === line.slug);
+      const product = products.find(
+        (p) =>
+          p.slug === line.slug &&
+          (p.variantId || null) === (line.variantId || null)
+      );
       return product ? { ...line, product } : null;
     })
     .filter((line): line is NonNullable<typeof line> => line !== null);
@@ -159,7 +164,7 @@ export default function CartPage() {
 
           {lines.map((line) => (
             <article
-              key={line.slug}
+              key={`${line.slug}-${line.variantId || ""}`}
               className="flex flex-col sm:flex-row gap-4 sm:gap-5 rounded-2xl border border-border/80 bg-card p-4 sm:p-5"
             >
               <Link
@@ -221,7 +226,7 @@ export default function CartPage() {
                   <div className="inline-flex items-center rounded-xl border border-border">
                     <button
                       type="button"
-                      onClick={() => setQuantity(line.slug, line.quantity - 1)}
+                      onClick={() => setQuantity(line.slug, line.quantity - 1, line.variantId)}
                       aria-label={t("decreaseOf", { name: line.product.name })}
                       className="grid size-11 place-items-center rounded-l-xl transition-colors hover:bg-accent cursor-pointer"
                     >
@@ -232,7 +237,7 @@ export default function CartPage() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => setQuantity(line.slug, line.quantity + 1)}
+                      onClick={() => setQuantity(line.slug, line.quantity + 1, line.variantId)}
                       disabled={line.quantity >= line.product.stock}
                       aria-label={t("increaseOf", { name: line.product.name })}
                       className="grid size-11 place-items-center rounded-r-xl transition-colors hover:bg-accent disabled:opacity-40 cursor-pointer"
@@ -245,7 +250,7 @@ export default function CartPage() {
                     type="button"
                     onClick={() => {
                       toggleWishlist(line.slug);
-                      removeFromCart(line.slug);
+                      removeFromCart(line.slug, line.variantId);
                       push(t("movedToWishlist", { name: line.product.name }), "heart");
                     }}
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -257,7 +262,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      removeFromCart(line.slug);
+                      removeFromCart(line.slug, line.variantId);
                       push(t("removed", { name: line.product.name }));
                     }}
                     className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-destructive"

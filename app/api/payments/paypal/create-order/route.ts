@@ -11,6 +11,7 @@ const createOrderSchema = z.object({
     z.object({
       slug: z.string().min(1),
       quantity: z.number().int().min(1).max(99),
+      variantId: z.string().optional().nullable(),
       tradeIn: z.object({
         deviceType: z.string(),
         brand: z.string(),
@@ -78,6 +79,36 @@ export async function POST(request: Request) {
       );
     }
 
+    const productIds = products.map((p) => p.id);
+    const variants = await db.productVariant.findMany({
+      where: {
+        productId: { in: productIds },
+        status: PublishStatus.PUBLISHED,
+      },
+      include: {
+        optionValues: {
+          include: {
+            optionValue: {
+              include: {
+                option: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const mappedVariants = variants.map((v) => {
+      const selectedOptions: Record<string, string> = {};
+      v.optionValues.forEach((ov) => {
+        selectedOptions[ov.optionValue.option.name] = ov.optionValue.value;
+      });
+      return {
+        ...v,
+        selectedOptions,
+      };
+    });
+
     // Validate quantities and stock levels
     const items: Array<{ productId: string; priceCents: number; quantity: number }> = [];
     for (const line of lines) {
@@ -90,16 +121,34 @@ export async function POST(request: Request) {
         );
       }
 
-      if (product.stock < line.quantity) {
+      let priceCents = product.priceCents;
+      let stock = product.stock;
+      let name = product.name;
+
+      if (line.variantId) {
+        const variant = mappedVariants.find((v) => v.id === line.variantId && v.productId === product.id);
+        if (variant) {
+          priceCents = variant.priceCents ?? priceCents;
+          stock = variant.stock;
+          const optionsStr = Object.entries(variant.selectedOptions)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(", ");
+          if (optionsStr) {
+            name = `${product.name} (${optionsStr})`;
+          }
+        }
+      }
+
+      if (stock < line.quantity) {
         return NextResponse.json(
-          { error: `Overselling prevented: Only ${product.stock} units of ${product.name} are available.` },
+          { error: `Overselling prevented: Only ${stock} units of ${name} are available.` },
           { status: 400 }
         );
       }
 
       items.push({
         productId: product.id,
-        priceCents: product.priceCents,
+        priceCents,
         quantity: line.quantity,
       });
     }

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 
 export type CartProduct = {
   slug: string;
+  variantId?: string;
   name: string;
   priceCents: number;
   compareAtCents: number | null;
@@ -20,31 +21,85 @@ export type CartProduct = {
 /**
  * Resolves cart/wishlist slugs to authoritative product data.
  *
- * The client stores only slugs and quantities — prices are always read from
+ * The client stores only slugs/variantIds and quantities — prices are always read from
  * the database here, so editing localStorage cannot change what anything
  * costs. Any slug that no longer resolves (unpublished or deleted) is simply
  * omitted, and the caller drops it from the cart.
  */
 export async function getCartProducts(
-  slugs: string[],
+  inputs: string[] | Array<{ slug: string; variantId?: string }>,
 ): Promise<CartProduct[]> {
-  if (slugs.length === 0) return [];
+  if (inputs.length === 0) return [];
 
+  const items = inputs.map((input) => {
+    if (typeof input === "string") {
+      return { slug: input, variantId: undefined };
+    }
+    return input;
+  });
+
+  const slugs = Array.from(new Set(items.map((it) => it.slug)));
   const products = await getProductsBySlugs(slugs);
+  const { getProductWithVariants } = await import("@/lib/data/variants");
 
-  return products.map((product) => ({
-    slug: product.slug,
-    name: product.name,
-    priceCents: product.priceCents,
-    compareAtCents: product.compareAtCents,
-    condition: product.condition,
-    warrantyMonths: product.warrantyMonths,
-    stock: product.stock,
-    categorySlug: product.category.slug,
-    categoryName: product.category.name,
-    brandName: product.brand?.name ?? null,
-    imageUrl: product.images?.[0]?.url ?? null,
-  }));
+  const productsWithVariants = await Promise.all(
+    slugs.map((slug) => getProductWithVariants(slug))
+  );
+
+  const resolvedProducts: CartProduct[] = [];
+
+  for (const item of items) {
+    const pWithV = productsWithVariants.find((p) => p && p.slug === item.slug);
+    if (!pWithV) continue;
+
+    const baseProduct = products.find((p) => p.slug === item.slug);
+    if (!baseProduct) continue;
+
+    let priceCents = baseProduct.priceCents;
+    let compareAtCents = baseProduct.compareAtCents;
+    let stock = baseProduct.stock;
+    let condition = baseProduct.condition;
+    let warrantyMonths = baseProduct.warrantyMonths;
+    let imageUrl = baseProduct.images?.[0]?.url ?? null;
+    let name = baseProduct.name;
+
+    if (item.variantId) {
+      const variant = pWithV.variants.find((v) => v.id === item.variantId);
+      if (variant) {
+        priceCents = variant.priceCents ?? priceCents;
+        compareAtCents = variant.compareAtCents ?? compareAtCents;
+        stock = variant.stock;
+        condition = variant.condition || condition;
+        warrantyMonths = variant.warrantyMonths || warrantyMonths;
+        if (variant.images && variant.images.length > 0) {
+          imageUrl = variant.images[0].url;
+        }
+        const optionsStr = Object.entries(variant.selectedOptions)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(", ");
+        if (optionsStr) {
+          name = `${baseProduct.name} (${optionsStr})`;
+        }
+      }
+    }
+
+    resolvedProducts.push({
+      slug: item.slug,
+      variantId: item.variantId,
+      name,
+      priceCents,
+      compareAtCents,
+      condition,
+      warrantyMonths,
+      stock,
+      categorySlug: baseProduct.category.slug,
+      categoryName: baseProduct.category.name,
+      brandName: baseProduct.brand?.name ?? null,
+      imageUrl,
+    });
+  }
+
+  return resolvedProducts;
 }
 
 export type CartScopeItem = { slug: string; categorySlug: string };

@@ -57,7 +57,7 @@ interface DispatchOptions {
    * failure is recorded in EmailLog like any other, instead of escaping as an
    * unhandled rejection with no trace of which message was lost.
    */
-  rendered: RenderedEmail | (() => RenderedEmail);
+  rendered: RenderedEmail | ((logoUrl: string | null) => RenderedEmail);
   replyTo?: string;
   listUnsubscribeUrl?: string;
   userId?: string | null;
@@ -66,8 +66,11 @@ interface DispatchOptions {
 }
 
 /** Resolves a thunk, or passes an already-rendered message straight through. */
-function resolveRendered(rendered: DispatchOptions["rendered"]): RenderedEmail {
-  return typeof rendered === "function" ? rendered() : rendered;
+function resolveRendered(
+  rendered: DispatchOptions["rendered"],
+  logoUrl: string | null
+): RenderedEmail {
+  return typeof rendered === "function" ? rendered(logoUrl) : rendered;
 }
 
 /** Is the mailbox connected? No network call; may read the credential store. */
@@ -84,9 +87,17 @@ export async function isEmailConfigured(): Promise<boolean> {
 async function dispatch(options: DispatchOptions): Promise<SendResult> {
   const { to, type } = options;
 
+  let logoUrl: string | null = null;
+  try {
+    const { getGlobalLogoUrl } = await import("@/components/brand/logo-provider");
+    logoUrl = await getGlobalLogoUrl();
+  } catch (err) {
+    // ignore
+  }
+
   let rendered: RenderedEmail;
   try {
-    rendered = resolveRendered(options.rendered);
+    rendered = resolveRendered(options.rendered, logoUrl);
   } catch (err) {
     // A misconfigured origin or a broken template. Not retryable: it will fail
     // identically until someone fixes the configuration.
@@ -182,7 +193,14 @@ async function guardedDispatch(options: DispatchOptions): Promise<SendResult> {
       // fall back rather than turning a config warning into a crash.
       let subject = "(not rendered)";
       try {
-        subject = resolveRendered(options.rendered).subject;
+        let logoUrl: string | null = null;
+        try {
+          const { getGlobalLogoUrl } = await import("@/components/brand/logo-provider");
+          logoUrl = await getGlobalLogoUrl();
+        } catch {
+          // ignore
+        }
+        subject = resolveRendered(options.rendered, logoUrl).subject;
       } catch {
         // keep the placeholder
       }
@@ -269,7 +287,7 @@ export const EmailService = {
         shippingAddress: true,
         confirmationEmailSentAt: true,
         items: {
-          select: { name: true, sku: true, quantity: true, priceCents: true, productId: true },
+          select: { name: true, sku: true, quantity: true, priceCents: true, productId: true, variantId: true },
         },
       },
     });
@@ -289,34 +307,59 @@ export const EmailService = {
     }
 
     const productIds = order.items.map((i) => i.productId).filter(Boolean) as string[];
-    const images = productIds.length
+    const variantIds = order.items.map((i) => i.variantId).filter(Boolean) as string[];
+
+    const productImages = productIds.length
       ? await db.productImage.findMany({
           where: { productId: { in: productIds } },
           orderBy: { position: "asc" },
           select: { productId: true, url: true },
         })
       : [];
-    const firstImage = new Map<string, string>();
-    for (const img of images) {
-      if (!firstImage.has(img.productId)) firstImage.set(img.productId, img.url);
+
+    const variantImages = variantIds.length
+      ? await db.productVariantImage.findMany({
+          where: { variantId: { in: variantIds } },
+          orderBy: { position: "asc" },
+          select: { variantId: true, url: true },
+        })
+      : [];
+
+    const firstProductImage = new Map<string, string>();
+    for (const img of productImages) {
+      if (!firstProductImage.has(img.productId)) firstProductImage.set(img.productId, img.url);
+    }
+
+    const firstVariantImage = new Map<string, string>();
+    for (const img of variantImages) {
+      if (!firstVariantImage.has(img.variantId)) firstVariantImage.set(img.variantId, img.url);
     }
 
     const address = (order.shippingAddress ?? null) as OrderEmailInput["shippingAddress"];
     const customerName = address?.fullName || order.email.split("@")[0];
 
-    const renderMessage = () =>
+    const renderMessage = (logoUrl: string | null) =>
       renderOrderConfirmation({
       orderNumber: order.orderNumber,
       orderDate: order.createdAt,
       customerName,
       email: order.email,
-      items: order.items.map((item) => ({
-        name: item.name,
-        sku: item.sku,
-        quantity: item.quantity,
-        priceCents: item.priceCents,
-        imageUrl: item.productId ? (firstImage.get(item.productId) ?? null) : null,
-      })),
+      items: order.items.map((item) => {
+        let imageUrl: string | null = null;
+        if (item.variantId) {
+          imageUrl = firstVariantImage.get(item.variantId) ?? null;
+        }
+        if (!imageUrl && item.productId) {
+          imageUrl = firstProductImage.get(item.productId) ?? null;
+        }
+        return {
+          name: item.name,
+          sku: item.sku,
+          quantity: item.quantity,
+          priceCents: item.priceCents,
+          imageUrl,
+        };
+      }),
       subtotalCents: order.subtotalCents,
       shippingCents: order.shippingCents,
       taxCents: order.taxCents,
@@ -325,7 +368,7 @@ export const EmailService = {
       paymentMethod: order.paymentMethod,
       shippingAddress: address,
         orderUrl: emailUrl(`/en/refurbished/account/orders/${order.orderNumber}`),
-      });
+      }, logoUrl);
 
     const result = await guardedDispatch({
       to: order.email,
@@ -356,12 +399,12 @@ export const EmailService = {
     return guardedDispatch({
       to: input.to,
       type: EmailType.PASSWORD_RESET,
-      rendered: () =>
+      rendered: (logoUrl) =>
         renderPasswordReset({
           name: input.name,
           resetUrl: input.resetUrl,
           expiresInMinutes: input.expiresInMinutes,
-        }),
+        }, logoUrl),
       userId: input.userId ?? null,
     });
   },
@@ -377,12 +420,12 @@ export const EmailService = {
     return guardedDispatch({
       to: input.to,
       type: EmailType.EXCHANGE_RECEIVED,
-      rendered: () =>
+      rendered: (logoUrl) =>
         renderExchangeReceived({
           name: input.name,
           referenceNumber: input.referenceNumber,
           device: input.device,
-        }),
+        }, logoUrl),
       userId: input.userId ?? null,
     });
   },
@@ -396,7 +439,7 @@ export const EmailService = {
     return guardedDispatch({
       to,
       type: EmailType.EXCHANGE_ADMIN_NOTIFICATION,
-      rendered: () => renderExchangeAdminNotification(input),
+      rendered: (logoUrl) => renderExchangeAdminNotification(input, logoUrl),
       // Replying to the alert reaches the customer directly.
       replyTo: input.contactEmail ?? undefined,
     });
@@ -411,7 +454,7 @@ export const EmailService = {
     return guardedDispatch({
       to,
       type: EmailType.CONTACT_NOTIFICATION,
-      rendered: () => renderContactNotification(input),
+      rendered: (logoUrl) => renderContactNotification(input, logoUrl),
       replyTo: input.email,
     });
   },
@@ -420,7 +463,7 @@ export const EmailService = {
     return guardedDispatch({
       to: input.to,
       type: EmailType.CONTACT_ACKNOWLEDGEMENT,
-      rendered: () => renderContactAcknowledgement({ name: input.name }),
+      rendered: (logoUrl) => renderContactAcknowledgement({ name: input.name }, logoUrl),
     });
   },
 
@@ -433,7 +476,7 @@ export const EmailService = {
     return guardedDispatch({
       to,
       type: EmailType.ADMIN_NOTIFICATION,
-      rendered: () => renderAdminNotification(input),
+      rendered: (logoUrl) => renderAdminNotification(input, logoUrl),
     });
   },
 
@@ -444,7 +487,7 @@ export const EmailService = {
     return guardedDispatch({
       to: input.to,
       type: EmailType.MARKETING,
-      rendered: () => renderMarketingEmail(input),
+      rendered: (logoUrl) => renderMarketingEmail(input, logoUrl),
       listUnsubscribeUrl: input.unsubscribeUrl,
       campaignId: input.campaignId ?? null,
       userId: input.userId ?? null,
@@ -456,7 +499,7 @@ export const EmailService = {
     return guardedDispatch({
       to: input.to,
       type: EmailType.TEST,
-      rendered: () => renderTestEmail({ senderEmail: sender, triggeredBy: input.triggeredBy }),
+      rendered: (logoUrl) => renderTestEmail({ senderEmail: sender, triggeredBy: input.triggeredBy }, logoUrl),
     });
   },
 };
