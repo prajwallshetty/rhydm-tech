@@ -34,10 +34,17 @@ function stripLocale(pathname: string) {
 
 export function proxy(request: NextRequest) {
   const host = request.headers.get("host");
-  if (process.env.NODE_ENV === "production" && host && host.startsWith("www.")) {
-    const canonicalHost = host.replace(/^www\./, "");
+  if (
+    process.env.NODE_ENV === "production" &&
+    host &&
+    !host.startsWith("www.") &&
+    (host === "rhydm-tech.com" || host.startsWith("rhydm-tech.com:"))
+  ) {
     return NextResponse.redirect(
-      new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, `https://${canonicalHost}`),
+      new URL(
+        `${request.nextUrl.pathname}${request.nextUrl.search}`,
+        "https://www.rhydm-tech.com",
+      ),
       301,
     );
   }

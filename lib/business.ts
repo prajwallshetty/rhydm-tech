@@ -124,7 +124,7 @@ export const SITE_URL = (() => {
     if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
       return envUrl;
     }
-    return "https://rhydm-tech.com";
+    return "https://www.rhydm-tech.com";
   }
   
   return envUrl ?? "http://localhost:3000";
