@@ -71,7 +71,7 @@ const ARTICLES: ArticleMeta[] = [
     ],
     h2s: [
       { title: "Key Criteria for Berlin ITAD Services", content: "Berlin's business landscape, from fast-growing startups in Kreuzberg to corporate headquarters in Mitte, requires rigorous ITAD protocols. When selecting a partner, look beyond basic recycling. Security is paramount: you need a provider who guarantees secure chain of custody, starting from locked container collection at your office to transport in GPS-tracked, hard-sided trucks, ending in a secure processing facility." },
-      { title: "Understanding German Environmental Compliance (ElektroG)", content: "In Germany, IT asset disposal is regulated by the Elektrogesetz (ElektroG), which implements the European WEEE Directive. Businesses are prohibited from throwing electronics in standard commercial waste. Your disposal provider must handle electronic recycling responsibly, striving for zero-landfill goals and providing documentable proof of compliance. Rhydm Tech aligns with all WEEE requirements, helping Berlin companies meet local ESG mandates." },
+      { title: "Understanding German Environmental Compliance (ElektroG)", content: "In Germany, IT asset disposal is regulated by the Elektrogesetz (ElektroG), which implements the European WEEE Directive. Businesses are prohibited from throwing electronics in standard commercial waste. Your disposal provider must handle electronic recycling responsibly, striving for zero-landfill goals and providing documentable proof of compliance. Rhydm Technologies aligns with all WEEE requirements, helping Berlin companies meet local ESG mandates." },
       { title: "Data Security and Audit Trails", content: "A professional IT asset disposal process must culminate in a secure audit trail. Every laptop, desktop, server, and networking unit should be logged by its unique serial number. Once data destruction is complete—either via software wiping or physical shredding—a Certificate of Destruction and a detailed audit log must be issued. This ensures your company has clear evidence of compliance during external audits." }
     ],
     priority: 1
@@ -94,7 +94,7 @@ const ARTICLES: ArticleMeta[] = [
       "Review the finalized audit report and archive the destruction certificates."
     ],
     faqs: [
-      { q: "Can we recover value from our old office laptops in Berlin?", a: "Yes, many functional business-grade laptops from brands like Lenovo, Dell, and HP can be refurbished. Providers like Rhydm Tech offer buyback credit or exchange value that can offset the cost of disposal." },
+      { q: "Can we recover value from our old office laptops in Berlin?", a: "Yes, many functional business-grade laptops from brands like Lenovo, Dell, and HP can be refurbished. Providers like Rhydm Technologies offer buyback credit or exchange value that can offset the cost of disposal." },
       { q: "What happens to non-functional computer hardware?", a: "Devices that cannot be repaired or refurbished are responsibly dismantled. Recoverable materials like copper, gold, and aluminum are recycled, while toxic elements are securely processed in line with German e-waste laws." },
       { q: "Do we need to wipe data ourselves before pickup?", a: "While pre-wiping is a good safety practice, it does not replace certified sanitization. A professional ITAD provider will run standardized wiping protocols and provide a certified audit report, which is required for legal compliance." }
     ],
@@ -188,7 +188,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "Securing Data Before Hardware Leaves the Office", content: "The biggest security gap in IT disposal occurs between decommissioning a computer and its pickup. In many Berlin offices, old laptops are stacked in unlocked storage rooms, exposing them to theft. Companies must establish secure holding zones and lockable bins for data-bearing assets to prevent unauthorized access by office staff or third-party visitors." },
       { title: "Selecting Between Degaussing, Wiping, and Shredding", content: "Secure data destruction requires choosing the right method for the media type. Magnetic hard drives can be degaussed or overwritten. Solid-state drives (SSDs) must be purged using specific cryptowipe command sets. For absolute security, physical shredding of drives down to small fragments is the preferred method for high-security sectors like legal and finance." },
-      { title: "Secure Transport and Chain of Custody in Berlin", content: "When logistics team members pick up your equipment in areas like Neukölln, Mitte, or Tempelhof, the chain of custody must be documented. Locked security carts, scanned barcodes, and sealed vehicles ensure that no drives are lost or stolen on their way to the sanitization facility. Rhydm Tech maintains this tight chain of custody to protect customer data." }
+      { title: "Secure Transport and Chain of Custody in Berlin", content: "When logistics team members pick up your equipment in areas like Neukölln, Mitte, or Tempelhof, the chain of custody must be documented. Locked security carts, scanned barcodes, and sealed vehicles ensure that no drives are lost or stolen on their way to the sanitization facility. Rhydm Technologies maintains this tight chain of custody to protect customer data." }
     ],
     priority: 5
   },
@@ -246,7 +246,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "Understanding Software Data Wiping", content: "Software data wiping uses specialized programs to write patterns of meaningless data over all user and system areas of a drive. A single-pass overwrite is usually sufficient for modern drives under NIST guidelines, provided the software verifies that the sectors were written. This method leaves the drive fully functional and ready for secondary reuse." },
       { title: "Understanding Physical Hard Drive Shredding", content: "Physical destruction involves running hard drives through industrial shredders that cut them into small metal strips or fragments. For magnetic drives, this physically breaks the platters. For SSDs, it requires shredding down to 2mm to ensure the individual silicon NAND chips are cracked, preventing data reconstruction." },
-      { title: "Environmental and Sustainability Trade-offs", content: "Choosing between wiping and shredding has environmental implications. Wiping keeps functional drives in circulation, preventing electronic waste and reducing the demand for new resource mining. Shredding is resource-intensive and should be reserved for broken drives, obsolete models, or strict security mandates. Rhydm Tech helps businesses balance these security and sustainability goals." }
+      { title: "Environmental and Sustainability Trade-offs", content: "Choosing between wiping and shredding has environmental implications. Wiping keeps functional drives in circulation, preventing electronic waste and reducing the demand for new resource mining. Shredding is resource-intensive and should be reserved for broken drives, obsolete models, or strict security mandates. Rhydm Technologies helps businesses balance these security and sustainability goals." }
     ],
     priority: 7
   },
@@ -651,7 +651,7 @@ const ARTICLES: ArticleMeta[] = [
     faqs: [
       { q: "What does a refurbished laptop warranty cover?", a: "A standard warranty covers hardware defects, including mainboard failures, screen issues, keyboard faults, and port malfunctions, but excludes accidental damage." },
       { q: "Are refurbished laptop batteries new?", a: "Usually not, but they are tested. Reputable sellers guarantee a minimum capacity (e.g., 80% of original capacity) and replace batteries that fall below this threshold." },
-      { q: "Can I inspect refurbished laptops in Berlin?", a: "Yes, some local retailers have physical stores in Berlin where you can inspect device conditions, while online sellers like Rhydm Tech offer detailed grading photos and fast local shipping." }
+      { q: "Can I inspect refurbished laptops in Berlin?", a: "Yes, some local retailers have physical stores in Berlin where you can inspect device conditions, while online sellers like Rhydm Technologies offer detailed grading photos and fast local shipping." }
     ],
     h2s: [
       { title: "Comparing Refurbished Sellers in Berlin", content: "Berlin offers many options for buying refurbished electronics, from local computer shops to large online platforms. When comparing options, focus on the details of their refurbishing process. A premium seller does not just clean the laptop chassis; they test the mainboard, check all ports, run keyboard diagnostics, and perform stress tests on the processor." },
@@ -948,7 +948,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "The Valuation Process for Enterprise Equipment", content: "Corporate IT equipment buyback programs allow companies to recover value from retired hardware. The process starts with a manifest list specifying make, model, CPU, RAM, and condition. A buyback specialist provides an estimated valuation based on market demand for the components." },
       { title: "Securing Data Integrity During Buyback", content: "When selling corporate IT equipment, data security remains a priority. Wiping all drives in compliance with NIST SP 800-88 guidelines is essential. The buyback provider must deliver certified erasure reports before any equipment is refurbished for resale." },
-      { title: "Cash Settlement vs. Trade-In Credit", content: "Businesses can choose cash settlement or trade-in credit. Cash payouts return capital to the general budget. Trade-in credits can be applied to new or refurbished hardware upgrades, helping stretch IT budgets further. Rhydm Tech offers both options for German companies." }
+      { title: "Cash Settlement vs. Trade-In Credit", content: "Businesses can choose cash settlement or trade-in credit. Cash payouts return capital to the general budget. Trade-in credits can be applied to new or refurbished hardware upgrades, helping stretch IT budgets further. Rhydm Technologies offers both options for German companies." }
     ],
     priority: 31
   },
@@ -972,7 +972,7 @@ const ARTICLES: ArticleMeta[] = [
     faqs: [
       { q: "Can we sell broken laptops?", a: "Yes, even broken laptops have material value or can be harvested for spare parts. Refurbishers buy them to repair other units, supporting circular IT." },
       { q: "How is the valuation calculated?", a: "Valuation depends on model age, processor generation, memory capacity, and physical condition. Premium brands like Lenovo and Apple hold their value best." },
-      { q: "Is on-site pickup available in Berlin?", a: "Yes, ITAD providers like Rhydm Tech offer corporate pickup services across Berlin districts, including Charlottenburg, Mitte, and Spandau." }
+      { q: "Is on-site pickup available in Berlin?", a: "Yes, ITAD providers like Rhydm Technologies offer corporate pickup services across Berlin districts, including Charlottenburg, Mitte, and Spandau." }
     ],
     h2s: [
       { title: "Local Valuations and IT Asset Valuation in Berlin", content: "Selling corporate laptops in Berlin starts with an inventory checklist. Log the make, model, CPU, RAM, and condition of each asset. Local buyback providers evaluate the hardware against current market demand, offering quotes based on refurbished resale potential." },
@@ -1035,7 +1035,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "The Administrative Overhead of Private Sales", content: "Selling corporate hardware on consumer marketplaces is labor-intensive. It requires creating listings, answering questions, managing payments, and shipping individual boxes. For businesses, this overhead quickly exceeds the value recovered from the hardware." },
       { title: "Data Security and Liability Risks", content: "Private buyers do not provide data erasure reports. If sensitive files are recovered from a sold drive, your company faces data breach liabilities. A professional trade-in program provides certified data sanitization, ensuring compliance." },
-      { title: "The Convenience of Corporate Trade-In Programs", content: "Corporate trade-in programs provide a streamlined solution. The provider manages pickup, auditing, certified data wiping, and refurbishment. The valuation credit is applied directly to new equipment purchases, simplifying procurement. Rhydm Tech offers these streamlined services." }
+      { title: "The Convenience of Corporate Trade-In Programs", content: "Corporate trade-in programs provide a streamlined solution. The provider manages pickup, auditing, certified data wiping, and refurbishment. The valuation credit is applied directly to new equipment purchases, simplifying procurement. Rhydm Technologies offers these streamlined services." }
     ],
     priority: 34
   },
@@ -1151,7 +1151,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "Receiving and Initial Diagnostic Audits", content: "Traded-in devices arrive at the processing facility where they are logged. Technicians run diagnostic programs to test the motherboard, memory, ports, display, and battery health, identifying any necessary repairs." },
       { title: "Data Wiping and Media Sanitization", content: "Before refurbishment, storage drives undergo certified data wiping in compliance with NIST SP 800-88 guidelines. Wiping reports are archived, ensuring previous data cannot be accessed by secondary users." },
-      { title: "Repair, Upgrades, and Cosmetic Cleaning", content: "Devices are repaired, replacing batteries, keyboards, or hard drives. RAM or storage is upgraded to meet modern requirements. A final cosmetic cleaning and grading classification prepares the device for resale. Rhydm Tech completes this process to extend device lifecycles." }
+      { title: "Repair, Upgrades, and Cosmetic Cleaning", content: "Devices are repaired, replacing batteries, keyboards, or hard drives. RAM or storage is upgraded to meet modern requirements. A final cosmetic cleaning and grading classification prepares the device for resale. Rhydm Technologies completes this process to extend device lifecycles." }
     ],
     priority: 38
   },
@@ -1209,7 +1209,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "The Linear vs. Circular IT Model", content: "The traditional linear IT model follows a 'take-make-dispose' approach, where hardware is discarded after its initial use. Circular IT focuses on keeping hardware in use as long as possible, using repair, refurbishment, and resale to extend operational lifecycles." },
       { title: "The Environmental Impact of Refurbishment", content: "Manufacturing computer hardware is resource-intensive. Extending the life of a laptop by refurbishing it prevents carbon emissions and reduces electronic waste, supporting corporate ESG goals." },
-      { title: "Implementing Circular IT in Corporate Procurement", content: "Businesses implement circular IT by sourcing refurbished workstations, trading in old gear, and recycling non-resalable electronics. This reduces procurement costs and helps achieve sustainability targets. Rhydm Tech supports this circular lifecycle." }
+      { title: "Implementing Circular IT in Corporate Procurement", content: "Businesses implement circular IT by sourcing refurbished workstations, trading in old gear, and recycling non-resalable electronics. This reduces procurement costs and helps achieve sustainability targets. Rhydm Technologies supports this circular lifecycle." }
     ],
     priority: 40
   },
@@ -1269,7 +1269,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "The Environmental Cost of New Electronics", content: "Up to 80% of a computer's lifetime carbon footprint is generated during manufacturing. Sourcing raw materials, refining metals, and assembling microchips are carbon-intensive. Refurbishing existing hardware avoids this carbon expense, offering significant environmental savings." },
       { title: "Refurbishment: Extending the Lifecycle of Raw Materials", content: "Computers contain precious metals and rare earth elements. When a device is discarded, these materials are lost. Refurbishment keeps these components in active use, reducing the demand for new resource mining and conserving raw materials." },
-      { title: "Offsetting Corporate Carbon Footprints", content: "Integrating refurbished hardware into procurement strategies helps businesses reduce their Scope 3 carbon emissions. Reputable refurbishers provide metrics on carbon savings, helping document sustainability achievements for annual ESG audits. Rhydm Tech supports these corporate goals." }
+      { title: "Offsetting Corporate Carbon Footprints", content: "Integrating refurbished hardware into procurement strategies helps businesses reduce their Scope 3 carbon emissions. Reputable refurbishers provide metrics on carbon savings, helping document sustainability achievements for annual ESG audits. Rhydm Technologies supports these corporate goals." }
     ],
     priority: 42
   },
@@ -1327,7 +1327,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "The Scale of the Global E-Waste Problem", content: "Electronic waste is the fastest-growing solid waste stream, with millions of tons generated annually. Short upgrade cycles and unrepairable devices contribute to this growth. Refurbishment extends hardware lifecycles, reducing waste." },
       { title: "Preventing Landfill Contamination", content: "Electronics contain hazardous materials like lead, mercury, and cadmium. If discarded in landfills, these chemicals can leak into the environment. Refurbishment ensures functional devices stay in use, preventing contamination." },
-      { title: "The Role of Component Harvesting", content: "When a computer is obsolete, components like RAM, storage drives, and processors can still be harvested. Using these parts to repair other devices keeps resources in use and reduces waste. Rhydm Tech implements these harvesting practices." }
+      { title: "The Role of Component Harvesting", content: "When a computer is obsolete, components like RAM, storage drives, and processors can still be harvested. Using these parts to repair other devices keeps resources in use and reduces waste. Rhydm Technologies implements these harvesting practices." }
     ],
     priority: 44
   },
@@ -1385,7 +1385,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "Sourcing Durable and Modular Hardware", content: "A sustainable lifecycle starts with procurement. Sourcing business-grade hardware with modular designs allows components to be upgraded or repaired. These systems last longer and hold higher value in secondary markets." },
       { title: "Extending Lifespans via Maintenance and Upgrades", content: "Extend device service lifespans by upgrading the RAM, installing SSDs, and replacing worn batteries after 3 years. This keeps the device responsive, delaying the need for new hardware purchases." },
-      { title: "Partnering for Circular End-of-Life Processing", content: "When hardware must be replaced, partner with a certified ITAD provider that prioritizes reuse. Certified data wiping allows drives to be resold, extending hardware lifecycles. Rhydm Tech supports this circular lifecycle." }
+      { title: "Partnering for Circular End-of-Life Processing", content: "When hardware must be replaced, partner with a certified ITAD provider that prioritizes reuse. Certified data wiping allows drives to be resold, extending hardware lifecycles. Rhydm Technologies supports this circular lifecycle." }
     ],
     priority: 46
   },
@@ -1443,7 +1443,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "Internal Redeployment Strategies", content: "Not all users require high-performance computers. Older workstations can be redeployed for administrative tasks, reception desks, or training rooms, extending the service life of existing hardware." },
       { title: "Extending Performance via Upgrades", content: "Upgrading memory and storage is a cost-effective way to extend hardware lifespans. Replacing magnetic drives with SSDs and upgrading RAM to 16GB keeps older systems responsive for modern office software." },
-      { title: "Partnering for External Resale and Refurbishment", content: "When hardware must be replaced, partner with an ITAD provider that prioritizes reuse. Certified data wiping allows drives to be resold, extending hardware lifecycles. Rhydm Tech supports this circular lifecycle." }
+      { title: "Partnering for External Resale and Refurbishment", content: "When hardware must be replaced, partner with an ITAD provider that prioritizes reuse. Certified data wiping allows drives to be resold, extending hardware lifecycles. Rhydm Technologies supports this circular lifecycle." }
     ],
     priority: 48
   },
@@ -1474,7 +1474,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "Key Evaluation Criteria for Berlin Providers", content: "Berlin's business landscape requires rigorous ITAD protocols. When selecting a partner, look beyond basic recycling. Security is paramount: you need a provider who guarantees secure chain of custody, starting from locked container collection to transport in GPS-tracked vehicles, ending in a secure processing facility." },
       { title: "Environmental Compliance and WEEE/ElektroG", content: "IT asset disposal is regulated by the Elektrogesetz (ElektroG), which implements the European WEEE Directive. Your disposal provider must handle electronic recycling responsibly, striving for zero-landfill goals and providing documentable proof of compliance." },
-      { title: "Data Security and Audit Trails", content: "A professional IT asset disposal process must culminate in a secure audit trail. Every device should be logged by its serial number. Once data destruction is complete, a Certificate of Destruction and a detailed audit log must be issued. Rhydm Tech aligns with these requirements." }
+      { title: "Data Security and Audit Trails", content: "A professional IT asset disposal process must culminate in a secure audit trail. Every device should be logged by its serial number. Once data destruction is complete, a Certificate of Destruction and a detailed audit log must be issued. Rhydm Technologies aligns with these requirements." }
     ],
     priority: 49
   },
@@ -1503,7 +1503,7 @@ const ARTICLES: ArticleMeta[] = [
     h2s: [
       { title: "The Economic Case for Startups and SMEs in Berlin", content: "Berlin is a hub for startups and creative agencies. Sourcing refurbished business hardware is a smart way to minimize capital expenses. This allows businesses to equip their teams with premium, durable workstations for a fraction of the cost of new equipment." },
       { title: "Verifying System Specifications and Security Compliance", content: "Ensure refurbished computers meet corporate security guidelines. Choose devices compatible with Windows 11, featuring Intel 8th Gen or AMD Ryzen 3000 series processors. This guarantees systems receive ongoing security updates." },
-      { title: "Warranty Protection and Local Support", content: "Hardware reliability is a priority for business operations. Sourcing from a provider that offers at least a 12-month warranty protects against defects. Local customer support ensures any hardware issues are resolved quickly. Rhydm Tech provides these benefits." }
+      { title: "Warranty Protection and Local Support", content: "Hardware reliability is a priority for business operations. Sourcing from a provider that offers at least a 12-month warranty protects against defects. Local customer support ensures any hardware issues are resolved quickly. Rhydm Technologies provides these benefits." }
     ],
     priority: 50
   }
@@ -1523,7 +1523,7 @@ function compileArticleContent(article: ArticleMeta): string {
   // Introduction
   content += `## Introduction\n\n`;
   content += `Managing IT hardware at the end of its lifecycle is a critical operational task. When addressing **${article.primaryKeyword}**, businesses face a complex set of operational requirements. This guide provides a detailed analysis of security protocols, compliance frameworks, and sustainable practices. If you're looking for solutions, understanding how these options compare is key to protecting your organization.\n\n`;
-  content += `Berlin-based technology company **Rhydm Tech** specializes in secure IT asset disposition, certified data destruction, circular IT, and premium refurbished technology. Sourcing services from a certified provider helps businesses manage decommissioning logs and comply with current regulations.\n\n`;
+  content += `Berlin-based technology company **Rhydm Technologies** specializes in secure IT asset disposition, certified data destruction, circular IT, and premium refurbished technology. Sourcing services from a certified provider helps businesses manage decommissioning logs and comply with current regulations.\n\n`;
 
   // Detailed H2 Sections
   article.h2s.forEach(h2 => {
@@ -1567,7 +1567,7 @@ function compileArticleContent(article: ArticleMeta): string {
 
   // Conclusion
   content += `## Conclusion\n\n`;
-  content += `Managing IT hardware at the end of its lifecycle requires balancing security, compliance, and sustainability. Certified data sanitization protects your business from leaks, while professional refurbishment extends hardware operational lifecycles, reducing electronic waste. Sourcing services from a certified provider like **Rhydm Tech** ensures compliance with German data protection and e-waste laws.\n\n`;
+  content += `Managing IT hardware at the end of its lifecycle requires balancing security, compliance, and sustainability. Certified data sanitization protects your business from leaks, while professional refurbishment extends hardware operational lifecycles, reducing electronic waste. Sourcing services from a certified provider like **Rhydm Technologies** ensures compliance with German data protection and e-waste laws.\n\n`;
 
   // Legal Disclaimer for compliance content
   if (article.category === "Data Security" || article.category === "Germany" || article.category === "ITAD") {

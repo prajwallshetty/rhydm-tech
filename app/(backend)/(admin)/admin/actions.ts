@@ -517,6 +517,7 @@ export async function saveSiteSettingsAction(formData: FormData) {
   const phone = formData.get("phone")?.toString() || "";
   const address = formData.get("address")?.toString() || "";
   const twitterUrl = formData.get("twitterUrl")?.toString() || "";
+  const instagramUrl = formData.get("instagramUrl")?.toString() || "";
   const linkedinUrl = formData.get("linkedinUrl")?.toString() || "";
   const githubUrl = formData.get("githubUrl")?.toString() || "";
   const logoUrl = formData.get("logoUrl")?.toString() || "";
@@ -529,6 +530,7 @@ export async function saveSiteSettingsAction(formData: FormData) {
     phone,
     address,
     twitterUrl,
+    instagramUrl,
     linkedinUrl,
     githubUrl,
     logoUrl,

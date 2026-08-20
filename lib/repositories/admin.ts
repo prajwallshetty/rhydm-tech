@@ -1221,6 +1221,7 @@ export type SiteSettings = {
   phone: string;
   address: string;
   twitterUrl: string;
+  instagramUrl: string;
   linkedinUrl: string;
   githubUrl: string;
   logoUrl: string;
@@ -1233,12 +1234,13 @@ export async function getAdminSiteSettings(): Promise<SiteSettings> {
   });
 
   return ((section?.content as unknown as SiteSettings) || {
-    companyName: "Rhydm Tech",
+    companyName: "Rhydm Technologies",
     tagline: "Enterprise IT Asset Disposal & Refurbished Electronics",
     email: "hello@rhydm.tech",
     phone: "+4915560765557",
     address: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany",
-    twitterUrl: "https://twitter.com/rhydmtech",
+    twitterUrl: "https://x.com/Rhydmtech",
+    instagramUrl: "https://www.instagram.com/rhydm.tech/",
     linkedinUrl: "https://linkedin.com/company/rhydmtech",
     githubUrl: "https://github.com/rhydmtech",
     logoUrl: "/logo.svg",

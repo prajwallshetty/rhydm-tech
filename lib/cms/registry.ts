@@ -375,10 +375,8 @@ export const SECTION_DEFS: SectionDef[] = [
     defaults: {
       socials: [
         { label: "LinkedIn", url: "https://linkedin.com" },
-        { label: "Twitter / X", url: "https://twitter.com" },
-        { label: "Facebook", url: "https://facebook.com" },
-        { label: "Instagram", url: "https://instagram.com" },
-        { label: "YouTube", url: "https://youtube.com" },
+        { label: "Twitter / X", url: "https://x.com/Rhydmtech" },
+        { label: "Instagram", url: "https://www.instagram.com/rhydm.tech/" },
       ],
     },
   },

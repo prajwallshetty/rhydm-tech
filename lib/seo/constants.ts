@@ -64,10 +64,8 @@ export const KEYWORDS_REFURBISHED = [
 // ---------------------------------------------------------------------------
 
 export const SOCIAL_PROFILES: string[] = [
-  // Add profiles as they become available, e.g.:
-  // "https://www.linkedin.com/company/rhydm-tech",
-  // "https://twitter.com/rhydmtech",
-  // "https://www.facebook.com/rhydmtech",
+  "https://x.com/Rhydmtech",
+  "https://www.instagram.com/rhydm.tech/",
 ];
 
 // ---------------------------------------------------------------------------

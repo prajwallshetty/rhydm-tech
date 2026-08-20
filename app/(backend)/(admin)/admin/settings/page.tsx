@@ -100,13 +100,23 @@ export default async function AdminSettingsPage() {
             <span>Social Links & Branding</span>
           </h2>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Twitter / X URL</label>
               <input
                 type="text"
                 name="twitterUrl"
                 defaultValue={settings.twitterUrl}
+                className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">Instagram URL</label>
+              <input
+                type="text"
+                name="instagramUrl"
+                defaultValue={settings.instagramUrl}
                 className="w-full rounded-lg border border-input bg-background/50 px-3.5 py-2 text-xs font-mono outline-none focus:border-primary"
               />
             </div>

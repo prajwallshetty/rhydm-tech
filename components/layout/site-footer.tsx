@@ -97,8 +97,17 @@ export async function SiteFooter({ division }: { division: Division }) {
                     <a
                       href={social.url}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="hover:text-[#16A34A] transition-colors"
+                      aria-label={
+                        social.label.toLowerCase().includes("linkedin")
+                          ? "Rhydm Technologies on LinkedIn"
+                          : social.label.toLowerCase().includes("twitter") || social.label.toLowerCase() === "x"
+                          ? "Rhydm Technologies on X"
+                          : social.label.toLowerCase().includes("instagram")
+                          ? "Rhydm Technologies on Instagram"
+                          : `Rhydm Technologies on ${social.label}`
+                      }
                     >
                       {social.label}
                     </a>
