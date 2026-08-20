@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/admin";
@@ -243,8 +244,12 @@ export async function sendCampaignAction(
     details: { campaignId, recipients: queued.total },
   });
 
-  void drainCampaign(campaignId).catch((error: unknown) => {
-    console.error("[marketing] campaign drain failed:", error);
+  after(async () => {
+    try {
+      await drainCampaign(campaignId);
+    } catch (error) {
+      console.error("[marketing] campaign drain failed:", error);
+    }
   });
 
   revalidatePath("/admin/marketing");
@@ -314,8 +319,12 @@ export async function resumeCampaignAction(
     data: { status: CampaignStatus.SENDING, completedAt: null },
   });
 
-  void drainCampaign(campaignId).catch((error: unknown) => {
-    console.error("[marketing] campaign resume failed:", error);
+  after(async () => {
+    try {
+      await drainCampaign(campaignId);
+    } catch (error) {
+      console.error("[marketing] campaign resume failed:", error);
+    }
   });
 
   revalidatePath("/admin/marketing");

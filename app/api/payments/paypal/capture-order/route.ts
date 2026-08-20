@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import crypto from "node:crypto";
 import { db } from "@/lib/db";
@@ -366,15 +366,23 @@ export async function POST(request: Request) {
     // COMPLETED, and neither is awaited into the response: a slow or failing
     // mailbox must never turn a captured payment into an error for the
     // customer. The order confirmation is idempotent, so a retry is safe.
-    if (exchangeNotification) {
-      void EmailService.sendExchangeAdminNotification({
-        ...exchangeNotification,
-        adminUrl: `${SITE_URL.replace(/\/+$/, "")}/admin/exchanges`,
-      }).catch((err: unknown) => console.error("[checkout] exchange alert failed:", err));
-    }
+    after(async () => {
+      if (exchangeNotification) {
+        try {
+          await EmailService.sendExchangeAdminNotification({
+            ...exchangeNotification,
+            adminUrl: `${SITE_URL.replace(/\/+$/, "")}/admin/exchanges`,
+          });
+        } catch (err: unknown) {
+          console.error("[checkout] exchange alert failed:", err);
+        }
+      }
 
-    void EmailService.sendOrderConfirmation(order.id).catch((err: unknown) => {
-      console.error("[checkout] order confirmation email failed:", err);
+      try {
+        await EmailService.sendOrderConfirmation(order.id);
+      } catch (err: unknown) {
+        console.error("[checkout] order confirmation email failed:", err);
+      }
     });
 
     // Generate secure invoice download token using the PayPal client secret as salt
