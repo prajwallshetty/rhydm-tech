@@ -29,6 +29,7 @@ export default async function NewCampaignPage() {
         bodyHtml: "",
         bodyText: "",
         audience: "ALL_OPTED_IN",
+        customEmails: "",
         productIds: [],
       }}
     />

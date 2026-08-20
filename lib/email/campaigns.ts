@@ -49,6 +49,7 @@ export interface AudienceMember {
  */
 export async function resolveAudience(
   audience: CampaignAudience,
+  customEmails?: string | null,
 ): Promise<AudienceMember[]> {
   const members = new Map<string, AudienceMember>();
 
@@ -58,6 +59,22 @@ export async function resolveAudience(
       members.set(key, { email: u.email, name: u.name, userId: u.id });
     }
   };
+
+  if (audience === CampaignAudience.CUSTOM_EMAILS) {
+    if (customEmails) {
+      const emails = customEmails
+        .split(/[,\n]/)
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e));
+      
+      emails.forEach((email) => {
+        if (!members.has(email)) {
+          members.set(email, { email, name: null, userId: null });
+        }
+      });
+    }
+    return [...members.values()];
+  }
 
   if (
     audience === CampaignAudience.ALL_OPTED_IN ||
@@ -185,7 +202,7 @@ export async function queueCampaign(campaignId: string): Promise<{
     return { ok: false, total: 0, error: `Campaign is already ${campaign.status}.` };
   }
 
-  const members = await resolveAudience(campaign.audience);
+  const members = await resolveAudience(campaign.audience, campaign.customEmails);
   if (!members.length) {
     return { ok: false, total: 0, error: "No opted-in recipients match this audience." };
   }

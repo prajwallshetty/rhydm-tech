@@ -983,6 +983,7 @@ enum CampaignAudience {
   ALL_OPTED_IN
   NEWSLETTER_SUBSCRIBERS
   CUSTOMERS_WITH_ORDERS
+  CUSTOM_EMAILS
 }
 
 model EmailCampaign {
@@ -996,6 +997,7 @@ model EmailCampaign {
   /// Plain-text alternative, derived from bodyHtml when the admin leaves it blank.
   bodyText    String?          @db.Text
   audience    CampaignAudience @default(ALL_OPTED_IN)
+  customEmails String?         @db.Text
   /// Product ids featured as cards beneath the body copy.
   productIds  String[]         @default([])
   status      CampaignStatus   @default(DRAFT)

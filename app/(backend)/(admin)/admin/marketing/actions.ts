@@ -48,7 +48,8 @@ const campaignSchema = z.object({
   previewText: z.string().trim().max(200).optional().nullable(),
   bodyHtml: z.string().trim().min(1, "The email needs some content.").max(100_000),
   bodyText: z.string().trim().max(100_000).optional().nullable(),
-  audience: z.enum(["ALL_OPTED_IN", "NEWSLETTER_SUBSCRIBERS", "CUSTOMERS_WITH_ORDERS"]),
+  audience: z.enum(["ALL_OPTED_IN", "NEWSLETTER_SUBSCRIBERS", "CUSTOMERS_WITH_ORDERS", "CUSTOM_EMAILS"]),
+  customEmails: z.string().trim().max(10_000).optional().nullable(),
   productIds: z.array(z.string().trim().min(1)).max(8).default([]),
 });
 
@@ -84,6 +85,7 @@ export async function saveCampaignAction(
     bodyHtml,
     bodyText: data.bodyText || htmlToText(bodyHtml),
     audience: data.audience as CampaignAudience,
+    customEmails: data.customEmails || null,
     productIds: data.productIds,
   };
 
@@ -133,9 +135,10 @@ export async function saveCampaignAction(
 /** How many people a given audience currently resolves to. */
 export async function countAudienceAction(
   audience: CampaignInput["audience"],
+  customEmails?: string | null,
 ): Promise<number> {
   await requireMarketingAdmin();
-  const members = await resolveAudience(audience as CampaignAudience);
+  const members = await resolveAudience(audience as CampaignAudience, customEmails);
   return members.length;
 }
 
@@ -329,10 +332,13 @@ export async function getCampaignRecipients(campaignId: string, limit = 100) {
 }
 
 /** Preview of who a campaign would reach, without queueing anything. */
-export async function previewAudienceAction(audience: CampaignInput["audience"]) {
+export async function previewAudienceAction(
+  audience: CampaignInput["audience"],
+  customEmails?: string | null,
+) {
   await requireMarketingAdmin();
 
-  const members = await resolveAudience(audience as CampaignAudience);
+  const members = await resolveAudience(audience as CampaignAudience, customEmails);
   const sample = await Promise.all(
     members.slice(0, 5).map(async (member) => ({
       email: member.email,

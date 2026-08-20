@@ -35,6 +35,7 @@ const AUDIENCES: Array<{ value: CampaignInput["audience"]; label: string; hint: 
   { value: "ALL_OPTED_IN", label: "All opted-in", hint: "Customers and newsletter subscribers who opted in." },
   { value: "NEWSLETTER_SUBSCRIBERS", label: "Newsletter only", hint: "People who signed up for the newsletter." },
   { value: "CUSTOMERS_WITH_ORDERS", label: "Past customers", hint: "Opted-in accounts with at least one order." },
+  { value: "CUSTOM_EMAILS", label: "Custom list", hint: "Manually entered email addresses." },
 ];
 
 const FIELD_CLASS =
@@ -70,7 +71,7 @@ export function CampaignEditor({
   // before they commit to sending.
   useEffect(() => {
     let cancelled = false;
-    countAudienceAction(form.audience)
+    countAudienceAction(form.audience, form.customEmails)
       .then((count) => {
         if (!cancelled) setAudienceCount(count);
       })
@@ -80,7 +81,7 @@ export function CampaignEditor({
     return () => {
       cancelled = true;
     };
-  }, [form.audience]);
+  }, [form.audience, form.customEmails]);
 
   const update = <K extends keyof CampaignInput>(key: K, value: CampaignInput[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -259,6 +260,22 @@ export function CampaignEditor({
                 </label>
               ))}
             </div>
+
+            {form.audience === "CUSTOM_EMAILS" && (
+              <div className="space-y-1.5 mt-4 pt-4 border-t border-border/40">
+                <label htmlFor="c-custom-emails" className="text-xs font-semibold text-muted-foreground">
+                  Custom email addresses (comma or newline separated)
+                </label>
+                <textarea
+                  id="c-custom-emails"
+                  value={form.customEmails ?? ""}
+                  onChange={(e) => update("customEmails", e.target.value)}
+                  rows={4}
+                  className="w-full rounded-lg border border-input bg-background/50 p-3.5 text-sm outline-none transition-colors focus:border-primary font-mono"
+                  placeholder="user1@example.com, user2@example.com"
+                />
+              </div>
+            )}
 
             <p className="rounded-lg bg-muted/50 p-3 text-xs font-medium text-foreground">
               {audienceCount === null

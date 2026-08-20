@@ -48,6 +48,7 @@ export default async function CampaignPage({
         bodyHtml: campaign.bodyHtml,
         bodyText: campaign.bodyText ?? "",
         audience: campaign.audience,
+        customEmails: campaign.customEmails ?? "",
         productIds: campaign.productIds,
       }}
     />
