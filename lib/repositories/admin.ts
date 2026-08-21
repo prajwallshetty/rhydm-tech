@@ -1224,6 +1224,7 @@ export type SiteSettings = {
   instagramUrl: string;
   linkedinUrl: string;
   githubUrl: string;
+  /** Empty means "use the bundled brand asset" — see components/brand/logo.tsx. */
   logoUrl: string;
   faviconUrl: string;
 };
@@ -1237,13 +1238,16 @@ export async function getAdminSiteSettings(): Promise<SiteSettings> {
     companyName: "Rhydm Technologies",
     tagline: "Enterprise IT Asset Disposal & Refurbished Electronics",
     email: "hello@rhydm.tech",
-    phone: "+4915560765557",
+    phone: "+49 15560 765557",
     address: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany",
     twitterUrl: "https://x.com/Rhydmtech",
     instagramUrl: "https://www.instagram.com/rhydm.tech/",
     linkedinUrl: "https://linkedin.com/company/rhydmtech",
     githubUrl: "https://github.com/rhydmtech",
-    logoUrl: "/logo.svg",
+    // Empty, not "/logo.svg": that file does not exist, so the fallback made
+    // <Logo> render a broken <img> on every page instead of falling through to
+    // the bundled next/image lockup. Empty restores the intended asset.
+    logoUrl: "",
     faviconUrl: "/favicon/favicon.ico",
   }) as SiteSettings;
 }

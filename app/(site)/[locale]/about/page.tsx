@@ -6,13 +6,16 @@ import { DisposalFloatingNav } from "@/components/disposal/disposal-floating-nav
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Accordion } from "@/components/ui/accordion";
 import { Building, MapPin, ShieldCheck, HelpCircle, Phone, Mail, Globe, ArrowRight, User } from "lucide-react";
-import { COMPANY } from "@/lib/business";
+import { BRAND, COMPANY, SITE_URL } from "@/lib/business";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema, faqSchema, graphSchema } from "@/lib/seo/schemas";
 
 type Props = { params: Promise<{ locale: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   return createPageMetadata({
+    locale,
     title: locale === "de" ? "Über Rhydm Tech | Kreislauf-IT & Datenvernichtung" : "About Rhydm Tech | Circular IT & Data Destruction",
     description: locale === "de"
       ? "Erfahren Sie mehr über Rhydm Tech, ein in Berlin ansässiges Unternehmen für IT-Asset-Disposition (ITAD), Datenlöschung und refurbished IT."
@@ -96,12 +99,41 @@ export default async function AboutPage({ params }: Props) {
       id: "about-faq-10",
       question: isDe ? "Wie können Unternehmen Rhydm Tech kontaktieren?" : "How can businesses contact Rhydm Tech?",
       answer: isDe
-        ? `Sie erreichen uns per E-Mail unter hello@rhydm.tech, telefonisch unter +4915560765557 oder über die Kontaktformulare auf unserer Website.`
-        : `Businesses can contact us via email at hello@rhydm.tech, by calling +4915560765557, or through the contact forms on our website.`,
+        ? `Sie erreichen uns per E-Mail unter ${COMPANY.email}, telefonisch unter ${COMPANY.phone} oder über die Kontaktformulare auf unserer Website.`
+        : `Businesses can contact us via email at ${COMPANY.email}, by calling ${COMPANY.phone}, or through the contact forms on our website.`,
     },
   ];
 
   return (
+    <>
+      {/*
+        The ten Q&As below were already the strongest entity copy on the site
+        but shipped as plain HTML only. Emitting them as FAQPage makes the same
+        answers machine-readable, and binding the page to the single
+        Organization node states which entity they describe.
+      */}
+      <JsonLd
+        data={graphSchema(
+          {
+            "@type": "AboutPage",
+            "@id": `${SITE_URL}/about#webpage`,
+            url: `${SITE_URL}/about`,
+            name: isDe ? `Über ${BRAND}` : `About ${BRAND}`,
+            description: COMPANY.description,
+            inLanguage: locale,
+            isPartOf: { "@id": `${SITE_URL}/#website` },
+            about: { "@id": `${SITE_URL}/#organization` },
+            mainEntity: { "@id": `${SITE_URL}/#organization` },
+          },
+          faqSchema(faqs),
+          breadcrumbSchema([
+            { name: isDe ? "Startseite" : "Home", url: "/" },
+            { name: BRAND, url: "/rhydm-tech" },
+            { name: isDe ? "Über uns" : "About" },
+          ], locale),
+        )}
+      />
+
     <div data-division="disposal" className="flex min-h-dvh flex-col bg-white">
       <DisposalFloatingNav />
       
@@ -179,7 +211,7 @@ export default async function AboutPage({ params }: Props) {
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Globe className="size-4 text-slate-400" />
-                  <span className="text-slate-900 dark:text-white">https://www.rhydm-tech.com/</span>
+                  <span className="text-slate-900 dark:text-white">rhydm-tech.com</span>
                 </div>
               </div>
             </div>
@@ -240,5 +272,6 @@ export default async function AboutPage({ params }: Props) {
 
       <SiteFooter division="disposal" />
     </div>
+    </>
   );
 }

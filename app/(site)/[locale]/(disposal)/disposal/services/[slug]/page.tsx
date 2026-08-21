@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: t("notFound") };
   }
 
-  return createServiceMetadata(service);
+  return createServiceMetadata(service, locale);
 }
 
 export default async function ServiceDetailPage({ params }: Props) {
@@ -60,12 +60,12 @@ export default async function ServiceDetailPage({ params }: Props) {
     <>
       <JsonLd
         data={graphSchema(
-          serviceSchema({ name: service.title, slug: service.slug, description: service.summary }),
+          serviceSchema({ name: service.title, slug: service.slug, description: service.summary }, locale),
           breadcrumbSchema([
             { name: "IT Asset Disposal", url: "/disposal" },
             { name: "Services", url: "/disposal/services" },
             { name: service.title },
-          ]),
+          ], locale),
         )}
       />
 

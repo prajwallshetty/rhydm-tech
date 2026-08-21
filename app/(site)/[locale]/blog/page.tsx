@@ -14,6 +14,7 @@ type PageProps = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   return createPageMetadata({
+    locale,
     title: locale === "de" ? "Rhydm Tech Blog — Kreislauf-IT & ITAD Fachwissen" : "Rhydm Tech Blog — Circular IT & ITAD Insights",
     description: "Read the latest news, guides, and compliance resources on IT Asset Disposal (ITAD), secure data destruction, and refurbished technology from Rhydm Tech.",
     path: "/blog",

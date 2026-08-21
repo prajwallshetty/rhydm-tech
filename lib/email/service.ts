@@ -89,7 +89,7 @@ async function dispatch(options: DispatchOptions): Promise<SendResult> {
 
   let logoUrl: string | null = null;
   try {
-    const { getGlobalLogoUrl } = await import("@/components/brand/logo-provider");
+    const { getGlobalLogoUrl } = await import("@/components/brand/logo-source");
     logoUrl = await getGlobalLogoUrl();
   } catch (err) {
     // ignore
@@ -195,7 +195,7 @@ async function guardedDispatch(options: DispatchOptions): Promise<SendResult> {
       try {
         let logoUrl: string | null = null;
         try {
-          const { getGlobalLogoUrl } = await import("@/components/brand/logo-provider");
+          const { getGlobalLogoUrl } = await import("@/components/brand/logo-source");
           logoUrl = await getGlobalLogoUrl();
         } catch {
           // ignore

@@ -46,3 +46,6 @@ next-env.d.ts
 
 # Rendered email template previews (scripts/preview-emails.mts)
 email-previews/
+
+# Intermediate output from scripts/build-brand-assets.mjs
+scratch/

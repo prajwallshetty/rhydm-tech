@@ -1,4 +1,4 @@
-import { COMPANY, SITE_URL } from "@/lib/business";
+import { BRAND, COMPANY, SITE_URL } from "@/lib/business";
 import { routing } from "@/i18n/routing";
 
 /**
@@ -25,8 +25,8 @@ export function GET() {
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
-  <ShortName>${xmlEscape(COMPANY.name)}</ShortName>
-  <Description>${xmlEscape(`Search refurbished IT equipment at ${COMPANY.name}`)}</Description>
+  <ShortName>${xmlEscape(BRAND)}</ShortName>
+  <Description>${xmlEscape(`Search refurbished IT equipment at ${BRAND} (${COMPANY.legalName})`)}</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Image width="96" height="96" type="image/png">${xmlEscape(`${SITE_URL}/favicon/favicon-96x96.png`)}</Image>
   <Url type="text/html" method="get" template="${xmlEscape(searchUrl)}" />

@@ -1,4 +1,4 @@
-import { COMPANY, SITE_URL } from "@/lib/business";
+import { BRAND, COMPANY, SITE_URL } from "@/lib/business";
 import { db } from "@/lib/db";
 import { PublishStatus } from "@/lib/generated/prisma/client";
 import { routing } from "@/i18n/routing";
@@ -56,7 +56,7 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${xmlEscape(`${COMPANY.name} — Insights`)}</title>
+    <title>${xmlEscape(`${BRAND} — Insights`)}</title>
     <link>${xmlEscape(blogUrl)}</link>
     <description>${xmlEscape(COMPANY.description)}</description>
     <language>${routing.defaultLocale}</language>

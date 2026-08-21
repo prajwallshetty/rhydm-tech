@@ -14,7 +14,7 @@ import {
 } from "@/app/actions/exchange";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
-import { SITE_URL } from "@/lib/business";
+import { BRAND, SITE_URL, WHATSAPP } from "@/lib/business";
 
 interface ExchangeLandingClientProps {
   pageType: "trade-in" | "exchange" | "sell-your-device";
@@ -116,7 +116,7 @@ export function ExchangeLandingClient({ pageType }: ExchangeLandingClientProps) 
               <ArrowRight className="h-4 w-4" />
             </button>
             <a
-              href={`https://wa.me/4915166196889?text=${encodeURIComponent("Hello Rhydm Technologies, I would like to enquire about exchanging my device.")}`}
+              href={WHATSAPP.getUrl(`Hello ${BRAND}, I would like to enquire about exchanging my device.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-3.5 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-400 font-bold rounded-xl flex items-center gap-2 border border-emerald-500/30 transition-all text-sm"

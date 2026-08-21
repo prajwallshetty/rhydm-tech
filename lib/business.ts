@@ -84,13 +84,30 @@ export const DIVISION_LIST: DivisionMeta[] = DIVISIONS.map(
   (slug) => DIVISION_META[slug],
 );
 
+/**
+ * Brand vs. legal entity.
+ *
+ * `BRAND` ("Rhydm Tech") is the customer-facing name and the string users
+ * actually type into Google. `COMPANY.legalName` ("Rhydm Technologies") is the
+ * registered entity behind it. Search engines only merge the two into one
+ * entity if the site says so consistently, so presentation surfaces (titles,
+ * og:site_name, logo alt, manifest) use BRAND while legal/structured-data
+ * surfaces (Impressum, Organization.legalName) use the full company name.
+ */
+export const BRAND = "Rhydm Tech" as const;
+
 export const COMPANY = {
+  /** Registered entity name — used for Organization schema and legal pages. */
   name: "Rhydm Technologies",
   legalName: "Rhydm Technologies",
+  /** Customer-facing brand. Alias of BRAND, kept here for call-site ergonomics. */
+  brand: BRAND,
   description:
-    "Rhydm Technologies is a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, IT equipment recycling, trade-in/value recovery, and circular IT solutions.",
+    "Rhydm Tech is the technology brand of Rhydm Technologies, a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, IT equipment recycling, trade-in and value recovery, and circular IT solutions across Germany.",
   email: "hello@rhydm.tech",
-  phone: "+49 1516 6196889",
+  phone: "+49 15560 765557",
+  /** E.164, for tel: links and schema.org telephone. */
+  phoneE164: "+4915560765557",
   address: {
     street: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage",
     city: "Berlin",
@@ -107,15 +124,22 @@ export const COMPANY = {
 } as const;
 
 export const WHATSAPP = {
-  number: "+49 1516 6196889",
-  cleanNumber: "4915166196889",
+  number: "+49 15560 765557",
+  cleanNumber: "4915560765557",
   getUrl: (message?: string) => {
-    const base = "https://wa.me/4915166196889";
+    const base = "https://wa.me/4915560765557";
     return message ? `${base}?text=${encodeURIComponent(message)}` : base;
   },
 } as const;
 
-/** Used by metadata, sitemap and JSON-LD. Override in production via env. */
+/**
+ * Canonical origin, used by metadata, sitemap, redirects and JSON-LD.
+ *
+ * The canonical host is the **apex** domain, no `www`. `proxy.ts` redirects
+ * `www.rhydm-tech.com` here, so this constant and that redirect must always
+ * agree — if they ever disagree the site emits canonicals pointing at a URL
+ * that immediately 301s, which is the fastest way to split an entity in two.
+ */
 export const SITE_URL = (() => {
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const isProd = process.env.NODE_ENV === "production";
@@ -124,7 +148,7 @@ export const SITE_URL = (() => {
     if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
       return envUrl;
     }
-    return "https://www.rhydm-tech.com";
+    return "https://rhydm-tech.com";
   }
   
   return envUrl ?? "http://localhost:3000";

@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
-import { COMPANY } from "@/lib/business";
+import { BRAND } from "@/lib/business";
 
 /**
  * Brand assets are pre-trimmed of the transparent margin the original
@@ -33,6 +33,8 @@ type LogoProps = {
   /** Set on above-the-fold headers so the logo is not lazy-loaded. */
   priority?: boolean;
   /**
+   * Defaults to "Rhydm Tech logo" — the brand as crawlable image text, which
+   * is what associates the artwork with the entity for image search.
    * Pass `""` where the surrounding link already carries a visible or
    * screen-reader label, so the name is not announced twice.
    */
@@ -43,7 +45,7 @@ export function Logo({
   className,
   variant = "lockup",
   priority = false,
-  alt = COMPANY.name,
+  alt = `${BRAND} logo`,
 }: LogoProps) {
   const logoUrl = useLogo();
 

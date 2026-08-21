@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
+
 import { redirect } from "next/navigation";
+import { noindexMetadata } from "@/lib/seo/metadata";
 import { getLocale } from "next-intl/server";
 import { getSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { AccountClient, SerializedOrder, SerializedAddress } from "./account-client";
+
+export const metadata: Metadata = noindexMetadata("Your Account");
 
 export const dynamic = "force-dynamic";
 

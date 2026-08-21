@@ -7,6 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const content = await getSectionContent<any>("site.legal.accessibility", locale);
   return createPageMetadata({
+    locale,
     title: content.seoTitle || content.title,
     description: content.seoDescription,
     path: "/accessibility",

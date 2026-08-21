@@ -11,12 +11,14 @@ import { FloatingWhatsApp } from "@/components/common/floating-whatsapp";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Analytics } from "@/components/seo/analytics";
 import { routing } from "@/i18n/routing";
-import { COMPANY, SITE_URL } from "@/lib/business";
+import { BRAND, COMPANY, SITE_URL } from "@/lib/business";
 import { KEYWORDS_GLOBAL, VERIFICATION } from "@/lib/seo/constants";
 import {
   organizationSchema,
   websiteSchema,
+  personSchema,
   graphSchema,
+  OG_IMAGE,
 } from "@/lib/seo/schemas";
 import "../../globals.css";
 
@@ -35,8 +37,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${COMPANY.name} — Secure IT Asset Disposal & Refurbished Electronics`,
-    template: `%s | ${COMPANY.name}`,
+    default: `${BRAND} | IT Asset Disposal & Refurbished Technology`,
+    // Every page title ends in the brand people actually search for, not the
+    // legal entity — this is the string Google shows in the SERP.
+    template: `%s | ${BRAND}`,
   },
   description: COMPANY.description,
   keywords: [...KEYWORDS_GLOBAL],
@@ -44,7 +48,6 @@ export const metadata: Metadata = {
     icon: [
       { url: "/favicon/favicon.ico", sizes: "any" },
       { url: "/favicon/favicon-96x96.png", sizes: "96x96", type: "image/png" },
-      { url: "/favicon/favicon.svg", type: "image/svg+xml" },
     ],
     apple: [
       { url: "/favicon/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
@@ -53,13 +56,22 @@ export const metadata: Metadata = {
   manifest: "/favicon/site.webmanifest",
   openGraph: {
     type: "website",
-    siteName: COMPANY.name,
+    siteName: BRAND,
     locale: "en_US",
-    images: [{ url: `${SITE_URL}/brand/rhydm-logo.png`, width: 1200, height: 370, alt: COMPANY.name }],
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE.path}`,
+        width: OG_IMAGE.width,
+        height: OG_IMAGE.height,
+        alt: `${BRAND} — ${COMPANY.legalName}`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    images: [`${SITE_URL}/brand/rhydm-logo.png`],
+    site: "@Rhydmtech",
+    creator: "@Rhydmtech",
+    images: [`${SITE_URL}${OG_IMAGE.path}`],
   },
   robots: {
     index: true,
@@ -112,7 +124,8 @@ export default async function SiteLocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
-  const { getGlobalLogoUrl, LogoProvider } = await import("@/components/brand/logo-provider");
+  const { getGlobalLogoUrl } = await import("@/components/brand/logo-source");
+  const { LogoProvider } = await import("@/components/brand/logo-provider");
   const logoUrl = await getGlobalLogoUrl();
 
   return (
@@ -131,14 +144,23 @@ export default async function SiteLocaleLayout({
         <link
           rel="search"
           type="application/opensearchdescription+xml"
-          title={COMPANY.name}
+          title={BRAND}
           href="/opensearch.xml"
         />
       </head>
       <body className="min-h-full flex flex-col">
-        {/* Global structured data: Organization + WebSite */}
+        {/*
+          One @graph, one Organization node, one WebSite node. The founder is
+          included here rather than only on /about/yash-saad so the
+          Organization's `founder` reference resolves on every page instead of
+          dangling.
+        */}
         <JsonLd
-          data={graphSchema(organizationSchema(), websiteSchema())}
+          data={graphSchema(
+            organizationSchema(),
+            websiteSchema(),
+            personSchema(locale),
+          )}
         />
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider

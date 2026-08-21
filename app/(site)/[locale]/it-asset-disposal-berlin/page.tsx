@@ -15,6 +15,7 @@ type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   return createPageMetadata({
+    locale,
     title: locale === "de" ? "IT Asset Disposal Berlin | Zertifizierte ITAD Deutschland" : "IT Asset Disposal Berlin | Certified ITAD Germany",
     description: locale === "de"
       ? "Sichere IT-Asset-Disposition (ITAD) für Berliner Unternehmen. Zertifizierte Datenlöschung (NIST 800-88), WEEE-Recycling und Ankauf gebrauchter IT."

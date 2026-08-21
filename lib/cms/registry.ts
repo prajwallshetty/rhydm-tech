@@ -417,8 +417,8 @@ export const SECTION_DEFS: SectionDef[] = [
 
 ## 1. Data Controller
 The responsible data controller for this website under the General Data Protection Regulation (GDPR) is:
-Rhydm Tech GmbH
-Müllerstraße 12, 13353 Berlin, Germany
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany
 Email: privacy@rhydm.tech
 
 ## 2. Personal Information Collected
@@ -450,8 +450,8 @@ Under GDPR, you have the following rights:
 
 ## 1. Verantwortlicher
 Verantwortlicher für die Datenverarbeitung gemäß DSGVO ist:
-Rhydm Tech GmbH
-Müllerstraße 12, 13353 Berlin, Deutschland
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Deutschland
 E-Mail: privacy@rhydm.tech
 
 ## 2. Erhobene Daten
@@ -558,10 +558,10 @@ Sie können Ihre Einstellungen jederzeit über unseren Cookie-Banner oder Ihre B
       content: `# Terms & Conditions
 
 ## 1. Scope and Company Info
-These General Terms and Conditions (AGB) apply to all contracts concluded between Rhydm Tech GmbH and our corporate (B2B) and individual (B2C) clients.
-Rhydm Tech GmbH
-Müllerstraße 12, 13353 Berlin, Germany
-Managing Director: [Placeholder representative]
+These General Terms and Conditions (AGB) apply to all contracts concluded between Rhydm Technologies and our corporate (B2B) and individual (B2C) clients.
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany
+Represented by: Yash Saad, Founder
 
 ## 2. Services & Products
 - **IT Asset Disposition (ITAD)**: Secure pickup, data sanitisation, drive destruction, and environment-compliant recycling.
@@ -588,10 +588,10 @@ Contracts are governed by the laws of the Federal Republic of Germany. For corpo
         content: `# Allgemeine Geschäftsbedingungen
 
 ## 1. Geltungsbereich und Firmeninfo
-Diese AGB gelten für alle Verträge zwischen der Rhydm Tech GmbH und unseren B2B- und B2C-Kunden.
-Rhydm Tech GmbH
-Müllerstraße 12, 13353 Berlin, Deutschland
-Geschäftsführer: [Platzhalter Vertreter]
+Diese AGB gelten für alle Verträge zwischen der Rhydm Technologies und unseren B2B- und B2C-Kunden.
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Deutschland
+Vertreten durch: Yash Saad, Gründer
 
 ## 2. Leistungen & Produkte
 - **IT Asset Disposition (ITAD)**: Sichere Abholung, Datenlöschung, Vernichtung und umweltgerechtes Recycling.
@@ -626,67 +626,59 @@ Es gilt das Recht der Bundesrepublik Deutschland. Gerichtsstand für B2B-Verträ
     defaults: {
       title: "Imprint (Impressum)",
       seoTitle: "Imprint | Rhydm Tech",
-      seoDescription: "Official legal imprint (Impressum) of Rhydm Tech GmbH under German law.",
+      seoDescription: "Official legal imprint (Impressum) of Rhydm Technologies under German law.",
       publishStatus: "PUBLISHED",
       content: `# Imprint (Impressum)
 
 ## Information according to § 5 TMG (Telemediengesetz)
-Rhydm Tech GmbH
-Müllerstraße 12
-13353 Berlin, Germany
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage
+13599 Berlin, Germany
 
-## Represented by (Managing Director)
-[Placeholder Director Name]
+## Represented by
+Yash Saad, Founder
 
 ## Contact Details
-Phone: +49 (0) 30 1234 5678
+Phone: +49 15560 765557
 Email: info@rhydm.tech
-Website: www.rhydm.tech
-
-## Commercial Register
-Register Court: District Court (Amtsgericht) Berlin-Charlottenburg
-Registration Number: HRB 99999 B
+Website: https://rhydm-tech.com
 
 ## VAT Identification Number
-VAT ID according to § 27a UStG: DE 123 456 789
+VAT ID according to § 27a UStG: [VAT ID — to be completed by Rhydm Technologies]
 
 ## Responsible Person for Editorial Content
 According to § 18 Abs. 2 MStV:
-[Placeholder Responsible Name]
-Müllerstraße 12, 13353 Berlin, Germany`,
+Yash Saad
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany`,
     },
     localizedDefaults: {
       de: {
         title: "Impressum",
         seoTitle: "Impressum | Rhydm Tech",
-        seoDescription: "Gesetzlich vorgeschriebenes Impressum der Rhydm Tech GmbH gemäß § 5 TMG.",
+        seoDescription: "Gesetzlich vorgeschriebenes Impressum der Rhydm Technologies gemäß § 5 TMG.",
         publishStatus: "PUBLISHED",
         content: `# Impressum
 
 ## Angaben gemäß § 5 TMG
-Rhydm Tech GmbH
-Müllerstraße 12
-13353 Berlin, Deutschland
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage
+13599 Berlin, Deutschland
 
-## Vertreten durch (Geschäftsführer)
-[Platzhalter Name Geschäftsführer]
+## Vertreten durch
+Yash Saad, Gründer
 
 ## Kontaktdaten
-Telefon: +49 (0) 30 1234 5678
+Telefon: +49 15560 765557
 E-Mail: info@rhydm.tech
-Website: www.rhydm.tech
-
-## Registereintrag
-Registergericht: Amtsgericht Berlin-Charlottenburg
-Registernummer: HRB 99999 B
+Website: https://rhydm-tech.com
 
 ## Umsatzsteuer-Identifikationsnummer
-Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: DE 123 456 789
+Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: [USt-IdNr. — von Rhydm Technologies zu ergänzen]
 
 ## Verantwortlich für den journalistisch-redaktionellen Inhalt
 Gemäß § 18 Abs. 2 MStV:
-[Platzhalter Name Verantwortlicher]
-Müllerstraße 12, 13353 Berlin, Deutschland`,
+Yash Saad
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Deutschland`,
       },
     },
   },
@@ -779,7 +771,7 @@ B2C return shipping for defective devices is free (pre-paid return labels provid
 
 ## 4. Return Address
 Rhydm Tech Returns Center
-Müllerstraße 12, 13353 Berlin, Germany`,
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany`,
     },
     localizedDefaults: {
       de: {
@@ -802,7 +794,7 @@ Kosten für defekte Rücksendungen tragen wir. Bei einfachem Nichtgefallen träg
 
 ## 4. Rücksendeadresse
 Rhydm Tech Returns Center
-Müllerstraße 12, 13353 Berlin, Deutschland`,
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Deutschland`,
       },
     },
   },
@@ -885,17 +877,17 @@ You have the right to withdraw from this contract within 14 days without giving 
 The withdrawal period is 14 days from the day on which you or a third party named by you, who is not the carrier, has taken possession of the goods.
 
 To exercise your right of withdrawal, you must inform us of your decision:
-Rhydm Tech GmbH
-Müllerstraße 12, 13353 Berlin, Germany
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany
 Email: support@rhydm.tech
-Phone: +49 (0) 30 1234 5678
+Phone: +49 15560 765557
 
 ## 2. Consequences of Withdrawal
 If you withdraw from this contract, we will refund all payments received from you, including delivery costs (except for additional costs resulting from choosing a non-standard delivery option), within 14 days from the day we receive your withdrawal notice. We may withhold the refund until we receive the goods back.
 
 ## 3. Model Withdrawal Form
 (If you wish to withdraw from the contract, please fill out this form and return it to us)
-- To: Rhydm Tech GmbH, Müllerstraße 12, 13353 Berlin, Germany (support@rhydm.tech)
+- To: Rhydm Technologies, Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany (support@rhydm.tech)
 - I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract of sale of the following goods (*):
 - Ordered on (*)/received on (*):
 - Name of consumer(s):
@@ -916,17 +908,17 @@ Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertr
 Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag, an dem Sie oder ein von Ihnen benannter Dritter, der nicht der Beförderer ist, die Waren in Besitz genommen haben.
 
 Um Ihr Widerrufsrecht auszuüben, müssen Sie uns informieren:
-Rhydm Tech GmbH
-Müllerstraße 12, 13353 Berlin, Deutschland
+Rhydm Technologies
+Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Deutschland
 E-Mail: support@rhydm.tech
-Telefon: +49 (0) 30 1234 5678
+Telefon: +49 15560 765557
 
 ## 2. Folgen des Widerrufs
 Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, die wir von Ihnen erhalten haben, einschließlich der Lieferkosten (mit Ausnahme der zusätzlichen Kosten, die sich daraus ergeben, dass Sie eine andere Art der Lieferung als die von uns angebotene Standardlieferung gewählt haben), unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung über Ihren Widerruf dieses Vertrags bei uns eingegangen ist.
 
 ## 3. Muster-Widerrufsformular
 (Wenn Sie den Vertrag widerrufen wollen, füllen Sie bitte dieses Formular aus und senden Sie es zurück)
-- An: Rhydm Tech GmbH, Müllerstraße 12, 13353 Berlin, Deutschland (support@rhydm.tech)
+- An: Rhydm Technologies, Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Deutschland (support@rhydm.tech)
 - Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über den Kauf der folgenden Waren (*):
 - Bestellt am (*)/erhalten am (*):
 - Name des/der Verbraucher(s):
