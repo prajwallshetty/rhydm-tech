@@ -69,9 +69,8 @@ export function SupportClient() {
                     {faq.q}
                   </span>
                   <ChevronDown
-                    className={`size-4 text-slate-400 transition-transform duration-300 ${
-                      isOpen ? "rotate-180 text-[#2E6F40]" : ""
-                    }`}
+                    className={`size-4 text-slate-400 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#2E6F40]" : ""
+                      }`}
                   />
                 </button>
                 <AnimatePresence initial={false}>
@@ -100,7 +99,7 @@ export function SupportClient() {
             <Mail className="size-6 text-[#2E6F40] mx-auto mb-2" />
             <h4 className="text-xs font-bold text-slate-900">Email Us</h4>
             <p className="mt-1 text-[11px] text-[#2E6F40] font-extrabold break-all">
-              support@rhydm.tech
+              contact@rhydm-tech.com
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-xs">

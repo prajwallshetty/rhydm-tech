@@ -430,13 +430,13 @@ async function main() {
   const adminPasswordHash = crypto.pbkdf2Sync("admin123", "rhydm-salt-2026", 1000, 64, "sha512").toString("hex");
 
   const adminUser = await db.user.upsert({
-    where: { email: "admin@rhydm.tech" },
+    where: { email: "admin@rhydm-tech.com" },
     update: {
       role: Role.ADMIN,
       passwordHash: adminPasswordHash,
     },
     create: {
-      email: "admin@rhydm.tech",
+      email: "admin@rhydm-tech.com",
       name: "Rhydm Admin",
       role: Role.ADMIN,
       passwordHash: adminPasswordHash,

@@ -86,11 +86,11 @@ export const DIVISION_LIST: DivisionMeta[] = DIVISIONS.map(
 
 export const COMPANY = {
   name: "Rhydm Technologies",
-  legalName: "Rhydm Technologies",
+  legalName: "Rhydm Technologies UG (haftungsbeschränkt)",
   description:
-    "Rhydm Technologies is a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, IT equipment recycling, trade-in/value recovery, and circular IT solutions.",
-  email: "hello@rhydm.tech",
-  phone: "+49 1516 6196889",
+    "Rhydm Tech is the technology brand of Rhydm Technologies, a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, IT equipment recycling, trade-in and value recovery, and circular IT solutions across Germany.",
+  email: "contact@rhydm-tech.com",
+  phone: "+49 1556 0765557",
   address: {
     street: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage",
     city: "Berlin",
@@ -107,10 +107,10 @@ export const COMPANY = {
 } as const;
 
 export const WHATSAPP = {
-  number: "+49 1516 6196889",
-  cleanNumber: "4915166196889",
+  number: "+49 1556 0765557",
+  cleanNumber: "4915560765557",
   getUrl: (message?: string) => {
-    const base = "https://wa.me/4915166196889";
+    const base = "https://wa.me/4915560765557";
     return message ? `${base}?text=${encodeURIComponent(message)}` : base;
   },
 } as const;
@@ -119,13 +119,13 @@ export const WHATSAPP = {
 export const SITE_URL = (() => {
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const isProd = process.env.NODE_ENV === "production";
-  
+
   if (isProd) {
     if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
-      return envUrl;
+      return envUrl.replace("www.rhydm-tech.com", "rhydm-tech.com").replace(/\/$/, "");
     }
-    return "https://www.rhydm-tech.com";
+    return "https://rhydm-tech.com";
   }
-  
-  return envUrl ?? "http://localhost:3000";
+
+  return envUrl ? envUrl.replace("www.rhydm-tech.com", "rhydm-tech.com").replace(/\/$/, "") : "http://localhost:3000";
 })();

@@ -179,7 +179,7 @@ export default async function AboutPage({ params }: Props) {
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Globe className="size-4 text-slate-400" />
-                  <span className="text-slate-900 dark:text-white">https://www.rhydm-tech.com/</span>
+                  <span className="text-slate-900 dark:text-white">https://rhydm-tech.com/</span>
                 </div>
               </div>
             </div>

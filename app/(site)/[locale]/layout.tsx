@@ -112,7 +112,8 @@ export default async function SiteLocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
-  const { getGlobalLogoUrl, LogoProvider } = await import("@/components/brand/logo-provider");
+  const { LogoProvider } = await import("@/components/brand/logo-provider");
+  const { getGlobalLogoUrl } = await import("@/lib/brand/logo");
   const logoUrl = await getGlobalLogoUrl();
 
   return (

@@ -37,13 +37,12 @@ export function proxy(request: NextRequest) {
   if (
     process.env.NODE_ENV === "production" &&
     host &&
-    !host.startsWith("www.") &&
-    (host === "rhydm-tech.com" || host.startsWith("rhydm-tech.com:"))
+    (host === "www.rhydm-tech.com" || host.startsWith("www.rhydm-tech.com:"))
   ) {
     return NextResponse.redirect(
       new URL(
         `${request.nextUrl.pathname}${request.nextUrl.search}`,
-        "https://www.rhydm-tech.com",
+        "https://rhydm-tech.com",
       ),
       301,
     );

@@ -44,6 +44,11 @@ export async function SiteFooter({ division }: { division: Division }) {
               </h3>
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
+                  <Link href="/rhydm-tech" className="hover:text-[#16A34A] transition-colors font-bold text-slate-900">
+                    Rhydm Tech
+                  </Link>
+                </li>
+                <li>
                   <Link href="/disposal/services" className="hover:text-[#16A34A] transition-colors">
                     {t("allServices")}
                   </Link>
@@ -84,12 +89,12 @@ export async function SiteFooter({ division }: { division: Division }) {
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <a
-                    href="https://wa.me/4915166196889"
+                    href="https://wa.me/4915560765557"
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-[#16A34A] transition-colors font-semibold text-[#16A34A]"
                   >
-                    WhatsApp (+49 1516 6196889)
+                    WhatsApp (+49 1556 0765557)
                   </a>
                 </li>
                 {settings.socials.map((social) => (

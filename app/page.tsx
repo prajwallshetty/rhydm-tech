@@ -14,12 +14,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${COMPANY.name} — Choose Your Service`,
     description: COMPANY.description,
-    url: "/",
   },
 };
 
 export default async function GatewayPage() {
-  const { getGlobalLogoUrl, LogoProvider } = await import("@/components/brand/logo-provider");
+  const { LogoProvider } = await import("@/components/brand/logo-provider");
+  const { getGlobalLogoUrl } = await import("@/lib/brand/logo");
   const logoUrl = await getGlobalLogoUrl();
 
   return (

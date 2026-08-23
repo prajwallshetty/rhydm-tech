@@ -139,7 +139,7 @@ export default async function FounderProfilePage({ params }: Props) {
                     </div>
                     <div className="flex items-center gap-2">
                       <Globe className="size-4 text-[#16A34A]" />
-                      <span>https://www.rhydm-tech.com/</span>
+                      <span>https://rhydm-tech.com/</span>
                     </div>
                   </div>
                 </div>

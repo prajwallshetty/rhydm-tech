@@ -298,11 +298,11 @@ export async function GET(
     <div class="address-grid">
       <div class="address-block">
         <h3>Vendor</h3>
-        <p class="name">Rhydm Technologies GmbH</p>
-        <p>Humboldtstraße 120</p>
-        <p>22083 Hamburg, Germany</p>
-        <p>Email: support@rhydm.tech</p>
-        <p>VAT ID: DE 999 888 777</p>
+        <p class="name">Rhydm Technologies UG (haftungsbeschränkt)</p>
+        <p>Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage</p>
+        <p>13599 Berlin, Germany</p>
+        <p>Email: contact@rhydm-tech.com</p>
+        <p>Phone: +49 1556 0765557</p>
       </div>
       <div class="address-block">
         <h3>Bill To / Ship To</h3>
@@ -328,8 +328,8 @@ export async function GET(
         </thead>
         <tbody>
           ${order.items
-            .map(
-              (item) => `
+        .map(
+          (item) => `
           <tr>
             <td>
               <div style="font-weight: 700;">${item.name}</div>
@@ -338,12 +338,12 @@ export async function GET(
             <td style="text-align: center;">${item.quantity}</td>
             <td style="text-align: right;">${formatPriceExact(item.priceCents)}</td>
             <td style="text-align: right; font-weight: 600;">${formatPriceExact(
-              item.priceCents * item.quantity
-            )}</td>
+            item.priceCents * item.quantity
+          )}</td>
           </tr>
           `
-            )
-            .join("")}
+        )
+        .join("")}
         </tbody>
       </table>
     </div>

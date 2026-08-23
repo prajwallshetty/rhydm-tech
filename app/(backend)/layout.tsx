@@ -54,7 +54,8 @@ export const viewport: Viewport = {
 export default async function BackendLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const { getGlobalLogoUrl, LogoProvider } = await import("@/components/brand/logo-provider");
+  const { LogoProvider } = await import("@/components/brand/logo-provider");
+  const { getGlobalLogoUrl } = await import("@/lib/brand/logo");
   const logoUrl = await getGlobalLogoUrl();
 
   return (

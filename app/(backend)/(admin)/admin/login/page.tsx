@@ -18,7 +18,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
 
   const fillDemo = () => {
-    setEmail("admin@rhydm.tech");
+    setEmail("admin@rhydm-tech.com");
     setPassword("admin123");
   };
 
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
             </button>
           </div>
           <div className="text-muted-foreground space-y-0.5">
-            <p><span className="font-mono text-foreground">admin@rhydm.tech</span></p>
+            <p><span className="font-mono text-foreground">admin@rhydm-tech.com</span></p>
             <p><span className="font-mono text-foreground">admin123</span></p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@rhydm.tech"
+                placeholder="admin@rhydm-tech.com"
                 className="w-full rounded-lg border border-input bg-background/50 pl-10 pr-4 py-2.5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>

@@ -33,14 +33,14 @@ export function organizationSchema() {
     "@id": `${SITE_URL}/#organization`,
     name: COMPANY.name,
     legalName: COMPANY.legalName,
-    alternateName: ["Rhydm", "Rhydm Tech"],
+    alternateName: "Rhydm Tech",
     url: url,
     logo: {
       "@type": "ImageObject",
       url: abs("/brand/rhydm-logo.png"),
       width: 1200,
       height: 370,
-      caption: COMPANY.name,
+      caption: "Rhydm Tech logo",
     },
     image: abs("/brand/rhydm-logo.png"),
     description: COMPANY.description,
@@ -52,6 +52,7 @@ export function organizationSchema() {
     founder: {
       "@type": "Person",
       name: "Yash Saad",
+      jobTitle: "Founder",
       address: {
         "@type": "PostalAddress",
         addressLocality: "Berlin",
@@ -71,12 +72,8 @@ export function websiteSchema() {
   return {
     "@type": "WebSite",
     "@id": `${SITE_URL}/#website`,
-    name: COMPANY.name,
-    alternateName: [
-      "Rhydm",
-      "Rhydm Tech",
-      "rhydm-tech.com"
-    ],
+    name: "Rhydm Tech",
+    alternateName: ["Rhydm Technologies", "Rhydm", "rhydm-tech.com"],
     url: url,
     description: COMPANY.description,
     publisher: { "@id": `${SITE_URL}/#organization` },
@@ -470,7 +467,8 @@ export function personSchema() {
     worksFor: {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
-      name: "Rhydm Tech",
+      name: "Rhydm Technologies",
+      alternateName: "Rhydm Tech",
       url: `${SITE_URL}/`,
     },
     url: `${SITE_URL}/about/yash-saad`,
