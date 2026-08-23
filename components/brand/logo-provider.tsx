@@ -1,5 +1,8 @@
 "use client";
 
+// Client context only. The server-side lookup lives in ./logo-source, which
+// must never be imported from a Client Component.
+
 import { createContext, useContext } from "react";
 
 const LogoContext = createContext<string | null>(null);

@@ -1,34 +1,15 @@
 {
-  "name": "Rhydm Technologies",
-  "short_name": "Rhydm Technologies",
-  "description": "Secure IT asset disposal and premium refurbished electronics.",
+  "name": "Rhydm Tech",
+  "short_name": "Rhydm Tech",
+  "description": "Rhydm Tech is the technology brand of Rhydm Technologies, providing IT asset disposal, secure data destruction and refurbished technology in Berlin, Germany.",
   "start_url": "/",
   "scope": "/",
+  "id": "/",
   "icons": [
-    {
-      "src": "/brand/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/brand/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/web-app-manifest-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/web-app-manifest-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon/web-app-manifest-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon/web-app-manifest-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "theme_color": "#ffffff",
   "background_color": "#ffffff",

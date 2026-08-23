@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
+
 import { HeroRefurbishedMotion } from "@/components/store/hero-refurbished-motion";
 import { setRequestLocale } from "next-intl/server";
+
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema, collectionPageSchema, graphSchema } from "@/lib/seo/schemas";
+import { BRAND } from "@/lib/business";
 
 import { getSectionContent } from "@/lib/cms/content";
 import type { StoreHeroContent } from "@/lib/cms/registry";
@@ -11,6 +18,33 @@ import {
   getFeaturedProducts,
   getStoreTestimonials,
 } from "@/lib/repositories/store";
+
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isDe = locale === "de";
+
+  return createPageMetadata({
+    locale,
+    title: isDe
+      ? "Refurbished IT-Technik kaufen | Laptops, Desktops & Server"
+      : "Buy Refurbished IT Equipment | Laptops, Desktops & Servers",
+    description: isDe
+      ? "Geprüfte refurbished Business-Laptops, Desktops, Server und Netzwerktechnik von Rhydm Tech — eingestuft, datensicher gelöscht und mit mindestens 12 Monaten Garantie."
+      : "Tested refurbished business laptops, desktops, servers and networking hardware from Rhydm Tech — graded, securely wiped and backed by a minimum 12-month warranty.",
+    path: "/refurbished",
+    keywords: [
+      "Refurbished Laptops Berlin",
+      "Refurbished IT Equipment Germany",
+      "Certified Refurbished",
+      "Refurbished Servers",
+    ],
+  });
+}
 
 export default async function RefurbishedHomePage({
   params,
@@ -30,12 +64,35 @@ export default async function RefurbishedHomePage({
       getSectionContent<StoreHeroContent>("section.refurbished.hero", locale),
     ]);
 
+  const isDe = locale === "de";
+
   return (
-    // -mt-24 cancels the store layout's nav clearance on this page only: the
-    // hero carries its own pt-28 and its tinted background is meant to extend
-    // to the viewport top behind the floating nav — without this, a dead
-    // white strip shows above the hero.
-    <div className="-mt-24 bg-white text-slate-900 min-h-screen">
+    <>
+      <JsonLd
+        data={graphSchema(
+          collectionPageSchema(
+            isDe
+              ? `Refurbished IT-Technik von ${BRAND}`
+              : `Refurbished IT equipment from ${BRAND}`,
+            isDe
+              ? "Geprüfte refurbished Business-Laptops, Desktops, Server und Netzwerktechnik mit Garantie."
+              : "Tested refurbished business laptops, desktops, servers and networking hardware, sold with warranty.",
+            "/refurbished",
+            locale,
+          ),
+          breadcrumbSchema([
+            { name: isDe ? "Startseite" : "Home", url: "/" },
+            { name: isDe ? "Refurbished" : "Refurbished" },
+          ], locale),
+        )}
+      />
+      {/*
+        -mt-24 cancels the store layout's nav clearance on this page only: the
+        hero carries its own pt-28 and its tinted background is meant to extend
+        to the viewport top behind the floating nav — without this, a dead
+        white strip shows above the hero.
+      */}
+      <div className="-mt-24 bg-white text-slate-900 min-h-screen">
       {/* 1. Full-Viewport Hero with Mouse Parallax & Scroll Animations */}
       <HeroRefurbishedMotion content={heroContent} />
 
@@ -48,5 +105,6 @@ export default async function RefurbishedHomePage({
         testimonials={testimonials}
       />
     </div>
+    </>
   );
 }

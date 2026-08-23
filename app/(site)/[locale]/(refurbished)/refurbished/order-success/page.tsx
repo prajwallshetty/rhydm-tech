@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
+
 import OrderSuccessClient from "./order-success-client";
+import { noindexMetadata } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = noindexMetadata("Order Confirmed");
 
 export const dynamic = "force-dynamic";
 

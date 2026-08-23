@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { COMPANY, SITE_URL } from "@/lib/business";
+import { SITE_URL } from "@/lib/business";
 
 interface LegalLayoutProps {
   title: string;
@@ -196,7 +196,6 @@ export function LegalLayout({
   // Schema structured JSON-LD data
   const pageUrl = `${SITE_URL}/${locale}/${slug}`;
   const homeUrl = `${SITE_URL}/${locale}`;
-  const logoUrl = `${SITE_URL}/logo.png`;
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -211,20 +210,17 @@ export function LegalLayout({
       {
         "@type": "Article",
         "headline": title,
-        "dateModified": new Date().toISOString(),
-        "author": {
-          "@type": "Organization",
-          "name": COMPANY.name,
-          "url": `${SITE_URL}/`
-        },
-        "publisher": {
-          "@type": "Organization",
-          "name": COMPANY.name,
-          "logo": {
-            "@type": "ImageObject",
-            "url": logoUrl
-          }
-        }
+        // Author and publisher are @id references to the single Organization
+        // node declared in the root layout. Repeating the name and logo here
+        // minted two more anonymous Organization nodes on every legal page,
+        // which is the "multiple conflicting Organization schemas" case.
+        //
+        // `dateModified` is deliberately absent: it was `new Date()`, so every
+        // legal page claimed to have been revised on the moment it was
+        // rendered. A permanently-fresh timestamp that never corresponds to a
+        // real edit is worse than none at all.
+        "author": { "@id": `${SITE_URL}/#organization` },
+        "publisher": { "@id": `${SITE_URL}/#organization` }
       },
       {
         "@type": "BreadcrumbList",

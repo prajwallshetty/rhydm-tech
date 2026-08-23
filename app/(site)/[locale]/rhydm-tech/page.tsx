@@ -1,300 +1,398 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { createPageMetadata } from "@/lib/seo/metadata";
 import {
-  organizationSchema,
-  websiteSchema,
-  graphSchema,
-  breadcrumbSchema,
-} from "@/lib/seo/schemas";
-import { JsonLd } from "@/components/seo/json-ld";
-import { DisposalFloatingNav } from "@/components/disposal/disposal-floating-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { COMPANY } from "@/lib/business";
-import {
-  Building2,
-  MapPin,
-  ShieldCheck,
-  Globe2,
-  Phone,
-  Mail,
   ArrowRight,
-  Cpu,
-  RefreshCw,
-  HardDrive,
+  Building2,
+  Globe,
+  Mail,
+  MapPin,
+  Phone,
+  Recycle,
+  ShieldCheck,
+  ShoppingCart,
+  SpellCheck,
+  Trash2,
+  User,
 } from "lucide-react";
 
+import { Link } from "@/i18n/navigation";
+import { DisposalFloatingNav } from "@/components/disposal/disposal-floating-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Accordion } from "@/components/ui/accordion";
+import { JsonLd } from "@/components/seo/json-ld";
+import { BRAND, COMPANY, SITE_URL } from "@/lib/business";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { breadcrumbSchema, faqSchema, graphSchema } from "@/lib/seo/schemas";
+
 type Props = { params: Promise<{ locale: string }> };
+
+const PATH = "/rhydm-tech";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const isDe = locale === "de";
 
   return createPageMetadata({
-    title: "Rhydm Tech — Rhydm Technologies",
+    locale,
+    // Absolute: this page's whole job is to be the definitive result for the
+    // brand query, so the title leads with the brand and names the company
+    // rather than appending the usual "| Rhydm Tech" suffix to something else.
+    title: `${BRAND} — ${COMPANY.legalName}`,
     absoluteTitle: true,
     description: isDe
-      ? "Rhydm Tech ist die Technologie-Marke von Rhydm Technologies in Berlin. Erfahren Sie alles über unsere Dienstleistungen für ITAD, Datenlöschung und Refurbished IT."
-      : "Rhydm Tech is the technology brand of Rhydm Technologies, a Berlin-based company providing IT asset disposal, secure data destruction, refurbished technology, and circular IT solutions across Germany.",
-    path: "/rhydm-tech",
+      ? "Rhydm Tech ist die Technologiemarke von Rhydm Technologies in Berlin: IT-Asset-Entsorgung (ITAD), sichere Datenvernichtung, refurbished IT-Technik und Ankauf gebrauchter Hardware."
+      : "Rhydm Tech is the technology brand of Rhydm Technologies, a Berlin company providing IT asset disposal, secure data destruction, refurbished technology and IT equipment trade-in across Germany.",
+    path: PATH,
     keywords: [
+      "Rhydm",
       "Rhydm Tech",
       "Rhydm Technologies",
       "Rhydm Tech Berlin",
-      "Rhydm Technologies Berlin",
-      "Rhydm Tech Germany",
       "Rhydm ITAD",
       "Rhydm refurbished",
     ],
   });
 }
 
-export default async function BrandEntityPage({ params }: Props) {
+export default async function RhydmTechBrandPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-
   const isDe = locale === "de";
 
-  const breadcrumbs = breadcrumbSchema([
-    { name: "Home", url: "/" },
-    { name: "Rhydm Tech", url: "/rhydm-tech" },
-  ]);
+  const address = `${COMPANY.address.street}, ${COMPANY.address.postalCode} ${COMPANY.address.city}, ${COMPANY.address.country}`;
+
+  /**
+   * These answer the questions people actually type after a brand query. They
+   * are also the FAQPage payload below, so the visible copy and the structured
+   * data can never drift apart.
+   */
+  const faqs = [
+    {
+      id: "brand-faq-what-is",
+      question: isDe ? "Was ist Rhydm Tech?" : "What is Rhydm Tech?",
+      answer: isDe
+        ? "Rhydm Tech ist die Technologiemarke von Rhydm Technologies, einem in Berlin ansässigen Unternehmen für IT-Asset-Entsorgung (ITAD), sichere Datenvernichtung, IT-Recycling, refurbished IT-Technik und zirkuläre IT-Lösungen."
+        : "Rhydm Tech is the technology brand of Rhydm Technologies, a Berlin-based company providing IT asset disposal (ITAD), secure data destruction, IT equipment recycling, refurbished technology and circular IT solutions.",
+    },
+    {
+      id: "brand-faq-relationship",
+      question: isDe
+        ? "Wie hängen Rhydm Tech und Rhydm Technologies zusammen?"
+        : "How are Rhydm Tech and Rhydm Technologies related?",
+      answer: isDe
+        ? "Es handelt sich um dasselbe Unternehmen. Rhydm Technologies ist der vollständige Unternehmensname, Rhydm Tech ist die Marke, unter der das Unternehmen auftritt und unter rhydm-tech.com erreichbar ist."
+        : "They are the same organisation. Rhydm Technologies is the full company name; Rhydm Tech is the brand it trades under and the name of its website, rhydm-tech.com.",
+    },
+    {
+      id: "brand-faq-spelling",
+      question: isDe
+        ? "Wird Rhydm wie „Rhythm“ geschrieben?"
+        : "Is Rhydm spelled the same as “rhythm”?",
+      answer: isDe
+        ? "Nein. Der Markenname wird R-H-Y-D-M geschrieben — ohne „th“ und ohne zweites „h“. Rhydm ist ein eigenständiger Markenname und keine Schreibweise des englischen Wortes „rhythm“."
+        : "No. The brand is spelled R-H-Y-D-M — no “th”, and no second “h”. Rhydm is a distinct brand name, not a variant spelling of the English word “rhythm”.",
+    },
+    {
+      id: "brand-faq-does",
+      question: isDe ? "Was macht Rhydm Tech?" : "What does Rhydm Tech do?",
+      answer: isDe
+        ? "Rhydm Tech holt ausgemusterte IT-Hardware bei Unternehmen ab, löscht die Daten nachweisbar nach NIST SP 800-88, bereitet brauchbare Geräte auf und verkauft sie mit Garantie weiter und recycelt den Rest gemäß ElektroG und WEEE."
+        : "Rhydm Tech collects retired IT hardware from businesses, sanitises the data to NIST SP 800-88 with per-drive certificates, refurbishes what can be reused and resells it with warranty, and recycles the remainder under WEEE/ElektroG rules.",
+    },
+    {
+      id: "brand-faq-where",
+      question: isDe ? "Wo befindet sich Rhydm Tech?" : "Where is Rhydm Tech based?",
+      answer: isDe
+        ? `Rhydm Tech hat seinen Sitz in Berlin, Deutschland: ${address}. Das Unternehmen bedient Kunden in ganz Deutschland.`
+        : `Rhydm Tech is based in Berlin, Germany, at ${address}. The company serves customers across Germany.`,
+    },
+    {
+      id: "brand-faq-services",
+      question: isDe
+        ? "Welche Leistungen bietet Rhydm Tech an?"
+        : "What services does Rhydm Tech offer?",
+      answer: isDe
+        ? "IT-Asset-Entsorgung (ITAD), sichere Datenvernichtung und Festplattenvernichtung, IT- und Elektroschrott-Recycling, Ankauf und Trade-In gebrauchter IT-Hardware sowie den Verkauf geprüfter refurbished Business-Geräte."
+        : "IT asset disposal (ITAD), secure data destruction and drive shredding, IT equipment and e-waste recycling, trade-in and buyback of used business hardware, and the sale of tested refurbished business equipment.",
+    },
+    {
+      id: "brand-faq-products",
+      question: isDe
+        ? "Welche Produkte verkauft Rhydm Tech?"
+        : "What products does Rhydm Tech sell?",
+      answer: isDe
+        ? "Refurbished Business-Laptops, Desktops, Server, Netzwerktechnik und Zubehör — getestet, eingestuft und mit mindestens 12 Monaten Garantie, erhältlich im Refurbished-Shop."
+        : "Refurbished business laptops, desktops, servers, networking equipment and accessories — tested, graded, and backed by a minimum 12-month warranty, sold through the refurbished store.",
+    },
+    {
+      id: "brand-faq-contact",
+      question: isDe
+        ? "Wie kann man Rhydm Tech kontaktieren?"
+        : "How can customers contact Rhydm Tech?",
+      answer: isDe
+        ? `Per E-Mail an ${COMPANY.email}, telefonisch unter ${COMPANY.phone} oder über die Kontaktformulare auf rhydm-tech.com. Die Geschäftszeiten sind ${COMPANY.openingHours}.`
+        : `By email at ${COMPANY.email}, by phone on ${COMPANY.phone}, or through the contact forms on rhydm-tech.com. Business hours are ${COMPANY.openingHours}.`,
+    },
+  ];
+
+  const services = [
+    {
+      href: "/it-asset-disposal-berlin" as const,
+      icon: Trash2,
+      title: isDe ? "IT-Asset-Entsorgung (ITAD)" : "IT Asset Disposal (ITAD)",
+      body: isDe
+        ? "Abholung, Erfassung und gesetzeskonforme Stilllegung ausgemusterter Unternehmens-IT in Berlin und deutschlandweit."
+        : "Collection, serialised audit and compliant decommissioning of retired corporate IT in Berlin and across Germany.",
+    },
+    {
+      href: "/disposal/services" as const,
+      icon: ShieldCheck,
+      title: isDe ? "Sichere Datenvernichtung" : "Secure Data Destruction",
+      body: isDe
+        ? "Softwarebasierte Löschung nach NIST SP 800-88 R1 oder physische Vernichtung, jeweils mit Zertifikat je Datenträger."
+        : "Software erasure to NIST SP 800-88 R1 or physical destruction, each with a per-drive certificate of sanitisation.",
+    },
+    {
+      href: "/disposal/process" as const,
+      icon: Recycle,
+      title: isDe ? "IT-Recycling & Kreislauf-IT" : "IT Recycling & Circular IT",
+      body: isDe
+        ? "Wiederverwendung vor Verwertung: Geräte werden aufbereitet statt geschreddert, der Rest nach ElektroG recycelt."
+        : "Reuse before recycling: hardware is refurbished rather than shredded, with the remainder recycled under WEEE/ElektroG.",
+    },
+    {
+      href: "/refurbished" as const,
+      icon: ShoppingCart,
+      title: isDe ? "Refurbished Technik" : "Refurbished Technology",
+      body: isDe
+        ? "Geprüfte Business-Laptops, Desktops, Server und Netzwerktechnik mit mindestens 12 Monaten Garantie."
+        : "Tested business laptops, desktops, servers and networking hardware with a minimum 12-month warranty.",
+    },
+    {
+      href: "/refurbished/trade-in" as const,
+      icon: ArrowRight,
+      title: isDe ? "Trade-In & Ankauf" : "Trade-In & Buyback",
+      body: isDe
+        ? "Restwertermittlung für ausgemusterte Hardware — als Auszahlung oder als Guthaben für Ersatzgeräte."
+        : "Value recovery on retired hardware — paid out, or credited against replacement equipment.",
+    },
+    {
+      href: "/about" as const,
+      icon: Building2,
+      title: isDe ? "Über das Unternehmen" : "About the Company",
+      body: isDe
+        ? "Hintergrund, Zertifizierungen und Compliance-Rahmen von Rhydm Technologies."
+        : "Background, certifications and the compliance framework behind Rhydm Technologies.",
+    },
+  ];
+
+  const facts: { label: string; value: React.ReactNode; icon: typeof MapPin }[] = [
+    {
+      icon: Building2,
+      label: isDe ? "Marke" : "Brand",
+      value: BRAND,
+    },
+    {
+      icon: Building2,
+      label: isDe ? "Unternehmen" : "Company",
+      value: COMPANY.legalName,
+    },
+    {
+      icon: User,
+      label: isDe ? "Gründer" : "Founder",
+      value: (
+        <Link href="/about/yash-saad" className="text-[#16A34A] hover:underline">
+          Yash Saad
+        </Link>
+      ),
+    },
+    { icon: MapPin, label: isDe ? "Standort" : "Location", value: address },
+    { icon: Phone, label: isDe ? "Telefon" : "Phone", value: COMPANY.phone },
+    { icon: Mail, label: "E-Mail", value: COMPANY.email },
+    { icon: Globe, label: isDe ? "Website" : "Website", value: "rhydm-tech.com" },
+  ];
 
   return (
     <>
-      <JsonLd data={graphSchema(organizationSchema(), websiteSchema(), breadcrumbs)} />
+      {/*
+        WebPage + FAQPage + BreadcrumbList, all bound to the single Organization
+        and Brand nodes declared once in the root layout. Nothing here redefines
+        the organisation — a second definition is what splits an entity.
+      */}
+      <JsonLd
+        data={graphSchema(
+          {
+            "@type": "AboutPage",
+            "@id": `${SITE_URL}${PATH}#webpage`,
+            url: `${SITE_URL}${PATH}`,
+            name: `${BRAND} — ${COMPANY.legalName}`,
+            description: COMPANY.description,
+            inLanguage: locale,
+            isPartOf: { "@id": `${SITE_URL}/#website` },
+            about: { "@id": `${SITE_URL}/#organization` },
+            mainEntity: { "@id": `${SITE_URL}/#organization` },
+            primaryImageOfPage: { "@id": `${SITE_URL}/#brand` },
+          },
+          faqSchema(faqs),
+          breadcrumbSchema([
+            { name: isDe ? "Startseite" : "Home", url: "/" },
+            { name: BRAND },
+          ], locale),
+        )}
+      />
+
       <div data-division="disposal" className="flex min-h-dvh flex-col bg-white">
         <DisposalFloatingNav />
 
-        <main className="flex-1 bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-50 py-12 sm:py-20">
+        <main className="flex-1 bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-50 py-16 sm:py-24">
           <div className="mx-auto max-w-5xl px-6 lg:px-8 space-y-16">
-            
-            {/* Header Hero */}
-            <div className="space-y-6 text-center max-w-3xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[#16A34A] text-xs font-bold uppercase tracking-wider">
-                <Building2 className="size-4" />
-                <span>{isDe ? "Offizielle Marken- & Unternehmensübersicht" : "Official Brand & Company Hub"}</span>
-              </div>
-              <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
-                Rhydm Tech
-              </h1>
-              <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                {isDe
-                  ? "Rhydm Tech ist die Technologie-Marke von Rhydm Technologies, einem in Berlin ansässigen Unternehmen für IT-Asset-Disposition (ITAD), zertifizierte Datenvernichtung, generalüberholte Technologie und zirkuläre IT-Lösungen in Deutschland."
-                  : "Rhydm Tech is the technology brand of Rhydm Technologies, providing IT asset disposal, secure data destruction, refurbished technology and circular IT solutions."}
+
+            {/* Hero — the brand as plain, crawlable H1 text */}
+            <header className="max-w-3xl mx-auto text-center space-y-5">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#16A34A]">
+                {isDe ? "Marke & Unternehmen" : "Brand & Company"}
               </p>
-            </div>
+              <h1 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl">
+                {BRAND}
+              </h1>
+              <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400">
+                {isDe ? (
+                  <>
+                    <strong>Rhydm Tech</strong> ist die Technologiemarke von{" "}
+                    <strong>Rhydm Technologies</strong>, einem in Berlin
+                    ansässigen Unternehmen für IT-Asset-Entsorgung, sichere
+                    Datenvernichtung, refurbished IT-Technik und zirkuläre
+                    IT-Lösungen in Deutschland.
+                  </>
+                ) : (
+                  <>
+                    <strong>Rhydm Tech</strong> is the technology brand of{" "}
+                    <strong>Rhydm Technologies</strong>, a Berlin-based company
+                    providing IT asset disposal, secure data destruction,
+                    refurbished technology and circular IT solutions in Germany.
+                  </>
+                )}
+              </p>
+            </header>
 
-            {/* Quick Fact Sheet Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-4 shadow-sm">
-                <div className="flex items-center gap-3 text-[#16A34A] font-bold text-sm uppercase tracking-wider">
-                  <ShieldCheck className="size-5" />
-                  <span>{isDe ? "Markenarchitektur" : "Brand Architecture"}</span>
-                </div>
-                <div className="space-y-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                  <div className="flex justify-between border-b border-slate-100 dark:border-zinc-800 pb-2">
-                    <span className="font-semibold text-slate-500">{isDe ? "Markenname:" : "Customer Brand:"}</span>
-                    <span className="font-bold text-slate-900 dark:text-white">Rhydm Tech</span>
+            {/* Name & spelling — the Rhydm / rhythm disambiguation */}
+            <section className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-4">
+              <h2 className="flex items-center gap-2 text-xl font-extrabold text-slate-900 dark:text-white">
+                <SpellCheck className="size-6 text-[#16A34A]" />
+                {isDe ? "Der Name: Rhydm, nicht Rhythm" : "The name: Rhydm, not rhythm"}
+              </h2>
+              <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                {isDe
+                  ? "Die Marke wird R-H-Y-D-M geschrieben. Sie enthält kein „th“ und kein zweites „h“, und sie ist keine Variante des englischen Wortes „rhythm“. Wer nach Rhydm, Rhydm Tech oder Rhydm Technologies sucht, sucht nach diesem Unternehmen."
+                  : "The brand is spelled R-H-Y-D-M. There is no “th” and no second “h”, and it is not a variant of the English word “rhythm”. Searches for Rhydm, Rhydm Tech or Rhydm Technologies all refer to this company."}
+              </p>
+              <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                {[
+                  { k: isDe ? "Marke" : "Brand", v: "Rhydm Tech" },
+                  { k: isDe ? "Unternehmen" : "Company", v: "Rhydm Technologies" },
+                  { k: isDe ? "Kurzform" : "Short form", v: "Rhydm" },
+                ].map((row) => (
+                  <div
+                    key={row.k}
+                    className="rounded-2xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 px-4 py-3"
+                  >
+                    <dt className="text-[10px] uppercase tracking-wider font-bold text-slate-500">
+                      {row.k}
+                    </dt>
+                    <dd className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+                      {row.v}
+                    </dd>
                   </div>
-                  <div className="flex justify-between border-b border-slate-100 dark:border-zinc-800 pb-2">
-                    <span className="font-semibold text-slate-500">{isDe ? "Rechtsträger:" : "Legal Entity:"}</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{COMPANY.legalName}</span>
+                ))}
+              </dl>
+            </section>
+
+            {/* Entity fact table */}
+            <section className="space-y-5">
+              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                {isDe ? "Unternehmensdaten auf einen Blick" : "Company details at a glance"}
+              </h2>
+              <dl className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 divide-y divide-slate-100 dark:divide-zinc-800">
+                {facts.map((fact) => (
+                  <div
+                    key={fact.label}
+                    className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 px-6 py-4"
+                  >
+                    <dt className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 sm:w-44 shrink-0">
+                      <fact.icon className="size-4 text-[#16A34A]" />
+                      {fact.label}
+                    </dt>
+                    <dd className="text-sm font-medium text-slate-900 dark:text-white">
+                      {fact.value}
+                    </dd>
                   </div>
-                  <div className="flex justify-between border-b border-slate-100 dark:border-zinc-800 pb-2">
-                    <span className="font-semibold text-slate-500">{isDe ? "Beziehung:" : "Relationship:"}</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Rhydm Tech = brand of Rhydm Technologies</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-100 dark:border-zinc-800 pb-2">
-                    <span className="font-semibold text-slate-500">{isDe ? "Gründer:" : "Founder:"}</span>
-                    <Link href="/about/yash-saad" className="font-bold text-[#16A34A] hover:underline">Yash Saad</Link>
-                  </div>
-                </div>
+                ))}
+              </dl>
+            </section>
+
+            {/* What Rhydm Tech does — entity graph hub */}
+            <section className="space-y-6">
+              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                {isDe ? "Was Rhydm Tech anbietet" : "What Rhydm Tech does"}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {services.map((service) => (
+                  <Link
+                    key={service.href}
+                    href={service.href}
+                    className="group rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 hover:border-[#16A34A] dark:hover:border-[#16A34A] transition-colors"
+                  >
+                    <span className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+                      <service.icon className="size-4 text-[#16A34A]" />
+                      {service.title}
+                    </span>
+                    <span className="mt-2 block text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                      {service.body}
+                    </span>
+                    <span className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-slate-400 group-hover:text-[#16A34A] transition-colors">
+                      {isDe ? "Mehr erfahren" : "Learn more"}
+                      <ArrowRight className="size-3" />
+                    </span>
+                  </Link>
+                ))}
               </div>
+            </section>
 
-              <div className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-4 shadow-sm">
-                <div className="flex items-center gap-3 text-[#16A34A] font-bold text-sm uppercase tracking-wider">
-                  <MapPin className="size-5" />
-                  <span>{isDe ? "Standort & Kontakt" : "Location & Contact"}</span>
-                </div>
-                <div className="space-y-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                  <div className="flex items-start gap-2.5">
-                    <MapPin className="size-4 text-slate-400 shrink-0 mt-0.5" />
-                    <span>{COMPANY.address.street}, {COMPANY.address.postalCode} {COMPANY.address.city}, {COMPANY.address.country}</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <Phone className="size-4 text-slate-400 shrink-0" />
-                    <span className="font-semibold text-slate-900 dark:text-white">{COMPANY.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <Mail className="size-4 text-slate-400 shrink-0" />
-                    <span className="font-semibold text-slate-900 dark:text-white">{COMPANY.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <Globe2 className="size-4 text-slate-400 shrink-0" />
-                    <Link href="/" className="font-bold text-[#16A34A] hover:underline">https://rhydm-tech.com/</Link>
-                  </div>
-                </div>
+            {/* FAQ */}
+            <section className="space-y-6">
+              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                {isDe
+                  ? "Häufige Fragen zu Rhydm Tech"
+                  : "Common questions about Rhydm Tech"}
+              </h2>
+              <Accordion items={faqs} />
+            </section>
+
+            {/* Contact CTA */}
+            <section className="rounded-3xl bg-emerald-500/10 border border-emerald-500/20 p-8 text-center space-y-4">
+              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                {isDe ? "Rhydm Tech kontaktieren" : "Contact Rhydm Tech"}
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+                {isDe
+                  ? "Sprechen Sie mit uns über die Abholung ausgemusterter IT, ein Datenvernichtungs-Zertifikat oder ein Angebot für refurbished Hardware."
+                  : "Talk to us about collecting retired IT, obtaining certificates of data destruction, or a quote for refurbished hardware."}
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 pt-2">
+                <Link
+                  href="/disposal/contact"
+                  className="rounded-full bg-[#16A34A] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#15803d] transition-colors"
+                >
+                  {isDe ? "Kontakt aufnehmen" : "Get in touch"}
+                </Link>
+                <Link
+                  href="/refurbished/shop"
+                  className="rounded-full border border-slate-300 dark:border-zinc-700 px-6 py-2.5 text-sm font-bold text-slate-900 dark:text-white hover:border-[#16A34A] transition-colors"
+                >
+                  {isDe ? "Zum Refurbished-Shop" : "Browse refurbished stock"}
+                </Link>
               </div>
-            </div>
-
-            {/* Core Questions Section */}
-            <div className="space-y-12">
-              
-              {/* Question 1: What is Rhydm Tech? */}
-              <section className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-4">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {isDe ? "Was ist Rhydm Tech?" : "What is Rhydm Tech?"}
-                </h2>
-                <div className="prose prose-slate max-w-none text-xs leading-relaxed text-slate-600 dark:text-slate-300 space-y-3">
-                  <p>
-                    {isDe
-                      ? "Rhydm Tech ist die führende Kundenmarke für nachhaltige Unternehmens-IT und Datenvernichtungslösungen. Als spezialisierte Technologiemarke verbindet Rhydm Tech die sichere Außerdienststellung von IT-Systemen mit der Aufarbeitung und Wiedervermarktung hochwertiger Hardware."
-                      : "Rhydm Tech is the customer-facing technology brand dedicated to sustainable enterprise hardware disposition and data security. Under the Rhydm Tech brand, businesses and consumers access certified IT Asset Disposition (ITAD), secure media sanitization, and high-performance refurbished electronics."}
-                  </p>
-                  <p>
-                    {isDe
-                      ? "Durch die Kombination aus moderner Datenlöschung und zirkulären Lieferketten ermöglicht Rhydm Tech Unternehmen in ganz Deutschland, Datenrisiken zu minimieren und ESG-Nachhaltigkeitsziele zu erreichen."
-                      : "By unifying NIST 800-88 data erasure with circular supply chains, Rhydm Tech enables organizations across Germany and Europe to eliminate data breach liabilities while achieving ambitious ESG carbon reduction targets."}
-                  </p>
-                </div>
-              </section>
-
-              {/* Question 2: What is Rhydm Technologies? */}
-              <section className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-4">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {isDe ? "Was ist Rhydm Technologies?" : "What is Rhydm Technologies?"}
-                </h2>
-                <div className="prose prose-slate max-w-none text-xs leading-relaxed text-slate-600 dark:text-slate-300 space-y-3">
-                  <p>
-                    {isDe
-                      ? `Rhydm Technologies (${COMPANY.legalName}) ist das rechtliche Mutterunternehmen hinter der Marke Rhydm Tech. Das Unternehmen ist in Berlin, Deutschland, ansässig und betreibt zertifizierte Logistik-, Audit- und Refurbishing-Prozesse.`
-                      : `Rhydm Technologies (${COMPANY.legalName}) is the official legal entity operating the Rhydm Tech brand. Headquartered in Berlin, Germany, Rhydm Technologies oversees all compliance, secure facility management, legal data protection contracts (AVV), and commercial operations.`}
-                  </p>
-                  <p>
-                    {isDe
-                      ? "Das Unternehmen wurde 2024 von Yash Saad gegründet mit der Vision, veraltete Entsorgungspraktiken durch auditierbare, zirkuläre IT-Lebenszyklen zu ersetzen."
-                      : "Founded in 2024 by Yash Saad, Rhydm Technologies operates from its Spandau facilities in Berlin, managing end-to-end ITAD workflows and corporate hardware buybacks for startups, Mittelstand companies, and enterprises."}
-                  </p>
-                </div>
-              </section>
-
-              {/* Question 3: What does Rhydm Tech do? */}
-              <section className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-6">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {isDe ? "Was macht Rhydm Tech?" : "What does Rhydm Tech do?"}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
-                      <HardDrive className="size-4 text-[#16A34A]" />
-                      <span>{isDe ? "Zertifizierte IT-Asset-Entsorgung (ITAD)" : "Certified IT Asset Disposal (ITAD)"}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      {isDe
-                        ? "Abholung, Inventarisierung und auditierbare Stilllegung von Laptops, Servern und Netzwerkgeräten."
-                        : "Secure collection, serial-level inventorying, and auditable decommissioning of enterprise IT assets."}
-                    </p>
-                  </div>
-
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
-                      <ShieldCheck className="size-4 text-[#16A34A]" />
-                      <span>{isDe ? "Sichere Datenvernichtung" : "Secure Data Destruction"}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      {isDe
-                        ? "Zertifizierte Datenlöschung nach NIST SP 800-88 R1 und physische Schredderung inklusive Löschzertifikaten."
-                        : "NIST 800-88 software wiping and physical media shredding backed by individual certificates of destruction."}
-                    </p>
-                  </div>
-
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
-                      <Cpu className="size-4 text-[#16A34A]" />
-                      <span>{isDe ? "Generalüberholte Hardware (Refurbished)" : "Certified Refurbished Hardware"}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      {isDe
-                        ? "Professionell getestete Business-Laptops, Desktops und Server mit 12 bis 24 Monaten Garantie."
-                        : "Rigorously tested business laptops, workstations, and servers with 12 to 24-month warranties."}
-                    </p>
-                  </div>
-
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
-                      <RefreshCw className="size-4 text-[#16A34A]" />
-                      <span>{isDe ? "Hardware-Rückkauf & Trade-In" : "Corporate Trade-In & Buybacks"}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      {isDe
-                        ? "Bewertung und Anrechnung des Restwerts alter Hardware für kostengünstige IT-Upgrades."
-                        : "Maximizing residual value recovery on decommissioned gear to credit toward replacement hardware."}
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* Question 4: Where is Rhydm Tech? */}
-              <section className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-4">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {isDe ? "Wo befindet sich Rhydm Tech?" : "Where is Rhydm Tech located?"}
-                </h2>
-                <div className="prose prose-slate max-w-none text-xs leading-relaxed text-slate-600 dark:text-slate-300 space-y-3">
-                  <p>
-                    {isDe
-                      ? `Rhydm Tech und das Mutterunternehmen Rhydm Technologies haben ihren Sitz in **Berlin, Deutschland**.`
-                      : `Rhydm Tech and its parent entity Rhydm Technologies are headquartered in **Berlin, Germany**.`}
-                  </p>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800 font-mono text-xs text-slate-800 dark:text-slate-200">
-                    <p className="font-bold text-slate-900 dark:text-white mb-1">Rhydm Technologies UG (haftungsbeschränkt)</p>
-                    <p>{COMPANY.address.street}</p>
-                    <p>{COMPANY.address.postalCode} {COMPANY.address.city}, {COMPANY.address.country}</p>
-                    <p className="mt-2 text-slate-500">Phone: {COMPANY.phone} | Email: {COMPANY.email}</p>
-                  </div>
-                </div>
-              </section>
-
-              {/* Question 5: What services does Rhydm Tech provide? */}
-              <section className="rounded-3xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 space-y-6">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {isDe ? "Welche Dienstleistungen bietet Rhydm Tech an?" : "What services does Rhydm Tech provide?"}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <Link href="/disposal/services" className="group p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 hover:border-[#16A34A] transition-all bg-white dark:bg-zinc-900 flex flex-col justify-between">
-                    <span className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-[#16A34A] transition-colors">
-                      {isDe ? "ITAD Services" : "ITAD Services"}
-                    </span>
-                    <span className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                      <span>{isDe ? "Übersicht ansehen" : "Explore Services"}</span>
-                      <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform text-[#16A34A]" />
-                    </span>
-                  </Link>
-
-                  <Link href="/refurbished" className="group p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 hover:border-[#16A34A] transition-all bg-white dark:bg-zinc-900 flex flex-col justify-between">
-                    <span className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-[#16A34A] transition-colors">
-                      {isDe ? "Refurbished Store" : "Refurbished Store"}
-                    </span>
-                    <span className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                      <span>{isDe ? "Shop besuchen" : "Visit Store"}</span>
-                      <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform text-[#16A34A]" />
-                    </span>
-                  </Link>
-
-                  <Link href="/about" className="group p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 hover:border-[#16A34A] transition-all bg-white dark:bg-zinc-900 flex flex-col justify-between">
-                    <span className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-[#16A34A] transition-colors">
-                      {isDe ? "Über Uns" : "About Company"}
-                    </span>
-                    <span className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                      <span>{isDe ? "Profil lesen" : "Read Profile"}</span>
-                      <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform text-[#16A34A]" />
-                    </span>
-                  </Link>
-                </div>
-              </section>
-
-            </div>
+            </section>
 
           </div>
         </main>

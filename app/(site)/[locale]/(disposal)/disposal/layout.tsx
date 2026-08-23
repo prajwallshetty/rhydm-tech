@@ -3,12 +3,12 @@ import { setRequestLocale } from "next-intl/server";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { DisposalFloatingNav } from "@/components/disposal/disposal-floating-nav";
-import { COMPANY } from "@/lib/business";
+import { BRAND } from "@/lib/business";
 
 export const metadata: Metadata = {
   title: {
     default: "Professional IT Asset Disposal & Secure Data Wiping",
-    template: `%s | ${COMPANY.name} Disposal`,
+    template: `%s | ${BRAND} Disposal`,
   },
   description:
     "Certified IT asset disposal, secure data wiping, hard drive destruction and e-waste recycling for enterprise IT estates.",

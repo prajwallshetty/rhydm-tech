@@ -32,6 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return createPageMetadata({
+    locale,
     title: post.title,
     description: post.excerpt ?? "",
     path: `/blog/${post.slug}`,
@@ -222,7 +223,7 @@ export default async function BlogPostPage({ params }: Props) {
     authorName: post.author?.name || "Rhydm Admin",
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,
-  });
+  }, locale);
 
   return (
     <>

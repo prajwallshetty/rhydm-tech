@@ -33,6 +33,10 @@ function stripLocale(pathname: string) {
 }
 
 export function proxy(request: NextRequest) {
+  // Canonical host is the apex domain. Everything on `www.` is permanently
+  // redirected here so one page is never reachable under two hostnames — the
+  // duplicate that stops Google merging "Rhydm Tech" into a single entity.
+  // Must stay in sync with SITE_URL in lib/business.ts.
   const host = request.headers.get("host");
   if (
     process.env.NODE_ENV === "production" &&

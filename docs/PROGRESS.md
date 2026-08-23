@@ -1,5 +1,97 @@
 # Build Progress
 
+> **2026-08-20 — brand entity SEO: one canonical host, one Organization, /rhydm-tech.**
+>
+> **The site was telling Google it was two companies.** The Impressum — the
+> page German law makes authoritative for company identity — gave
+> Müllerstraße 12, 13353 Berlin under "Rhydm Tech GmbH", while the Organization
+> schema, footer and /about gave Gartenfelder Str. 29, 13599 Berlin under
+> "Rhydm Technologies". Two phone numbers were live simultaneously. Confirmed
+> with the owner: Gartenfelder is correct, +49 15560 765557 is correct, and
+> there is no GmbH. All legal pages rewritten to match `COMPANY`; the
+> fabricated `HRB 99999 B`, `DE 123 456 789` and `+49 (0) 30 1234 5678` are
+> gone rather than replaced with new inventions — a made-up commercial register
+> entry is an Abmahnung risk, not just a bad entity signal. The VAT line is now
+> an explicit `[to be completed]` marker.
+>
+> **Canonical host flipped to the apex domain.** `proxy.ts` redirected
+> non-www -> www and `SITE_URL` hardcoded `https://www.rhydm-tech.com`, which
+> contradicted the brief. Both now point at `https://rhydm-tech.com`, and the
+> comment in each file names the other so they cannot drift; a canonical that
+> points at a host which immediately 301s is the fastest way to split an entity.
+>
+> **Canonicals were sitewide-wrong, not just host-wrong.** `alternatesForPath`
+> returned the bare path, so `/en/about` and `/de/about` both emitted
+> `canonical: https://rhydm-tech.com/about` — a URL that is in no hreflang set
+> and that redirects. The German page was declaring itself a duplicate of a
+> page that does not exist. `createPageMetadata` now takes `locale` (all 30
+> call sites updated) and emits a self-referencing, locale-prefixed canonical
+> matching its own hreflang entry. `x-default` added everywhere; `og:locale`
+> follows the page instead of being pinned to `en_US`.
+>
+> **One Organization node, everywhere.** Legal pages minted two extra anonymous
+> Organization nodes (Article author + publisher) and `personSchema`'s
+> `worksFor` re-declared `#organization` under the *other* name — so a legal
+> page carried three conflicting organisations. All are `@id` references now.
+> `Organization.name` is the legal entity, `alternateName` leads with
+> "Rhydm Tech" and includes bare "Rhydm"; a `Brand` node ties the two together.
+> `WebSite.name` is deliberately the inverse ("Rhydm Tech", alternate
+> "Rhydm Technologies"). Verified from built HTML: exactly one Organization per
+> page, on the homepage, brand page, /about, a legal page and a product page.
+>
+> **`/rhydm-tech`** is the new brand entity page (Phases 4/14) — H1 is the bare
+> brand, and it carries a *Rhydm is not "rhythm"* section that is genuinely
+> useful to a human and doubles as the disambiguation signal. AboutPage +
+> FAQPage + BreadcrumbList. Linked from every page footer with the brand as
+> anchor text. /about had ten excellent entity Q&As and shipped *no* structured
+> data at all; it now emits the same answers as FAQPage.
+>
+> **Product pages** had hand-rolled JSON-LD interpolated into a raw
+> `<script>` via `dangerouslySetInnerHTML` — admin-authored copy could break
+> out of the tag. Now the shared `productSchema` through `<JsonLd>` (which
+> escapes `</script>`), gaining images, warranty, per-drive seller `@id`,
+> breadcrumbs and real approved reviews. Schema page URLs are locale-prefixed
+> so `@id`, `offers.url` and the canonical agree exactly.
+>
+> **Two live bugs found on the way.** (1) The sitewide logo was broken: the
+> `getAdminSiteSettings` fallback pointed at `/logo.svg`, which does not exist,
+> and no settings row exists — so every page rendered a broken `<img>` with alt
+> text. Fallback is now empty, restoring the bundled `next/image` lockup.
+> (2) `components/brand/logo-provider.tsx` was `"use client"` yet held a
+> database call, so any Client Component importing `useLogo` dragged `lib/db`
+> into the browser graph and **the production build failed**. Split into
+> `logo-source.ts` with `import "server-only"` so the mistake fails at the
+> import site instead of inside a Turbopack trace.
+>
+> **Assets.** `build-brand-assets.mjs` had never been re-run against the
+> current `logo.png`, so the "trimmed" logo was the 531 KB original at
+> 2172x724 while the schema claimed 1200x370 — Google discards a logo whose
+> declared size is wrong. Regenerated (54 KB, 1200x370, declaration now true).
+> Root `/favicon.ico` — which Google fetches regardless of `<link rel=icon>` —
+> was a *previous* brand generation (all-green mark); synced to the current
+> blue+green one. New `scripts/build-og-image.mjs` produces the first real
+> 1200x630 sharing image; before this, shares reused the 3.24:1 lockup and were
+> cropped. The 662 KB `favicon.svg` is no longer referenced. Both manifests now
+> say "Rhydm Tech" (one said bare "Rhydm", the other "Rhydm Technologies").
+>
+> **Sitemap/robots can no longer contradict each other** — both derive from
+> `lib/seo/crawl.ts`, which splits `DISALLOWED_PATHS` (never linked, block) from
+> `NOINDEX_PATHS` (linked, so must stay crawlable for the noindex to be read).
+> The old robots.txt blocked cart/login/account *and* nothing served a noindex,
+> the worst combination. The sitemap also listed DRAFT products, whose pages
+> 404, and `/` prerendered a second full copy of the gateway with stale
+> branding; it is now a 307 to `/en`.
+>
+> **Verified:** build clean, 329/329 pages. tsc 0 errors. ESLint 256 problems
+> vs 257 on the pre-change baseline (no new issues). Responsive audit clean at
+> 320/360/375/390/412/430/768/1024/1440 on the new pages. No `www.rhydm-tech.com`
+> in any built HTML; 270 sitemap URLs, all apex, all with x-default.
+>
+> **Still open (needs a human):** VAT ID for the Impressum; whether the
+> LinkedIn/GitHub URLs in the admin defaults are real profiles (they are *not*
+> in `sameAs` — unverified profiles must never be asserted); Google Business
+> Profile and Search Console are account actions, not code.
+
 > **2026-08-19 — email system: Gmail OAuth, order/reset/marketing mail.**
 >
 > **Mail actually sends now.** `lib/services/notifications.ts` was a mock that

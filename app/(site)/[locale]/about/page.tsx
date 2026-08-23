@@ -13,6 +13,7 @@ type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   return createPageMetadata({
+    locale,
     title: locale === "de" ? "Über Rhydm Tech | Kreislauf-IT & Datenvernichtung" : "About Rhydm Tech | Circular IT & Data Destruction",
     description: locale === "de"
       ? "Erfahren Sie mehr über Rhydm Tech, ein in Berlin ansässiges Unternehmen für IT-Asset-Disposition (ITAD), Datenlöschung und refurbished IT."

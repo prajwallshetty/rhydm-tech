@@ -4,12 +4,12 @@ import { setRequestLocale } from "next-intl/server";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { FloatingNav } from "@/components/store/floating-nav";
 import { Toaster } from "@/components/ui/toast";
-import { COMPANY } from "@/lib/business";
+import { BRAND } from "@/lib/business";
 
 export const metadata: Metadata = {
   title: {
     default: "Certified Refurbished Laptops & IT Equipment",
-    template: `%s | ${COMPANY.name} Store`,
+    template: `%s | ${BRAND} Store`,
   },
   description:
     "Professionally refurbished laptops, desktops, servers, networking equipment and accessories — tested, graded and warranty-backed.",

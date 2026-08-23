@@ -1,7 +1,7 @@
 import NextLink from "next/link";
 
 import { Link } from "@/i18n/navigation";
-import { COMPANY, DIVISION_META, type Division } from "@/lib/business";
+import { DIVISION_META, WHATSAPP, type Division } from "@/lib/business";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Logo } from "@/components/brand/logo";
 
@@ -28,6 +28,23 @@ export async function SiteFooter({ division }: { division: Division }) {
 
             <p className="text-xs leading-relaxed text-slate-500 font-medium max-w-sm">
               {t("brandDescription")}
+            </p>
+
+            {/*
+              Site-wide link to the brand entity page with the brand itself as
+              the anchor. Every page therefore carries one descriptive internal
+              link to /rhydm-tech, which is what makes it the strongest
+              candidate for the "Rhydm Tech" query.
+            */}
+            <p className="text-xs leading-relaxed text-slate-500 font-medium max-w-sm">
+              <Link
+                href="/rhydm-tech"
+                className="font-semibold text-slate-700 hover:text-[#16A34A] transition-colors"
+              >
+                {t("aboutBrand")}
+              </Link>
+              <span className="mx-1.5 text-slate-300">·</span>
+              <span>{t("brandLine")}</span>
             </p>
 
             <p className="text-xs text-slate-400 font-medium pt-1">
@@ -89,12 +106,12 @@ export async function SiteFooter({ division }: { division: Division }) {
               <ul className="mt-4 space-y-2.5 text-xs text-slate-600 font-medium">
                 <li>
                   <a
-                    href="https://wa.me/4915560765557"
+                    href={WHATSAPP.getUrl()}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-[#16A34A] transition-colors font-semibold text-[#16A34A]"
                   >
-                    WhatsApp (+49 1556 0765557)
+                    WhatsApp ({WHATSAPP.number})
                   </a>
                 </li>
                 {settings.socials.map((social) => (

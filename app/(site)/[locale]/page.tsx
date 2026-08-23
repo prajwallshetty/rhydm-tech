@@ -17,6 +17,7 @@ export async function generateMetadata({
   const isDe = locale === "de";
 
   return createPageMetadata({
+    locale,
     title: isDe
       ? "Rhydm Tech – IT Asset Disposal & Refurbished IT"
       : "Rhydm Tech | IT Asset Disposal & Refurbished Technology",
@@ -69,9 +70,15 @@ export default async function GatewayPage({
           <Logo className="h-12 sm:h-14" priority />
         </FadeIn>
 
-        {/* Title & Subtitle */}
+        {/*
+          The H1 is the bare brand. This is the page Google ranks for the query
+          "Rhydm Tech", and the brand has to exist here as real crawlable text —
+          the logo above it is an image and carries no textual signal. The
+          paragraph beneath states the brand-to-company relationship once, in
+          plain prose, which is what lets the two names resolve to one entity.
+        */}
         <FadeIn delay={0.1} className="text-center space-y-3">
-          <h1 className="mx-auto max-w-2xl text-pretty text-2xl sm:text-4xl md:text-[2.75rem] font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+          <h1 className="mx-auto max-w-2xl text-pretty text-3xl sm:text-5xl md:text-[3.25rem] font-black tracking-tight leading-tight text-slate-900 dark:text-white">
             {t("title")}
           </h1>
           <p className="mx-auto max-w-2xl text-pretty text-xs sm:text-sm leading-relaxed text-muted-foreground">
@@ -80,6 +87,9 @@ export default async function GatewayPage({
         </FadeIn>
 
         {/* Gateway Cards Grid */}
+        <p className="text-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+          {t("subtitle")}
+        </p>
         <div className="grid gap-6 md:grid-cols-2 items-stretch flex-1">
           {divisions.map((division, index) => (
             <GatewayCard key={division.slug} division={division} index={index} />

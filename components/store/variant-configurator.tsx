@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { ProductGallery } from "@/components/store/product-gallery";
 import { AddToCart } from "@/components/store/add-to-cart";
 import { RatingStars } from "@/components/store/rating-stars";
+import { BRAND, WHATSAPP } from "@/lib/business";
 import { formatPrice, discountPercent, stockLabel } from "@/lib/format";
 import { ProductWithVariantsDTO, ProductVariantDTO } from "@/lib/data/variant-utils";
 import { cn } from "@/lib/utils";
@@ -329,7 +330,7 @@ export function VariantConfigurator({
                     Start a trade-in
                   </button>
                   <a
-                    href={`https://wa.me/4915166196889?text=${encodeURIComponent(`Hello Rhydm Technologies, I have a question about ${product.name} (SKU: ${sku}).`)}`}
+                    href={WHATSAPP.getUrl(`Hello ${BRAND}, I have a question about ${product.name} (SKU: ${sku}).`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-emerald-600/30 bg-white px-4 py-2.5 text-xs font-extrabold text-emerald-700 transition-colors hover:bg-emerald-50"

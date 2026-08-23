@@ -14,6 +14,7 @@ type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   return createPageMetadata({
+    locale,
     title: locale === "de" ? "Yash Saad — Gründer von Rhydm Tech" : "Yash Saad — Founder of Rhydm Tech",
     description: locale === "de"
       ? "Lernen Sie Yash Saad kennen, den Gründer von Rhydm Tech in Berlin. Führende IT-Asset-Disposition (ITAD), sichere Datenvernichtung und zirkuläre IT-Lösungen."

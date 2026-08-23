@@ -9,7 +9,13 @@ import { RatingStars } from "@/components/store/rating-stars";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { FadeIn } from "@/components/motion/fade-in";
-import { SITE_URL } from "@/lib/business";
+import { JsonLd } from "@/components/seo/json-ld";
+import { createProductMetadata } from "@/lib/seo/metadata";
+import {
+  breadcrumbSchema,
+  graphSchema,
+  productSchema,
+} from "@/lib/seo/schemas";
 import {
   getProductBySlug,
   getProductSlugs,
@@ -36,17 +42,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: t("notFound") };
   }
 
-  return {
-    title: product.name,
-    description: product.shortDescription ?? product.description ?? undefined,
-    alternates: { canonical: `/refurbished/products/${product.slug}` },
-    openGraph: {
-      title: product.name,
-      description: product.shortDescription ?? undefined,
-      url: `/refurbished/products/${product.slug}`,
-      type: "website",
-    },
-  };
+  // Shared factory: adds the canonical, hreflang + x-default, brand og:site_name,
+  // keywords and the sharing image that the hand-rolled object omitted.
+  return createProductMetadata({
+    locale,
+    name: product.name,
+    slug: product.slug,
+    description: product.shortDescription ?? product.description,
+    brandName: product.brand?.name,
+    categoryName: product.category?.name,
+    priceCents: product.priceCents,
+    condition: product.condition,
+    images: product.images.map((image) => ({
+      url: image.url,
+      alt: image.alt,
+    })),
+  });
 }
 
 export default async function ProductDetailPage({ params }: Props) {
@@ -73,41 +84,56 @@ export default async function ProductDetailPage({ params }: Props) {
     {},
   );
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.shortDescription ?? product.description ?? undefined,
-    sku: product.sku,
-    brand: product.brand
-      ? { "@type": "Brand", name: product.brand.name }
-      : undefined,
-    offers: {
-      "@type": "Offer",
-      url: `${SITE_URL}/refurbished/products/${product.slug}`,
-      priceCurrency: "EUR",
-      price: (product.priceCents / 100).toFixed(2),
-      itemCondition: "https://schema.org/RefurbishedCondition",
-      availability:
-        product.stock > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-    },
-    aggregateRating:
-      product.ratingCount > 0
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: product.ratingAvg,
-            reviewCount: product.ratingCount,
-          }
-        : undefined,
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      {/*
+        Rendered through <JsonLd>, which escapes any "</script>" inside the
+        payload. The previous inline <script> interpolated admin-authored
+        product copy straight into the tag, so a description could break out
+        of it. Offer, images, warranty and seller now come from the shared
+        generator, and the seller is an @id reference to the one Organization
+        node rather than a second copy of it.
+      */}
+      <JsonLd
+        data={graphSchema(
+          productSchema({
+            locale,
+            name: product.name,
+            slug: product.slug,
+            description: product.shortDescription ?? product.description,
+            sku: product.sku,
+            priceCents: product.priceCents,
+            compareAtCents: product.compareAtCents,
+            stock: product.stock,
+            condition: product.condition,
+            warrantyMonths: product.warrantyMonths,
+            ratingAvg: product.ratingAvg,
+            ratingCount: product.ratingCount,
+            brandName: product.brand?.name,
+            categoryName: product.category?.name,
+            images: product.images.map((image) => ({
+              url: image.url,
+              alt: image.alt,
+            })),
+            // Only moderator-approved reviews are loaded, so these are real
+            // customer reviews — never synthesised to earn stars.
+            reviews: product.reviews.map((review) => ({
+              author: review.author,
+              rating: review.rating,
+              body: review.body,
+              title: review.title,
+            })),
+          }),
+          breadcrumbSchema([
+            { name: t("crumbStore"), url: "/refurbished" },
+            { name: t("crumbShop"), url: "/refurbished/shop" },
+            {
+              name: product.category.name,
+              url: `/refurbished/categories/${product.category.slug}`,
+            },
+            { name: product.name },
+          ], locale),
+        )}
       />
 
       <div className="mx-auto max-w-7xl px-6 pt-8">
