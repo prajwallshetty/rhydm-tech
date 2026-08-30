@@ -44,8 +44,9 @@ const samples: Record<string, RenderedEmail> = {
     customerName: "Anna Müller",
     email: "anna@example.com",
     items: [
-      { name: 'Dell Latitude 7420 — 14" i7', sku: "DL-7420-I7", quantity: 1, priceCents: 74900, imageUrl: null },
-      { name: "HP EliteBook 840 G8", sku: "HP-840-G8", quantity: 2, priceCents: 61900, imageUrl: null },
+      { name: 'RAK Ceramics Antico Stone (600 × 1200 mm)', sku: "RAK-600X1200", quantity: 4, priceCents: 74900, imageUrl: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&auto=format&fit=crop" },
+      { name: "HP EliteBook 840 G8 (RAM: 16GB, Storage: 512GB)", sku: "HP-840-G8-16-512", quantity: 2, priceCents: 61900, imageUrl: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&auto=format&fit=crop" },
+      { name: "Custom Enterprise Fitting Kit", sku: "FIT-KIT-EXP", quantity: 1, priceCents: 15000, imageUrl: null },
     ],
     subtotalCents: 198700,
     shippingCents: 0,

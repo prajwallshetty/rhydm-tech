@@ -62,10 +62,20 @@ export async function getCartProducts(
     let warrantyMonths = baseProduct.warrantyMonths;
     let imageUrl = baseProduct.images?.[0]?.url ?? null;
     let name = baseProduct.name;
+    let resolvedVariantId = item.variantId;
 
-    if (item.variantId) {
-      const variant = pWithV.variants.find((v) => v.id === item.variantId);
+    if (pWithV.variants.length > 0) {
+      let variant = item.variantId
+        ? pWithV.variants.find((v) => v.id === item.variantId)
+        : null;
+
+      // If variantId is omitted or no longer matches, resolve to first variant
+      if (!variant) {
+        variant = pWithV.variants[0];
+      }
+
       if (variant) {
+        resolvedVariantId = variant.id;
         priceCents = variant.priceCents ?? priceCents;
         compareAtCents = variant.compareAtCents ?? compareAtCents;
         stock = variant.stock;
@@ -85,7 +95,7 @@ export async function getCartProducts(
 
     resolvedProducts.push({
       slug: item.slug,
-      variantId: item.variantId,
+      variantId: resolvedVariantId,
       name,
       priceCents,
       compareAtCents,

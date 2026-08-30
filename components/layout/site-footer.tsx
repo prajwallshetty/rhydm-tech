@@ -1,4 +1,5 @@
 import NextLink from "next/link";
+import Image from "next/image";
 
 import { Link } from "@/i18n/navigation";
 import { DIVISION_META, WHATSAPP, type Division } from "@/lib/business";
@@ -218,9 +219,9 @@ export async function SiteFooter({ division }: { division: Division }) {
           </div>
         </div>
 
-        {/* Giant Bottom Brand Watermark — Soft Light Watermark in Plain White Theme */}
-        <div className="mt-16 sm:mt-20 border-t border-slate-100 pt-6 pb-2 text-center overflow-hidden select-none">
-          <span aria-hidden className="block text-[10vw] sm:text-[11vw] font-bold tracking-tight text-slate-200/70 leading-none whitespace-nowrap">
+        {/* Bottom Brand Typography Watermark */}
+        <div className="mt-14 sm:mt-18 border-t border-slate-100/80 pt-8 pb-4 text-center overflow-hidden select-none pointer-events-none">
+          <span className="block text-[6.5vw] sm:text-[7.5vw] lg:text-[90px] font-black tracking-tight leading-none whitespace-nowrap bg-gradient-to-b from-slate-900/25 via-slate-800/15 to-transparent bg-clip-text text-transparent">
             Rhydm Technologies
           </span>
         </div>

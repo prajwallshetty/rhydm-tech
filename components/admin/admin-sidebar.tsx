@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { logoutAdminAction } from "@/app/(backend)/(admin)/admin/actions";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import { Logo } from "@/components/brand/logo";
 import { useAdminUi } from "@/lib/store/admin-ui";
 
@@ -122,7 +123,7 @@ export function AdminSidebar({
   const adminEmail = admin?.email || "";
   const initial = (adminName[0] || "A").toUpperCase();
 
-  const renderNav = (collapsedView: boolean) => (
+  const renderNav = (collapsedView: boolean, isMobile = false) => (
     <div className="flex h-full flex-col justify-between bg-white text-slate-800 dark:bg-card dark:text-card-foreground border-r border-slate-200/80 dark:border-border shadow-xs">
       <div>
         {/* Brand Header */}
@@ -137,10 +138,21 @@ export function AdminSidebar({
             className="inline-block group transition-transform hover:scale-105"
             aria-label="Dashboard"
           >
-            <Logo
-              variant={collapsedView ? "mark" : "lockup"}
-              className={cn("w-auto", collapsedView ? "h-8" : "h-10")}
-            />
+            {isMobile ? (
+              <Image
+                src="/brand/rhydm-logo.png"
+                alt="Rhydm Tech logo"
+                width={1200}
+                height={370}
+                priority
+                className="h-10 w-auto object-contain"
+              />
+            ) : (
+              <Logo
+                variant={collapsedView ? "mark" : "lockup"}
+                className={cn("w-auto", collapsedView ? "h-8" : "h-10")}
+              />
+            )}
           </Link>
 
           {/* Desktop collapse toggle */}
@@ -300,7 +312,7 @@ export function AdminSidebar({
           />
           <div className="relative w-72 max-w-[80vw] h-full shadow-2xl z-10">
             {/* The drawer is always expanded, regardless of desktop collapse. */}
-            {renderNav(false)}
+            {renderNav(false, true)}
           </div>
         </div>
       )}

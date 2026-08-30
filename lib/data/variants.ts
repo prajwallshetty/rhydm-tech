@@ -143,9 +143,16 @@ export async function getProductWithVariants(
       if (warranty === "12 Months") price += 3000; // +$30
 
       const generatedSku = generateVariantSku(product.sku, combo);
+      const optionKey = Object.entries(combo)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}:${v}`)
+        .join("-")
+        .toLowerCase()
+        .replace(/[^a-z0-9:-]/g, "_");
+      const stableId = `var-${product.id}-${optionKey}`;
 
       return {
-        id: `v-${idx}`,
+        id: stableId,
         productId: product.id,
         sku: generatedSku,
         barcode: null,

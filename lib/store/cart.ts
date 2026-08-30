@@ -61,7 +61,7 @@ type StoreState = {
 
   toggleWishlist: (slug: string) => void;
   removeFromWishlist: (slug: string) => void;
-  moveToCart: (slug: string) => void;
+  moveToCart: (slug: string, variantId?: string) => void;
 
   toggleCompare: (slug: string) => void;
   clearCompare: () => void;
@@ -82,11 +82,14 @@ export const useStore = create<StoreState>()(
 
       addToCart: (slug, quantity = 1, options) =>
         set((state) => {
+          const targetVariantId = options?.variantId || null;
+          const targetTradeIn = JSON.stringify(options?.tradeIn || null);
+
           const existingIndex = state.cart.findIndex(
             (line) =>
               line.slug === slug &&
-              (line.variantId || null) === (options?.variantId || null) &&
-              JSON.stringify(line.tradeIn || null) === JSON.stringify(options?.tradeIn || null),
+              (line.variantId || null) === targetVariantId &&
+              JSON.stringify(line.tradeIn || null) === targetTradeIn,
           );
           if (existingIndex >= 0) {
             const updated = [...state.cart];
@@ -112,34 +115,40 @@ export const useStore = create<StoreState>()(
         }),
 
       setQuantity: (slug, quantity, variantId) =>
-        set((state) => ({
-          cart:
-            quantity <= 0
-              ? state.cart.filter(
-                  (line) =>
-                    !(
-                      line.slug === slug &&
-                      (variantId ? line.variantId === variantId : true)
-                    ),
-                )
-              : state.cart.map((line) =>
-                  line.slug === slug &&
-                  (variantId ? line.variantId === variantId : true)
-                    ? { ...line, quantity }
-                    : line,
-                ),
-        })),
+        set((state) => {
+          const targetVariantId = variantId || null;
+          return {
+            cart:
+              quantity <= 0
+                ? state.cart.filter(
+                    (line) =>
+                      !(
+                        line.slug === slug &&
+                        (line.variantId || null) === targetVariantId
+                      ),
+                  )
+                : state.cart.map((line) =>
+                    line.slug === slug &&
+                    (line.variantId || null) === targetVariantId
+                      ? { ...line, quantity }
+                      : line,
+                  ),
+          };
+        }),
 
       removeFromCart: (slug, variantId) =>
-        set((state) => ({
-          cart: state.cart.filter(
-            (line) =>
-              !(
-                line.slug === slug &&
-                (variantId ? line.variantId === variantId : true)
-              ),
-          ),
-        })),
+        set((state) => {
+          const targetVariantId = variantId || null;
+          return {
+            cart: state.cart.filter(
+              (line) =>
+                !(
+                  line.slug === slug &&
+                  (line.variantId || null) === targetVariantId
+                ),
+            ),
+          };
+        }),
 
       clearCart: () => set({ cart: [] }),
 
@@ -155,18 +164,22 @@ export const useStore = create<StoreState>()(
           wishlist: state.wishlist.filter((s) => s !== slug),
         })),
 
-      moveToCart: (slug) =>
+      moveToCart: (slug, variantId) =>
         set((state) => {
-          const existing = state.cart.find((line) => line.slug === slug);
+          const targetVariantId = variantId || null;
+          const existing = state.cart.find(
+            (line) =>
+              line.slug === slug && (line.variantId || null) === targetVariantId,
+          );
           return {
             wishlist: state.wishlist.filter((s) => s !== slug),
             cart: existing
               ? state.cart.map((line) =>
-                  line.slug === slug
+                  line.slug === slug && (line.variantId || null) === targetVariantId
                     ? { ...line, quantity: line.quantity + 1 }
                     : line,
                 )
-              : [...state.cart, { slug, quantity: 1 }],
+              : [...state.cart, { slug, quantity: 1, variantId: variantId || undefined }],
           };
         }),
 

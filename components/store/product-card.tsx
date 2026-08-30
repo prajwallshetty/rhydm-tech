@@ -141,16 +141,12 @@ export function ProductCard({
           type="button"
           onClick={() => {
             if (adding || added) return;
-            setAdding(true);
+            addToCart(product.slug);
+            setAdded(true);
+            push(t("addedCart", { name: product.name }), "check");
             setTimeout(() => {
-              addToCart(product.slug);
-              setAdding(false);
-              setAdded(true);
-              push(t("addedCart", { name: product.name }), "check");
-              setTimeout(() => {
-                setAdded(false);
-              }, 1600);
-            }, 650);
+              setAdded(false);
+            }, 1600);
           }}
           disabled={product.stock <= 0 || adding}
           aria-label={t("addToCart") + ": " + product.name}

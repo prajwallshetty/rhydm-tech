@@ -123,7 +123,7 @@ export function VariantConfigurator({
         return Object.entries(selectedOptions).every(
           ([optName, optVal]) => v.selectedOptions[optName] === optVal,
         );
-      }) || null
+      }) || product.variants[0] || null
     );
   }, [product.variants, selectedOptions]);
 

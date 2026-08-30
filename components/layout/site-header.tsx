@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import Image from "next/image";
 import { Logo } from "@/components/brand/logo";
 import { SwitchBusiness } from "@/components/layout/switch-business";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -105,7 +106,14 @@ export function SiteHeader({ division }: { division: Division }) {
             >
               <div>
                 <div className="flex items-center justify-between border-b border-border/60 pb-4">
-                  <Logo variant="lockup" className="h-9" />
+                  <Image
+                    src="/brand/rhydm-logo.png"
+                    alt="Rhydm Tech logo"
+                    width={1200}
+                    height={370}
+                    priority
+                    className="h-9 w-auto object-contain"
+                  />
                   <button
                     onClick={() => setOpen(false)}
                     className="grid size-9 place-items-center rounded-lg border border-border/70 text-muted-foreground"

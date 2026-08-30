@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { usePathname } from "@/i18n/navigation";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "motion/react";
 import { Search, User, ArrowUpRight, Menu, X, PhoneCall } from "lucide-react";
+import Image from "next/image";
 
 import { useTranslations } from "next-intl";
 
@@ -137,7 +138,14 @@ export function DisposalFloatingNav() {
             >
               <div>
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <Logo variant="lockup" className="h-9" />
+                  <Image
+                    src="/brand/rhydm-logo.png"
+                    alt="Rhydm Tech logo"
+                    width={1200}
+                    height={370}
+                    priority
+                    className="h-9 w-auto object-contain"
+                  />
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"

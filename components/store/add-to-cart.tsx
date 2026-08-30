@@ -82,26 +82,22 @@ export function AddToCart({
           type="button"
           onClick={() => {
             if (adding || added) return;
-            setAdding(true);
+            addToCart(slug, quantity, {
+              variantId,
+              selectedOptions,
+              variantSku,
+              tradeIn,
+            });
+            setAdded(true);
+            push(
+              quantity > 1
+                ? t("addedCartQty", { count: quantity, name })
+                : t("addedCart", { name }),
+              "check",
+            );
             setTimeout(() => {
-              addToCart(slug, quantity, {
-                variantId,
-                selectedOptions,
-                variantSku,
-                tradeIn,
-              });
-              setAdding(false);
-              setAdded(true);
-              push(
-                quantity > 1
-                  ? t("addedCartQty", { count: quantity, name })
-                  : t("addedCart", { name }),
-                "check",
-              );
-              setTimeout(() => {
-                setAdded(false);
-              }, 1600);
-            }, 650);
+              setAdded(false);
+            }, 1600);
           }}
           disabled={outOfStock || adding}
           className={cn(

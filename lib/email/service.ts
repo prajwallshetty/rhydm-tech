@@ -313,7 +313,7 @@ export const EmailService = {
       ? await db.productImage.findMany({
           where: { productId: { in: productIds } },
           orderBy: { position: "asc" },
-          select: { productId: true, url: true },
+          select: { productId: true, url: true, assetId: true, asset: { select: { url: true } } },
         })
       : [];
 
@@ -321,18 +321,24 @@ export const EmailService = {
       ? await db.productVariantImage.findMany({
           where: { variantId: { in: variantIds } },
           orderBy: { position: "asc" },
-          select: { variantId: true, url: true },
+          select: { variantId: true, url: true, assetId: true, asset: { select: { url: true } } },
         })
       : [];
 
     const firstProductImage = new Map<string, string>();
     for (const img of productImages) {
-      if (!firstProductImage.has(img.productId)) firstProductImage.set(img.productId, img.url);
+      const resolvedUrl = (img.url && img.url.trim().length > 0) ? img.url : (img.asset?.url ?? null);
+      if (resolvedUrl && !firstProductImage.has(img.productId)) {
+        firstProductImage.set(img.productId, resolvedUrl);
+      }
     }
 
     const firstVariantImage = new Map<string, string>();
     for (const img of variantImages) {
-      if (!firstVariantImage.has(img.variantId)) firstVariantImage.set(img.variantId, img.url);
+      const resolvedUrl = (img.url && img.url.trim().length > 0) ? img.url : (img.asset?.url ?? null);
+      if (resolvedUrl && !firstVariantImage.has(img.variantId)) {
+        firstVariantImage.set(img.variantId, resolvedUrl);
+      }
     }
 
     const address = (order.shippingAddress ?? null) as OrderEmailInput["shippingAddress"];
@@ -340,26 +346,26 @@ export const EmailService = {
 
     const renderMessage = (logoUrl: string | null) =>
       renderOrderConfirmation({
-      orderNumber: order.orderNumber,
-      orderDate: order.createdAt,
-      customerName,
-      email: order.email,
-      items: order.items.map((item) => {
-        let imageUrl: string | null = null;
-        if (item.variantId) {
-          imageUrl = firstVariantImage.get(item.variantId) ?? null;
-        }
-        if (!imageUrl && item.productId) {
-          imageUrl = firstProductImage.get(item.productId) ?? null;
-        }
-        return {
-          name: item.name,
-          sku: item.sku,
-          quantity: item.quantity,
-          priceCents: item.priceCents,
-          imageUrl,
-        };
-      }),
+        orderNumber: order.orderNumber,
+        orderDate: order.createdAt,
+        customerName,
+        email: order.email,
+        items: order.items.map((item) => {
+          let imageUrl: string | null = null;
+          if (item.variantId) {
+            imageUrl = firstVariantImage.get(item.variantId) ?? null;
+          }
+          if (!imageUrl && item.productId) {
+            imageUrl = firstProductImage.get(item.productId) ?? null;
+          }
+          return {
+            name: item.name,
+            sku: item.sku,
+            quantity: item.quantity,
+            priceCents: item.priceCents,
+            imageUrl,
+          };
+        }),
       subtotalCents: order.subtotalCents,
       shippingCents: order.shippingCents,
       taxCents: order.taxCents,

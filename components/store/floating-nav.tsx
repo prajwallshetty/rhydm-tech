@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "motion/react";
 import { Search, Heart, ShoppingBag, User, ArrowUpRight, Menu, X } from "lucide-react";
+import Image from "next/image";
 
 import { useTranslations } from "next-intl";
 
@@ -207,7 +208,14 @@ export function FloatingNav() {
               <div>
                 {/* Header inside drawer */}
                 <div className="flex items-center justify-between border-b border-border/60 pb-4">
-                  <Logo variant="lockup" className="h-9" />
+                  <Image
+                    src="/brand/rhydm-logo.png"
+                    alt="Rhydm Tech logo"
+                    width={1200}
+                    height={370}
+                    priority
+                    className="h-9 w-auto object-contain"
+                  />
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="grid size-9 place-items-center rounded-full border border-border text-foreground hover:bg-muted cursor-pointer"

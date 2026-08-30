@@ -61,18 +61,33 @@ export interface OrderEmailInput {
 }
 
 function orderItemRow(item: OrderEmailItem): string {
-  const rawUrl = item.imageUrl || "/brand/placeholder-product.png";
-  const imageUrl = rawUrl.startsWith("http") ? rawUrl : emailUrl(rawUrl);
+  let thumb = "";
+  if (item.imageUrl && item.imageUrl.trim().length > 0) {
+    const rawUrl = item.imageUrl.trim();
+    const imageUrl =
+      rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+        ? rawUrl
+        : emailUrl(rawUrl);
 
-  const thumb = `<img src="${esc(imageUrl)}" width="56" height="56" alt="${esc(item.name)}"
-         style="display:block;width:56px;height:56px;border-radius:8px;border:1px solid ${BRAND.hairline};object-fit:cover;">`;
+    thumb = `<img src="${esc(imageUrl)}" width="64" height="64" alt="${esc(item.name)}"
+         style="display:block;width:64px;height:64px;border-radius:8px;border:1px solid ${BRAND.hairline};object-fit:cover;">`;
+  } else {
+    thumb = `<table role="presentation" width="64" height="64" cellpadding="0" cellspacing="0" border="0"
+         style="width:64px;height:64px;border-radius:8px;border:1px solid ${BRAND.hairline};background:${BRAND.surface};text-align:center;">
+      <tr>
+        <td align="center" valign="middle" style="font-family:${FONT};font-size:9px;font-weight:600;color:${BRAND.muted};line-height:1.2;">
+          No Image
+        </td>
+      </tr>
+    </table>`;
+  }
 
   return `
   <tr>
-    <td style="padding:12px 0;border-bottom:1px solid ${BRAND.hairline};" valign="top" width="72">${thumb}</td>
+    <td style="padding:12px 0;border-bottom:1px solid ${BRAND.hairline};" valign="top" width="76">${thumb}</td>
     <td style="padding:12px 0;border-bottom:1px solid ${BRAND.hairline};font-family:${FONT};" valign="top">
       <div style="font-size:14px;font-weight:700;color:${BRAND.ink};">${esc(item.name)}</div>
-      <div style="font-size:12px;color:${BRAND.muted};margin-top:2px;">SKU ${esc(item.sku)} &middot; Qty ${item.quantity}</div>
+      <div style="font-size:12px;color:${BRAND.muted};margin-top:3px;">SKU ${esc(item.sku)} &middot; Qty ${item.quantity}</div>
     </td>
     <td align="right" style="padding:12px 0;border-bottom:1px solid ${BRAND.hairline};font-family:${FONT};font-size:14px;font-weight:700;color:${BRAND.ink};white-space:nowrap;" valign="top">
       ${esc(money(item.priceCents * item.quantity))}
