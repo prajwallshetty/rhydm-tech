@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { getCategories } from "@/lib/repositories/store";
 import { CategoriesClient } from "./categories-client";
 
@@ -13,7 +14,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "store.pages" });
-  return { title: t("categoriesMetaTitle"), description: t("categoriesMetaDescription") };
+  return createPageMetadata({
+    locale,
+    title: t("categoriesMetaTitle"),
+    description: t("categoriesMetaDescription"),
+    path: "/refurbished/categories",
+  });
 }
 
 export default async function CategoriesPage({

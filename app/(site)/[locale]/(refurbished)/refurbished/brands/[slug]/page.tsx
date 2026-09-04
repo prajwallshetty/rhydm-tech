@@ -5,11 +5,12 @@ import { Pagination } from "@/components/store/pagination";
 import { ProductGrid } from "@/components/store/product-grid";
 import { SortSelect } from "@/components/store/sort-select";
 import { PageHeader } from "@/components/ui/page-header";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { getBrandBySlug, getBrands, getProducts } from "@/lib/repositories/store";
 import { buildPageHref, parseFilters, type RawSearchParams } from "@/lib/search-params";
 
 type Props = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<RawSearchParams>;
 };
 
@@ -19,16 +20,21 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const brand = await getBrandBySlug(slug);
 
   if (!brand) return { title: "Brand not found" };
 
-  return {
+  // Shared factory: query params (sort/price/page) never reach here, so the
+  // canonical always points to the clean brand URL rather than a filtered
+  // or paginated variant.
+  return createPageMetadata({
+    locale,
     title: `Refurbished ${brand.name} Equipment`,
-    description: `Certified refurbished ${brand.name} hardware — tested, graded and warranty-backed.`,
-    alternates: { canonical: `/refurbished/brands/${brand.slug}` },
-  };
+    description: `Certified refurbished ${brand.name} hardware — tested, graded and warranty-backed by Rhydm Tech.`,
+    path: `/refurbished/brands/${brand.slug}`,
+    keywords: [`${brand.name} refurbished`, `refurbished ${brand.name}`],
+  });
 }
 
 export default async function BrandPage({ params, searchParams }: Props) {

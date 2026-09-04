@@ -8,6 +8,7 @@ import { ProductThumb } from "@/components/store/product-thumb";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { FadeIn } from "@/components/motion/fade-in";
 import { discountPercent, formatPrice } from "@/lib/format";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { getDeals } from "@/lib/repositories/store";
 
 export async function generateMetadata({
@@ -17,7 +18,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "store.deals" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return createPageMetadata({
+    locale,
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/refurbished/deals",
+  });
 }
 
 export default async function DealsPage({

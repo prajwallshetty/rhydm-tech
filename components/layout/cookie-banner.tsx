@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Cookie, Shield, Settings, X, Check } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 interface CookiePreferences {
@@ -126,8 +127,8 @@ export function CookieBanner() {
             {!showCustomize ? (
               <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                 We use cookies to secure payments, optimize website speed, personalize content, and analyze traffic. You can choose to accept all cookies or configure your preferences. Read our{" "}
-                <a href="/cookie-policy" className="text-[#16A34A] font-bold hover:underline">Cookie Policy</a> and{" "}
-                <a href="/privacy-policy" className="text-[#16A34A] font-bold hover:underline">Privacy Policy</a>.
+                <Link href="/cookie-policy" className="text-[#16A34A] font-bold hover:underline">Cookie Policy</Link> and{" "}
+                <Link href="/privacy-policy" className="text-[#16A34A] font-bold hover:underline">Privacy Policy</Link>.
               </p>
             ) : (
               <div className="space-y-4 max-h-[220px] overflow-y-auto pr-1">

@@ -6,6 +6,7 @@ import { ProductFilters } from "@/components/store/product-filters";
 import { ProductGrid } from "@/components/store/product-grid";
 import { SortSelect } from "@/components/store/sort-select";
 import { PageHeader } from "@/components/ui/page-header";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import {
   getBrands,
   getCategories,
@@ -14,13 +15,25 @@ import {
 } from "@/lib/repositories/store";
 import { buildPageHref, parseFilters, type RawSearchParams } from "@/lib/search-params";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("store.pages");
-  return { title: t("shopMetaTitle"), description: t("shopMetaDescription") };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "store.pages" });
+  // Canonical is the clean /shop URL — ?sort=/?category=/?page= variants all
+  // consolidate here instead of being indexed as separate duplicate pages.
+  return createPageMetadata({
+    locale,
+    title: t("shopMetaTitle"),
+    description: t("shopMetaDescription"),
+    path: "/refurbished/shop",
+  });
 }
 
 // Next 16: searchParams is a Promise.
-type Props = { searchParams: Promise<RawSearchParams> };
+type Props = { params: Promise<{ locale: string }>; searchParams: Promise<RawSearchParams> };
 
 export default async function ShopPage({ searchParams }: Props) {
   const params = await searchParams;
