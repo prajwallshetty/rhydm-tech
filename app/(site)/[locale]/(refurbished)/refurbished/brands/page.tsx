@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { getBrands } from "@/lib/repositories/store";
 import { BrandsClient } from "./brands-client";
 
@@ -13,7 +14,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "store.pages" });
-  return { title: t("brandsMetaTitle"), description: t("brandsMetaDescription") };
+  return createPageMetadata({
+    locale,
+    title: t("brandsMetaTitle"),
+    description: t("brandsMetaDescription"),
+    path: "/refurbished/brands",
+  });
 }
 
 export default async function BrandsPage({

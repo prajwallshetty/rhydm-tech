@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, Laptop, ShieldCheck } from "lucide-react";
 
+import { Link } from "@/i18n/navigation";
 import { rememberDivision } from "@/lib/division-preference";
 import type { DivisionMeta } from "@/lib/business";
 import { cn } from "@/lib/utils";

@@ -6,6 +6,7 @@ import { ProductFilters } from "@/components/store/product-filters";
 import { ProductGrid } from "@/components/store/product-grid";
 import { SortSelect } from "@/components/store/sort-select";
 import { PageHeader } from "@/components/ui/page-header";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import {
   getBrands,
   getCategories,
@@ -16,7 +17,7 @@ import {
 import { buildPageHref, parseFilters, type RawSearchParams } from "@/lib/search-params";
 
 type Props = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<RawSearchParams>;
 };
 
@@ -26,16 +27,23 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const category = await getCategoryBySlug(slug);
 
   if (!category) return { title: "Category not found" };
 
-  return {
+  // Shared factory: query params (sort/brand/price/page) never reach here, so
+  // the canonical always points to the clean category URL — the fix for
+  // filtered/paginated variants being indexed as separate duplicate pages.
+  return createPageMetadata({
+    locale,
     title: `Refurbished ${category.name}`,
-    description: category.description ?? undefined,
-    alternates: { canonical: `/refurbished/categories/${category.slug}` },
-  };
+    description:
+      category.description ??
+      `Shop certified refurbished ${category.name} — tested, graded and warranty-backed by Rhydm Tech.`,
+    path: `/refurbished/categories/${category.slug}`,
+    keywords: [`refurbished ${category.name}`, category.name],
+  });
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {

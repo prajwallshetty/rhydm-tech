@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { SupportClient } from "./support-client";
 
 export async function generateMetadata({
@@ -10,10 +11,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return {
+  return createPageMetadata({
+    locale,
     title: "Customer Support — Rhydm Refurbished",
     description: "Get assistance with your order, returns, shipping, or warranty claims.",
-  };
+    path: "/refurbished/support",
+    absoluteTitle: true,
+  });
 }
 
 export default async function SupportPage({
