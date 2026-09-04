@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // Absolute: this page's whole job is to be the definitive result for the
     // brand query, so the title leads with the brand and names the company
     // rather than appending the usual "| Rhydm Tech" suffix to something else.
-    title: `${BRAND} — ${COMPANY.legalName}`,
+    title: `${BRAND} — ${COMPANY.name}`,
     absoluteTitle: true,
     description: isDe
       ? "Rhydm Tech ist die Technologiemarke von Rhydm Technologies in Berlin: IT-Asset-Entsorgung (ITAD), sichere Datenvernichtung, refurbished IT-Technik und Ankauf gebrauchter Hardware."
@@ -47,7 +47,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Rhydm",
       "Rhydm Tech",
       "Rhydm Technologies",
-      "Rhydm Tech Berlin",
       "Rhydm ITAD",
       "Rhydm refurbished",
     ],
@@ -195,7 +194,7 @@ export default async function RhydmTechBrandPage({ params }: Props) {
     {
       icon: Building2,
       label: isDe ? "Unternehmen" : "Company",
-      value: COMPANY.legalName,
+      value: COMPANY.name,
     },
     {
       icon: User,
@@ -225,7 +224,7 @@ export default async function RhydmTechBrandPage({ params }: Props) {
             "@type": "AboutPage",
             "@id": `${SITE_URL}${PATH}#webpage`,
             url: `${SITE_URL}${PATH}`,
-            name: `${BRAND} — ${COMPANY.legalName}`,
+            name: `${BRAND} — ${COMPANY.name}`,
             description: COMPANY.description,
             inLanguage: locale,
             isPartOf: { "@id": `${SITE_URL}/#website` },

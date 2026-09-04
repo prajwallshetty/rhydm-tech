@@ -106,7 +106,7 @@ export function SupportClient() {
             <Phone className="size-6 text-[#2E6F40] mx-auto mb-2" />
             <h4 className="text-xs font-bold text-slate-900">Call Us</h4>
             <p className="mt-1 text-[11px] text-slate-600 font-bold">
-              +49 15560 765557
+              +49 1556 0765557
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-xs">

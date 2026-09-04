@@ -1237,8 +1237,8 @@ export async function getAdminSiteSettings(): Promise<SiteSettings> {
   return ((section?.content as unknown as SiteSettings) || {
     companyName: "Rhydm Technologies",
     tagline: "Enterprise IT Asset Disposal & Refurbished Electronics",
-    email: "hello@rhydm.tech",
-    phone: "+49 15560 765557",
+    email: "hello@rhydm-tech.com",
+    phone: "+49 1556 0765557",
     address: "Gartenfelder Str. 29, Büro 7/Gebäude 35, 2 Etage, 13599 Berlin, Germany",
     twitterUrl: "https://x.com/Rhydmtech",
     instagramUrl: "https://www.instagram.com/rhydm.tech/",

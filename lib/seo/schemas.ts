@@ -63,10 +63,12 @@ export function organizationSchema() {
   return {
     "@type": "Organization",
     "@id": `${SITE_URL}/#organization`,
-    // Registered entity is the `name`; the brand people actually search for is
-    // the first `alternateName`. Keeping "Rhydm" in the list is what tells
-    // Google the bare token is this entity and not a misspelling of "rhythm".
-    name: COMPANY.legalName,
+    // Full company name is the `name`; the registered legal form (with its
+    // "UG (haftungsbeschränkt)" suffix) lives only in `legalName`. The brand
+    // people actually search for is the first `alternateName`. Keeping
+    // "Rhydm" in the list is what tells Google the bare token is this entity
+    // and not a misspelling of "rhythm".
+    name: COMPANY.name,
     legalName: COMPANY.legalName,
     alternateName: [BRAND, "Rhydm", "Rhydm-Tech"],
     // Explicit brand node so "Rhydm Tech" resolves as a Brand owned by
@@ -75,7 +77,7 @@ export function organizationSchema() {
       "@type": "Brand",
       "@id": `${SITE_URL}/#brand`,
       name: BRAND,
-      alternateName: COMPANY.legalName,
+      alternateName: COMPANY.name,
       url: `${SITE_URL}/rhydm-tech`,
       logo: abs(LOGO.path),
     },
@@ -129,7 +131,7 @@ export function websiteSchema() {
     // alternateName. Phase 6 of the brand spec — deliberately the inverse of
     // the Organization node above, which leads with the legal entity.
     name: BRAND,
-    alternateName: [COMPANY.legalName, "Rhydm", "rhydm-tech.com"],
+    alternateName: [COMPANY.name, "Rhydm", "rhydm-tech.com"],
     url: url,
     description: COMPANY.description,
     publisher: { "@id": `${SITE_URL}/#organization` },

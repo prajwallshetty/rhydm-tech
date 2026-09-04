@@ -63,7 +63,7 @@ export const metadata: Metadata = {
         url: `${SITE_URL}${OG_IMAGE.path}`,
         width: OG_IMAGE.width,
         height: OG_IMAGE.height,
-        alt: `${BRAND} — ${COMPANY.legalName}`,
+        alt: `${BRAND} — ${COMPANY.name}`,
       },
     ],
   },

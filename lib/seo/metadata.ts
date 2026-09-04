@@ -114,7 +114,7 @@ export function createPageMetadata(opts: PageMetadataOptions): Metadata {
   // Every page shares one brand sharing image unless it has a better one of
   // its own, so a link to any page previews as Rhydm Tech rather than blank.
   const image = ogImage ?? `${SITE_URL}${OG_IMAGE.path}`;
-  const imageAlt = ogImage ? title : `${BRAND} — ${COMPANY.legalName}`;
+  const imageAlt = ogImage ? title : `${BRAND} — ${COMPANY.name}`;
 
   return {
     title: absoluteTitle ? { absolute: title } : title,
@@ -228,7 +228,7 @@ export function createServiceMetadata(
       "IT Asset Disposal",
       "ITAD",
       BRAND,
-      COMPANY.legalName,
+      COMPANY.name,
     ],
   });
 }

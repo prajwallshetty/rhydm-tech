@@ -7,9 +7,13 @@ import { Toaster } from "@/components/ui/toast";
 import { BRAND } from "@/lib/business";
 
 export const metadata: Metadata = {
+  // Template matches the root layout's exactly ("%s | Rhydm Tech"). A
+  // division-specific suffix ("... Store") here would override the root's
+  // for every page below it, so the whole storefront would title itself
+  // "... | Rhydm Tech Store" — a second, competing brand string.
   title: {
     default: "Certified Refurbished Laptops & IT Equipment",
-    template: `%s | ${BRAND} Store`,
+    template: `%s | ${BRAND}`,
   },
   description:
     "Professionally refurbished laptops, desktops, servers, networking equipment and accessories — tested, graded and warranty-backed.",

@@ -6,9 +6,13 @@ import { DisposalFloatingNav } from "@/components/disposal/disposal-floating-nav
 import { BRAND } from "@/lib/business";
 
 export const metadata: Metadata = {
+  // Template matches the root layout's exactly ("%s | Rhydm Tech"). A
+  // division-specific suffix ("... Disposal") here would override the root's
+  // for every page below it, so the whole disposal division would title
+  // itself "... | Rhydm Tech Disposal" — a second, competing brand string.
   title: {
     default: "Professional IT Asset Disposal & Secure Data Wiping",
-    template: `%s | ${BRAND} Disposal`,
+    template: `%s | ${BRAND}`,
   },
   description:
     "Certified IT asset disposal, secure data wiping, hard drive destruction and e-waste recycling for enterprise IT estates.",

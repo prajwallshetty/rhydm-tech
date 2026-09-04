@@ -88,11 +88,13 @@ export const DIVISION_LIST: DivisionMeta[] = DIVISIONS.map(
  * Brand vs. legal entity.
  *
  * `BRAND` ("Rhydm Tech") is the customer-facing name and the string users
- * actually type into Google. `COMPANY.legalName` ("Rhydm Technologies") is the
- * registered entity behind it. Search engines only merge the two into one
- * entity if the site says so consistently, so presentation surfaces (titles,
- * og:site_name, logo alt, manifest) use BRAND while legal/structured-data
- * surfaces (Impressum, Organization.legalName) use the full company name.
+ * actually type into Google. `COMPANY.name` ("Rhydm Technologies") is the
+ * full company name; `COMPANY.legalName` adds the registered legal form
+ * ("... UG (haftungsbeschränkt)") on top of it. Search engines only merge the
+ * two into one entity if the site says so consistently, so presentation
+ * surfaces (titles, og:site_name, logo alt, manifest, Organization.name) use
+ * BRAND or COMPANY.name, while only the Impressum and Organization.legalName
+ * use the full registered legal form.
  */
 export const BRAND = "Rhydm Tech" as const;
 
